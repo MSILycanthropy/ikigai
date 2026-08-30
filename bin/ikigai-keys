@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# Keybinding cheatsheet, built from the same files cosmic-comp reads:
+# defaults + custom (custom wins per binding), System(X) resolved via system_actions.
+set -euo pipefail
+
+C=com.system76.CosmicSettings.Shortcuts/v1
+cfg() {
+  local f="$C/$1" d
+  [ -f "$HOME/.config/cosmic/$f" ] && { echo "$HOME/.config/cosmic/$f"; return; }
+  local IFS=:
+  for d in ${XDG_DATA_DIRS:-/usr/local/share:/usr/share}; do
+    [ -f "${d%/}/cosmic/$f" ] && { echo "${d%/}/cosmic/$f"; return; }
+  done
+  echo /dev/null
+}
+
+parse() {
+  perl -0777 -ne '
+    s{//[^\n]*}{}g;
+    while (/\(\s*modifiers:\s*\[([^\]]*)\](?:,\s*key:\s*"([^"]*)")?(?:,\s*description:\s*Some\("([^"]*)"\))?[^)]*\)\s*:\s*([A-Za-z]+(?:\([^)]*\))?)/g) {
+      my ($m,$k,$d,$a)=($1,$2//"",$3//"",$4);
+      $m =~ s/\s//g; $m =~ s/,/+/g;
+      print "$m\t$k\t$a\t$d\n";
+    }' "$1"
+}
+
+declare -A sys
+while IFS=$'\t' read -r name cmd; do sys[$name]=$cmd; done < <(
+  perl -0777 -ne 's{//[^\n]*}{}g; while (/([A-Za-z]+):\s*"([^"]*)"/g) { print "$1\t$2\n" }' "$(cfg system_actions)")
+
+declare -A bind desc
+while IFS=$'\t' read -r m k a d; do bind["$m|$k"]=$a; desc["$m|$k"]=$d; done < <(parse "$(cfg defaults)")
+while IFS=$'\t' read -r m k a d; do bind["$m|$k"]=$a; desc["$m|$k"]=${d:-custom}; done < <(parse "$(cfg custom)")
+
+group() {
+  case "$1" in
+    Spawn*|System\(Terminal\)|System\(WebBrowser\)|System\(HomeFolder\)|System\(AppLibrary\)|System\(Launcher\)) echo "1 Apps" ;;
+    *Workspace*|Workspace\(*) echo "3 Workspaces" ;;
+    *Output*) echo "4 Displays" ;;
+    Close|Focus*|Move*|Maximize|Minimize|Fullscreen|Toggle*|Resizing*|Orientation*|SwapWindow) echo "2 Windows" ;;
+    *) echo "5 System" ;;
+  esac
+}
+
+chord() {
+  local m="$1" k="$2"
+  k="${k#XF86}"; k="${k/slash/\/}"; k="${k/equal/=}"; k="${k/minus/-}"
+  [ ${#k} -eq 1 ] && k="${k^^}"
+  [ -n "$k" ] && echo "$m+$k" || echo "$m"
+}
+
+label() {
+  local a="$1"
+  case "$a" in
+    System\(*\)) local n="${a#System(}"; n="${n%)}"; echo "$n → ${sys[$n]:-?}" ;;
+    Spawn\(*\)) local c="${a#Spawn(\"}"; echo "run ${c%\")}" ;;
+    *) echo "${a//(/ }" | tr -d ')' ;;
+  esac
+}
+
+rows() {
+  for key in "${!bind[@]}"; do
+    a=${bind[$key]}; [ "$a" = Disable ] && continue
+    m=${key%%|*}; k=${key#*|}
+    printf '%s\t%s\t%s\t%s\n' "$(group "$a")" "$(chord "$m" "$k")" "$(label "$a")" "${desc[$key]}"
+  done | sort -t$'\t' -k1,1 -k2,2
+}
+
+render() {
+  local g="" 
+  while IFS=$'\t' read -r grp ch lab d; do
+    [ "$grp" != "$g" ] && { g=$grp; printf '\n\033[1;34m%s\033[0m\n' "${grp#* }"; }
+    printf '  \033[1m%-28s\033[0m %s' "$ch" "$lab"
+    [ -n "$d" ] && printf '  \033[2m(%s)\033[0m' "$d"
+    printf '\n'
+  done
+}
+
+if [ "${1:-}" = "--fzf" ]; then
+  rows | awk -F'\t' '{printf "%-12s %-28s %s\n", $1, $2, $3}' | sed 's/^[0-9] //' \
+    | fzf --ansi --layout=reverse --border=rounded --prompt='keys > ' --header='esc to close' >/dev/null || true
+else
+  rows | render
+fi

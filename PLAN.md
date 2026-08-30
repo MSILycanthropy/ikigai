@@ -21,7 +21,7 @@ desktop; Ikigai provides curation, theming, and ops tooling.
 | Browser | Zen (`zen-browser-bin`, AUR — accepted risk) |
 | Editor | Zed primary; Neovim installed with a minimal themed `init.lua` (users with their own config keep it — seeds never overwrite existing files) |
 | Runtimes | Docker + mise |
-| Keybinds | Stock COSMIC + Super-key app layer (Super+Return/B/E) + cheatsheet cmd |
+| Keybinds | Stock COSMIC + Super-key app layer (Super+Return/T terminal, Super+B browser, Super+E editor) + Super+Shift+/ cheatsheet |
 | Theming | Hand-curated theme dirs; **Tokyo Night** is the default and only launch theme |
 | Hardware | AMD/Intel first-class; NVIDIA best-effort (driver installed, honestly documented); VM install is the named demo path |
 | License | MIT, public from first commit |
@@ -109,7 +109,10 @@ AUR (via makepkg): paru (source), zen-browser-bin.
    (d) `ikigai-theme-set` + full clean-install verification.
 3. **Update machinery — deferred.** Only prerequisite now: `install.sh` records the
    installed commit and `configs.sh` records seed hashes, so early installs aren't stranded.
-4. **`ikigai-keys` cheatsheet.** (Keybind config itself moved into Phase 2c.)
+4. **`ikigai-keys` cheatsheet.** ✅ 2026-08-30. Parses `defaults` + `custom` + `system_actions`
+   at runtime (same merge cosmic-comp does), grouped; `--fzf` for search. Bound to
+   Super+Shift+/ (keysym `slash` with Shift — not `question`). `bin/` is symlinked into
+   `/usr/local/bin` at install so compositor `Spawn` can find it.
 5. **CI + smoke test.** shellcheck, container dry-run of installer, scripted
    fresh-install run via `scripts/vm.sh` (Hyper-V; QEMU/WHPX on Windows was
    abandoned — MSI/MMIO emulation failures and a corrupted image).
