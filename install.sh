@@ -7,6 +7,7 @@ mkdir -p "$IKIGAI_STATE"
 LOG="$IKIGAI_STATE/install.log"
 
 STEPS=(preflight packages configs theme services)
+CURRENT=setup
 
 step() { echo; echo "==> [$1]"; }
 fail() { echo; echo "!!! install failed in step '$CURRENT' (see $LOG)" >&2; }
