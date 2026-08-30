@@ -86,9 +86,15 @@ The reference test environment is a Hyper-V VM; that's the path we actually veri
 
 ## Status
 
-Early. Working end to end from the one-liner above; no update mechanism yet
-(`git pull` in `~/.local/share/ikigai` + `pacman -Syu` + `paru -Sua` is the honest answer
-for now). See [PLAN.md](PLAN.md) for decisions and what's next.
+Early. Both install paths work end to end. No update mechanism yet — `git pull` in
+`~/.local/share/ikigai` + `pacman -Syu` + `paru -Sua` is the honest answer for now.
+
+Next, roughly in order: an update command (reconcile seeded files `.pacnew`-style —
+the seed hashes are already recorded), a custom pacman repo so the installer needs no
+AUR at all, an ISO with an SSH-first console, a second theme
+(`tools/cosmic-theme-gen` is ready for it).
+
+Notes on how COSMIC's config layering actually works: [docs/cosmic-config.md](docs/cosmic-config.md).
 
 ## License
 
