@@ -15,7 +15,7 @@ desktop; Ikigai provides curation, theming, and ops tooling.
 | Delivery | Bootstrap script on vanilla Arch; ISO later (v2+) |
 | Updates | **Deferred (0 users).** Design when built: *reconcile*, not migrations — Ikigai-owned files are re-copied; user-seeded files use the `.pacnew` model (hash recorded at seed time; untouched → replace, edited → `<file>.ikigai-new` + diff). `migrations/` only for rare structural changes. v2: ship configs as a pacman package |
 | Config ownership | **COSMIC:** ship defaults in `/usr/local/share/cosmic/` (cosmic-config's system layer; searched before `/usr/share`, not pacman-owned). User edits land in `~/.config/cosmic` and override per key. **Everything else:** seed into `~/.config` only if absent (`--force` to overwrite), then hand off. Only `ikigai-theme-set` and migrations touch seeded files afterward |
-| Choices | None. No install-time pickers. |
+| Choices | None. No install-time pickers. `cosmic-initial-setup` (upstream) handles the per-user questions — language, keyboard, timezone, Wi-Fi, scaling, a11y. No fork; revisit only for a theme picker once ≥2 themes exist. Its greeter mode is the v2 ISO's OOBE. |
 | Terminal | Ghostty + zellij (terminal-first workflow: yazi, lazygit, lazydocker, btop as the "apps") |
 | Shell | zsh + starship |
 | Browser | Zen (`zen-browser-bin`, AUR — accepted risk) |
@@ -104,7 +104,8 @@ AUR (via makepkg): paru (source), zen-browser-bin.
      yazi, delta, sublime→bat). Zed: extension `tokyo-night` via `auto_install_extensions`.
      starship: hand-written `[palettes.tokyo_night]`. nvim: native `pack/*/start` clone.
    Steps: (a) non-COSMIC configs + `configs.sh` ✅ (b) COSMIC theme via generator + `CosmicTk` ✅
-   (c) wallpaper (NASA SVS 13831, public domain) + `system_actions` + `custom` shortcuts ✅
+   (c) wallpaper (NASA SVS 13831, public domain) + `system_actions` + `custom` shortcuts +
+       dock favorites (`CosmicAppList/v1/favorites`; the applet reads it at login only) ✅
    (d) `ikigai-theme-set` + full clean-install verification.
 3. **Update machinery — deferred.** Only prerequisite now: `install.sh` records the
    installed commit and `configs.sh` records seed hashes, so early installs aren't stranded.
