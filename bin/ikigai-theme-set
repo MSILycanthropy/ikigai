@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Apply an Ikigai theme: app theme files into ~/.config, COSMIC theme +
+# wallpaper into the system layer. v1 ships one theme; the contract takes a name.
+set -euo pipefail
+
+IKIGAI_PATH="${IKIGAI_PATH:-$HOME/.local/share/ikigai}"
+THEME="${1:-}"
+T="$IKIGAI_PATH/themes/$THEME"
+
+if [ -z "$THEME" ] || [ ! -d "$T" ]; then
+  echo "usage: ikigai-theme-set <theme>" >&2
+  echo "available: $(ls "$IKIGAI_PATH/themes" | tr '\n' ' ')" >&2
+  exit 2
+fi
+
+put() { mkdir -p "$(dirname "$2")"; cp "$T/$1" "$2"; }
+
+put ghostty/tokyonight_night          "$HOME/.config/ghostty/themes/tokyonight_night"
+put zellij/tokyonight_night.kdl       "$HOME/.config/zellij/themes/tokyonight_night.kdl"
+put yazi/tokyonight_night.toml        "$HOME/.config/yazi/theme.toml"
+put eza/tokyonight_night.yml          "$HOME/.config/eza/theme.yml"
+put fzf/tokyonight_night.sh           "$HOME/.config/fzf/theme.sh"
+put delta/tokyonight_night.gitconfig  "$HOME/.config/git/tokyonight.gitconfig"
+put lazygit/tokyonight_night.yml      "$HOME/.config/lazygit/config.yml"
+put btop/tokyonight_night.theme       "$HOME/.config/btop/themes/tokyonight_night.theme"
+put sublime/tokyonight_night.tmTheme  "$(bat --config-dir)/themes/tokyonight_night.tmTheme"
+bat cache --build >/dev/null
+
+NVIM_PACK="$HOME/.local/share/nvim/site/pack/ikigai/start/tokyonight.nvim"
+[ -d "$NVIM_PACK" ] || git clone -q --depth 1 https://github.com/folke/tokyonight.nvim "$NVIM_PACK"
+git -C "$NVIM_PACK" fetch -q --depth 1 origin "$(cat "$T/UPSTREAM_REV")" && git -C "$NVIM_PACK" checkout -q FETCH_HEAD
+
+sudo install -Dm644 "$T/wallpaper.jpg" "/usr/local/share/backgrounds/ikigai/$THEME.jpg"
+(cd "$T/cosmic" && find . -type f -not -name '*.ron' -not -name README) | while read -r f; do
+  sudo install -Dm644 "$T/cosmic/$f" "/usr/local/share/cosmic/$f"
+done
+
+# A user-layer theme (written by Settings on first login) would shadow ours.
+rm -rf "$HOME/.config/cosmic/com.system76.CosmicTheme.Dark" "$HOME/.config/cosmic/com.system76.CosmicTheme.Dark.Builder"
+
+echo "theme: $THEME"
