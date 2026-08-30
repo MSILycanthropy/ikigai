@@ -6,7 +6,7 @@ export IKIGAI_STATE="${IKIGAI_STATE:-$HOME/.local/state/ikigai}"
 mkdir -p "$IKIGAI_STATE"
 LOG="$IKIGAI_STATE/install.log"
 
-STEPS=(preflight packages services)
+STEPS=(preflight packages configs theme services)
 
 step() { echo; echo "==> [$1]"; }
 fail() { echo; echo "!!! install failed in step '$CURRENT' (see $LOG)" >&2; }

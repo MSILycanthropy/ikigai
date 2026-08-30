@@ -4,10 +4,11 @@ set -euo pipefail
 PACMAN=(
   base-devel git
   cosmic cosmic-greeter
-  ghostty zsh starship
+  ghostty zsh zsh-autosuggestions zsh-syntax-highlighting zsh-completions starship
   zed neovim lazygit
-  docker docker-compose mise
-  btop ripgrep fd fzf bat eza wl-clipboard
+  docker docker-compose lazydocker mise
+  zellij yazi btop
+  ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard
   ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji
   pipewire pipewire-pulse wireplumber
   xdg-user-dirs

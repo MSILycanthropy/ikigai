@@ -1,0 +1,17 @@
+{
+  "auto_install_extensions": { "tokyo-night": true },
+  "theme": "Tokyo Night",
+  "buffer_font_family": "JetBrainsMono Nerd Font",
+  "buffer_font_size": 14,
+  "ui_font_size": 15,
+  "vim_mode": false,
+  "autosave": "on_focus_change",
+  "format_on_save": "on",
+  "ensure_final_newline_on_save": true,
+  "tab_size": 2,
+  "relative_line_numbers": false,
+  "telemetry": { "diagnostics": false, "metrics": false },
+  "terminal": { "font_family": "JetBrainsMono Nerd Font", "shell": "system" },
+  "git": { "inline_blame": { "enabled": true } },
+  "inlay_hints": { "enabled": true }
+}

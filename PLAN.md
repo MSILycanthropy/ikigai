@@ -13,13 +13,13 @@ desktop; Ikigai provides curation, theming, and ops tooling.
 | Base | Arch, COSMIC from official `extra` repo |
 | COSMIC risk | Track Arch packages, own the breakage, ship migration fixes fast |
 | Delivery | Bootstrap script on vanilla Arch; ISO later (v2+) |
-| Updates | Git pull + numbered migrations + `pacman -Syu` |
-| Config ownership | **Seed, then hand off** — install writes COSMIC defaults once; afterward only `ikigai-theme-set` and surgical migrations touch `~/.config/cosmic` |
+| Updates | **Deferred (0 users).** Design when built: *reconcile*, not migrations — Ikigai-owned files are re-copied; user-seeded files use the `.pacnew` model (hash recorded at seed time; untouched → replace, edited → `<file>.ikigai-new` + diff). `migrations/` only for rare structural changes. v2: ship configs as a pacman package |
+| Config ownership | **COSMIC:** ship defaults in `/usr/local/share/cosmic/` (cosmic-config's system layer; searched before `/usr/share`, not pacman-owned). User edits land in `~/.config/cosmic` and override per key. **Everything else:** seed into `~/.config` only if absent (`--force` to overwrite), then hand off. Only `ikigai-theme-set` and migrations touch seeded files afterward |
 | Choices | None. No install-time pickers. |
-| Terminal | Ghostty |
+| Terminal | Ghostty + zellij (terminal-first workflow: yazi, lazygit, lazydocker, btop as the "apps") |
 | Shell | zsh + starship |
 | Browser | Zen (`zen-browser-bin`, AUR — accepted risk) |
-| Editor | Zed primary; Neovim installed as themed sidekick |
+| Editor | Zed primary; Neovim installed with a minimal themed `init.lua` (users with their own config keep it — seeds never overwrite existing files) |
 | Runtimes | Docker + mise |
 | Keybinds | Stock COSMIC + Super-key app layer (Super+Return/B/E) + cheatsheet cmd |
 | Theming | Hand-curated theme dirs; **Tokyo Night** is the default and only launch theme |
@@ -30,8 +30,8 @@ desktop; Ikigai provides curation, theming, and ops tooling.
 
 ## v1 cutline
 
-**In:** installer, Tokyo Night, update/migration machinery, keybind layer + cheatsheet.
-**Out (v2+):** ISO, additional themes, theme-switcher UI, `ikigai-doctor`, custom pacman repo.
+**In:** installer, Tokyo Night, keybind layer + cheatsheet.
+**Out (v2+):** update machinery, ISO, additional themes, theme-switcher UI, `ikigai-doctor`, custom pacman repo.
 
 ## Repo layout
 
@@ -72,20 +72,38 @@ Update state model: `~/.local/share/ikigai` is the live checkout;
 ## Curated package set (draft — finalize in Phase 1)
 
 cosmic, ghostty, zsh, starship, zed, neovim, lazygit, docker, docker-compose,
-mise, btop, ripgrep, fd, fzf, bat, eza, wl-clipboard, ttf-jetbrains-mono-nerd,
-noto-fonts(-emoji), pipewire stack, `hyperv` (Hyper-V guests only).
+mise, zellij, yazi, lazydocker, btop, ripgrep, fd, fzf, bat, eza, dust, git-delta,
+tealdeer, jq, wl-clipboard, ttf-jetbrains-mono-nerd, noto-fonts(-emoji), pipewire
+stack, `hyperv` (Hyper-V guests only). Aliases: ls→eza, cat→bat, du→dust, grep→rg.
+No zoxide/atuin (deliberate).
 AUR (via makepkg): paru (source), zen-browser-bin.
 
 ## Build order
 
 1. **Skeleton + happy path.** boot.sh → install.sh → packages.sh in a Hyper-V VM:
    fresh Arch minimal → reboot into COSMIC login. Nothing else. ✅ 2026-08-29
-2. **Seed + theme.** configs.sh + Tokyo Night across COSMIC/Ghostty/Zed/Neovim/btop.
-   Research task here: exact COSMIC RON keys for theme/panel/shortcuts (schema is
-   version-sensitive — pin findings to the COSMIC version in `extra`).
-3. **Update machinery.** ikigai-update, migration runner, state tracking.
-   Test against a snapshot of the Phase-1 VM.
-4. **Keybind layer + ikigai-keys.**
+2. **Seed + theme.** Researched 2026-08-29 against COSMIC `epoch-1.7.0`:
+   - cosmic-config reads `~/.config/cosmic/<C>/v<N>/<key>`, then falls back per key to
+     the first `$XDG_DATA_DIRS/cosmic/<C>/v<N>/<key>`. Session `XDG_DATA_DIRS` includes
+     `/usr/local/share/` before `/usr/share/` (verified in VM) → Ikigai ships there.
+   - Theme is `CosmicTheme.Dark/v2` (37 derived keys). The `.Builder` is inert — nothing
+     derives from it except cosmic-settings. v1: author a Tokyo Night `ThemeBuilder`,
+     import in Settings on the VM, harvest the built `Dark/v2/*` into `themes/tokyo-night/`.
+     v2 (multi-theme): a `tools/` Rust generator using `cosmic-theme`'s `ThemeBuilder::build()`.
+   - Fonts/icon theme: `CosmicTk/v1`. Wallpaper: `CosmicBackground/v1/{all,same-on-all}`
+     (upstream's `all` has a RON syntax bug — `#true` — don't copy it).
+   - Shortcuts: `CosmicSettings.Shortcuts/v1/custom` extends `defaults` by key;
+     `system_actions` maps `Terminal`/`WebBrowser` to commands. Super+E/Return unbound upstream.
+   - Greeter reads the same system theme layer; its wallpaper comes only from a user's
+     cosmic-bg *state* (1.7.0 limitation) → matches after first login.
+   - App themes: vendor folke/tokyonight.nvim `extras/` (ghostty, btop, lazygit, fzf, eza,
+     yazi, delta, sublime→bat). Zed: extension `tokyo-night` via `auto_install_extensions`.
+     starship: hand-written `[palettes.tokyo_night]`. nvim: native `pack/*/start` clone.
+   Steps: (a) non-COSMIC configs + `configs.sh` (b) COSMIC theme harvest + `CosmicTk`
+   (c) wallpaper + `system_actions` + `custom` shortcuts (d) `theme.sh` + `ikigai-theme-set`.
+3. **Update machinery — deferred.** Only prerequisite now: `install.sh` records the
+   installed commit and `configs.sh` records seed hashes, so early installs aren't stranded.
+4. **`ikigai-keys` cheatsheet.** (Keybind config itself moved into Phase 2c.)
 5. **CI + smoke test.** shellcheck, container dry-run of installer, scripted
    fresh-install run via `scripts/vm.sh` (Hyper-V; QEMU/WHPX on Windows was
    abandoned — MSI/MMIO emulation failures and a corrupted image).

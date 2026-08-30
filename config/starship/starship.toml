@@ -1,0 +1,76 @@
+palette = "tokyo_night"
+add_newline = true
+
+format = """
+$directory$git_branch$git_status$git_metrics$fill$nodejs$ruby$rust$python$golang$cmd_duration$time
+$character"""
+
+[palettes.tokyo_night]
+fg = "#c0caf5"
+comment = "#565f89"
+blue = "#7aa2f7"
+cyan = "#7dcfff"
+magenta = "#bb9af7"
+green = "#9ece6a"
+yellow = "#e0af68"
+orange = "#ff9e64"
+red = "#f7768e"
+teal = "#1abc9c"
+
+[directory]
+style = "bold blue"
+truncation_length = 3
+truncation_symbol = "…/"
+read_only = " 󰌾"
+format = "[$path]($style)[$read_only](red) "
+
+[git_branch]
+symbol = " "
+style = "magenta"
+format = "[$symbol$branch]($style) "
+
+[git_status]
+style = "orange"
+format = "[$all_status$ahead_behind]($style)"
+
+[git_metrics]
+disabled = false
+added_style = "green"
+deleted_style = "red"
+format = "[+$added]($added_style)[-$deleted]($deleted_style) "
+
+[fill]
+symbol = " "
+
+[nodejs]
+symbol = " "
+format = "[$symbol$version](green) "
+
+[ruby]
+symbol = " "
+format = "[$symbol$version](red) "
+
+[rust]
+symbol = " "
+format = "[$symbol$version](orange) "
+
+[python]
+symbol = " "
+format = "[$symbol$version](yellow) "
+
+[golang]
+symbol = " "
+format = "[$symbol$version](cyan) "
+
+[cmd_duration]
+min_time = 2000
+format = "[took $duration](comment) "
+
+[time]
+disabled = false
+time_format = "%H:%M"
+format = "[$time](comment)"
+
+[character]
+success_symbol = "[↪](green)"
+error_symbol = "[✘](red)"
