@@ -53,8 +53,8 @@ cmd_install() {
   [ -f "$ISO" ] || die "no ISO; run: vm.sh fetch"
   vm_exists || die "no VM; run: vm.sh create"
   ps "
-    Add-VMDvdDrive -VMName '$VM' -Path '$(win "$ISO")'
-    \$dvd = Get-VMDvdDrive -VMName '$VM'
+    if (-not (Get-VMDvdDrive -VMName '$VM')) { Add-VMDvdDrive -VMName '$VM' -Path '$(win "$ISO")' }
+    \$dvd = Get-VMDvdDrive -VMName '$VM' | Select-Object -First 1
     Set-VMFirmware -VMName '$VM' -FirstBootDevice \$dvd
     Start-VM -Name '$VM'
   "

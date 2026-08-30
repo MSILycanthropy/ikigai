@@ -23,7 +23,7 @@ profile, systemd-boot and NetworkManager, asks you only for disk, user, password
 timezone, then runs the line above for you:
 
 ```sh
-archinstall --config https://raw.githubusercontent.com/MSILycanthropy/ikigai/main/archinstall.json
+archinstall --config-url https://raw.githubusercontent.com/MSILycanthropy/ikigai/main/archinstall.json
 ```
 
 (To do that from another machine: on the live ISO run `passwd`, `systemctl start sshd`,
