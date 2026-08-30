@@ -22,7 +22,7 @@ die() { echo "vm.sh: $*" >&2; exit 1; }
 ps()  { powershell.exe -NoProfile -NonInteractive -Command "\$ErrorActionPreference='Stop'; $*" | tr -d '\r'; }
 # WSL (mirrored networking) has no route to the Default Switch; the host does.
 SSH=${VM_SSH:-ssh.exe}
-ssh_opts() { printf '%s\n' -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o LogLevel=ERROR; }
+SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o LogLevel=ERROR)
 
 vm_exists() { ps "Get-VM -Name '$VM' -ErrorAction SilentlyContinue | Out-Null; \$?" | grep -q True; }
 vm_state()  { ps "(Get-VM -Name '$VM').State"; }
@@ -101,22 +101,23 @@ cmd_ip() {
 }
 
 cmd_key() {
-  local user="${1:?user}" keydir="$(wslpath -u "$win_home")/.ssh" pub
+  local user="${1:?user}" keydir pub
+  keydir="$(wslpath -u "$win_home")/.ssh"
   mkdir -p "$keydir"
   [ -f "$keydir/id_ed25519" ] || ssh-keygen.exe -q -t ed25519 -N "" -f "$(win "$keydir/id_ed25519")" -C ikigai-vm
   pub="$(tr -d '\r\n' < "$keydir/id_ed25519.pub")"
-  "$SSH" $(ssh_opts) "$user@$(cmd_ip)" \
+  "$SSH" "${SSH_OPTS[@]}" "$user@$(cmd_ip)" \
     "mkdir -p ~/.ssh && chmod 700 ~/.ssh && grep -qF '$pub' ~/.ssh/authorized_keys 2>/dev/null || echo '$pub' >> ~/.ssh/authorized_keys; chmod 600 ~/.ssh/authorized_keys && echo key installed"
 }
 
-cmd_ssh()  { "$SSH" $(ssh_opts) "${1:-root}@$(cmd_ip)"; }
+cmd_ssh()  { "$SSH" "${SSH_OPTS[@]}" "${1:-root}@$(cmd_ip)"; }
 
 cmd_sync() {
   local user="${1:?user}" dest=".local/share/ikigai" ip
   ip="$(cmd_ip)"
   git -C "$(dirname "$0")/.." ls-files -z --cached --others --exclude-standard \
     | tar --null -T - -czf - \
-    | "$SSH" $(ssh_opts) "$user@$ip" "keep=\$(mktemp -d); [ -d $dest/tools ] && find $dest/tools -maxdepth 2 -name target -type d -exec cp -a --parents {} \$keep \\; ; rm -rf $dest && mkdir -p $dest && tar -xzf - -C $dest && cp -a \$keep/$dest/tools/. $dest/tools/ 2>/dev/null; rm -rf \$keep; echo synced"
+    | "$SSH" "${SSH_OPTS[@]}" "$user@$ip" "keep=\$(mktemp -d); [ -d $dest/tools ] && find $dest/tools -maxdepth 2 -name target -type d -exec cp -a --parents {} \$keep \\; ; rm -rf $dest && mkdir -p $dest && tar -xzf - -C $dest && cp -a \$keep/$dest/tools/. $dest/tools/ 2>/dev/null; rm -rf \$keep; echo synced"
 }
 
 cmd_snapshot()  { ps "Checkpoint-VM -Name '$VM' -SnapshotName '${1:?name}'"; }

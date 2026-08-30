@@ -35,7 +35,7 @@ while IFS=$'\t' read -r m k a d; do bind["$m|$k"]=$a; desc["$m|$k"]=${d:-custom}
 group() {
   case "$1" in
     Spawn*|System\(Terminal\)|System\(WebBrowser\)|System\(HomeFolder\)|System\(AppLibrary\)|System\(Launcher\)) echo "1 Apps" ;;
-    *Workspace*|Workspace\(*) echo "3 Workspaces" ;;
+    *Workspace*) echo "3 Workspaces" ;;
     *Output*) echo "4 Displays" ;;
     Close|Focus*|Move*|Maximize|Minimize|Fullscreen|Toggle*|Resizing*|Orientation*|SwapWindow) echo "2 Windows" ;;
     *) echo "5 System" ;;
