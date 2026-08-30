@@ -119,7 +119,7 @@ AUR (via makepkg): paru (source), zen-browser-bin.
    `pacman -Sp`, GPU/VM packages exist, no empty config files). The fresh-install smoke
    test stays manual on Hyper-V via `scripts/vm.sh` (QEMU/WHPX on Windows was abandoned —
    MSI/MMIO emulation failures and a corrupted image).
-6. **README, screenshots, public launch.**
+6. **README, screenshots, public launch.** ✅ 2026-08-30 — README with both install paths, `docs/desktop.png`.
 
 ## Accepted risks
 
