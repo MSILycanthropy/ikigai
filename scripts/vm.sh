@@ -116,7 +116,7 @@ cmd_sync() {
   ip="$(cmd_ip)"
   git -C "$(dirname "$0")/.." ls-files -z --cached --others --exclude-standard \
     | tar --null -T - -czf - \
-    | "$SSH" $(ssh_opts) "$user@$ip" "rm -rf $dest && mkdir -p $dest && tar -xzf - -C $dest && echo synced"
+    | "$SSH" $(ssh_opts) "$user@$ip" "keep=\$(mktemp -d); [ -d $dest/tools ] && find $dest/tools -maxdepth 2 -name target -type d -exec cp -a --parents {} \$keep \\; ; rm -rf $dest && mkdir -p $dest && tar -xzf - -C $dest && cp -a \$keep/$dest/tools/. $dest/tools/ 2>/dev/null; rm -rf \$keep; echo synced"
 }
 
 cmd_snapshot()  { ps "Checkpoint-VM -Name '$VM' -SnapshotName '${1:?name}'"; }

@@ -89,7 +89,11 @@ AUR (via makepkg): paru (source), zen-browser-bin.
    - Theme is `CosmicTheme.Dark/v2` (37 derived keys). The `.Builder` is inert — nothing
      derives from it except cosmic-settings. v1: author a Tokyo Night `ThemeBuilder`,
      import in Settings on the VM, harvest the built `Dark/v2/*` into `themes/tokyo-night/`.
-     v2 (multi-theme): a `tools/` Rust generator using `cosmic-theme`'s `ThemeBuilder::build()`.
+     **Superseded:** the Settings import fails silently on any RON error, so
+     `tools/cosmic-theme-gen` (Rust, pinned to the same libcosmic rev) parses `builder.ron`
+     and writes the built `Dark/v2` + `Dark.Builder/v2` files. Dev-time only; output is
+     committed. Also fixes a real bug: upstream's shipped theme lacks `list_button`, so
+     every COSMIC component logged "Failed to load the theme" at login.
    - Fonts/icon theme: `CosmicTk/v1`. Wallpaper: `CosmicBackground/v1/{all,same-on-all}`
      (upstream's `all` has a RON syntax bug — `#true` — don't copy it).
    - Shortcuts: `CosmicSettings.Shortcuts/v1/custom` extends `defaults` by key;
@@ -99,8 +103,9 @@ AUR (via makepkg): paru (source), zen-browser-bin.
    - App themes: vendor folke/tokyonight.nvim `extras/` (ghostty, btop, lazygit, fzf, eza,
      yazi, delta, sublime→bat). Zed: extension `tokyo-night` via `auto_install_extensions`.
      starship: hand-written `[palettes.tokyo_night]`. nvim: native `pack/*/start` clone.
-   Steps: (a) non-COSMIC configs + `configs.sh` (b) COSMIC theme harvest + `CosmicTk`
-   (c) wallpaper + `system_actions` + `custom` shortcuts (d) `theme.sh` + `ikigai-theme-set`.
+   Steps: (a) non-COSMIC configs + `configs.sh` ✅ (b) COSMIC theme via generator + `CosmicTk` ✅
+   (c) wallpaper (NASA SVS 13831, public domain) + `system_actions` + `custom` shortcuts ✅
+   (d) `ikigai-theme-set` + full clean-install verification.
 3. **Update machinery — deferred.** Only prerequisite now: `install.sh` records the
    installed commit and `configs.sh` records seed hashes, so early installs aren't stranded.
 4. **`ikigai-keys` cheatsheet.** (Keybind config itself moved into Phase 2c.)

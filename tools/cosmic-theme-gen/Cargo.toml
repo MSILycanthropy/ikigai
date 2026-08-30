@@ -1,0 +1,14 @@
+[package]
+name = "cosmic-theme-gen"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Pinned to the libcosmic rev used by cosmic-settings 1.7.0 (Arch extra).
+[dependencies]
+cosmic-theme = { git = "https://github.com/pop-os/libcosmic", rev = "2a73fbc0edfe1525381bf999e241d73def79b222" }
+cosmic-config = { git = "https://github.com/pop-os/libcosmic", rev = "2a73fbc0edfe1525381bf999e241d73def79b222" }
+ron = "0.12"
+
+[profile.release]
+opt-level = 1

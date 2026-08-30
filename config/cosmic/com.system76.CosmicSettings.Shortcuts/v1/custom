@@ -1,0 +1,4 @@
+{
+    (modifiers: [Super], key: "Return", description: Some("Terminal")): Spawn("ghostty"),
+    (modifiers: [Super], key: "e", description: Some("Editor")): Spawn("zed"),
+}

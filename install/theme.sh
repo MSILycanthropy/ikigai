@@ -25,4 +25,9 @@ if [ ! -d "$NVIM_PACK" ]; then
 fi
 git -C "$NVIM_PACK" fetch -q --depth 1 origin "$(cat "$T/UPSTREAM_REV")" && git -C "$NVIM_PACK" checkout -q FETCH_HEAD
 
+sudo install -Dm644 "$T/wallpaper.jpg" "/usr/local/share/backgrounds/ikigai/$THEME.jpg"
+(cd "$T/cosmic" && find . -type f -not -name '*.ron') | while read -r f; do
+  sudo install -Dm644 "$T/cosmic/$f" "/usr/local/share/cosmic/$f"
+done
+
 echo "theme: $THEME"

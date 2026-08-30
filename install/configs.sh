@@ -31,3 +31,10 @@ if [ ${#skipped[@]} -gt 0 ]; then
   echo "kept existing (IKIGAI_FORCE=1 to overwrite):"
   printf '  %s\n' "${skipped[@]}"
 fi
+
+# COSMIC defaults go in cosmic-config's system layer, not ~/.config:
+# user edits in Settings override per key and never conflict with ours.
+(cd "$SRC/cosmic" && find . -type f) | while read -r f; do
+  sudo install -Dm644 "$SRC/cosmic/$f" "/usr/local/share/cosmic/$f"
+done
+echo "installed COSMIC defaults → /usr/local/share/cosmic"
