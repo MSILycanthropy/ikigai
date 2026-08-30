@@ -1,51 +1,31 @@
 #!/usr/bin/env bash
-# Drive a Windows-hosted QEMU VM from WSL2. Disk + ISO live on the Windows
-# side so QEMU reads them natively instead of through the 9P bridge.
+# Drive a Hyper-V VM from WSL2 for fresh-install testing.
+#
+# Lifecycle: fetch → create → install → seal → run / reset.
+# `seal` takes the `vanilla` checkpoint; `reset` rolls back to it.
 set -euo pipefail
 
-QEMU_DIR="/mnt/c/Program Files/qemu"
-QEMU="$QEMU_DIR/qemu-system-x86_64.exe"
-QEMU_IMG="$QEMU_DIR/qemu-img.exe"
+VM=${VM_NAME:-ikigai}
+CPUS=${VM_CPUS:-4}
+MEM=${VM_MEM:-4GB}
+DISK_SIZE=${VM_DISK:-40GB}
+SWITCH=${VM_SWITCH:-Default Switch}
+ISO_MIRROR="https://geo.mirror.pkgbuild.com/iso/latest"
 
 win_home="$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')"
 VM_DIR="$(wslpath -u "$win_home")/ikigai-vm"
-DISK="$VM_DIR/arch.qcow2"
 ISO="$VM_DIR/archlinux-x86_64.iso"
-OVMF_CODE="$QEMU_DIR/share/edk2-x86_64-code.fd"
-OVMF_VARS="$VM_DIR/efivars.fd"
-
-CPUS=${VM_CPUS:-4}
-MEM=${VM_MEM:-4G}
-GL=${VM_GL:-1}
-AUDIO=${VM_AUDIO:-0}
-ACCEL=${VM_ACCEL:-whpx}
-SSH_PORT=${VM_SSH_PORT:-2222}
-DISK_SIZE=40G
-ISO_MIRROR="https://geo.mirror.pkgbuild.com/iso/latest"
+VHDX="$VM_DIR/$VM.vhdx"
 
 win() { wslpath -w "$1"; }
 die() { echo "vm.sh: $*" >&2; exit 1; }
+ps()  { powershell.exe -NoProfile -NonInteractive -Command "\$ErrorActionPreference='Stop'; $*" | tr -d '\r'; }
+# WSL (mirrored networking) has no route to the Default Switch; the host does.
+SSH=${VM_SSH:-ssh.exe}
+ssh_opts() { printf '%s\n' -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o LogLevel=ERROR; }
 
-need_qemu() { [ -x "$QEMU" ] || die "QEMU not found at $QEMU (winget install SoftwareFreedomConservancy.QEMU)"; }
-
-base_args() {
-  [ -f "$OVMF_VARS" ] || { cp "$QEMU_DIR/share/edk2-i386-vars.fd" "$OVMF_VARS"; chmod u+w "$OVMF_VARS"; }
-  printf '%s\n' \
-    -accel "$ACCEL" -cpu qemu64 -smp "$CPUS" -m "$MEM" \
-    -machine q35 \
-    -drive "if=pflash,format=raw,readonly=on,file=$(win "$OVMF_CODE")" \
-    -drive "if=pflash,format=raw,file=$(win "$OVMF_VARS")" \
-    -drive "file=$(win "$DISK"),if=virtio,format=qcow2" \
-    -device virtio-net-pci,netdev=n0 -netdev "user,id=n0,hostfwd=tcp::$SSH_PORT-:22" \
-    -device virtio-keyboard-pci -device virtio-tablet-pci
-  if [ "$GL" = 1 ]; then
-    printf '%s\n' -device virtio-vga-gl -display sdl,gl=on
-  else
-    printf '%s\n' -device virtio-vga -display sdl
-  fi
-  [ "$AUDIO" = 1 ] && printf '%s\n' -audiodev dsound,id=snd0 -device intel-hda -device hda-output,audiodev=snd0
-  return 0
-}
+vm_exists() { ps "Get-VM -Name '$VM' -ErrorAction SilentlyContinue | Out-Null; \$?" | grep -q True; }
+vm_state()  { ps "(Get-VM -Name '$VM').State"; }
 
 cmd_fetch() {
   mkdir -p "$VM_DIR"
@@ -57,49 +37,125 @@ cmd_fetch() {
 }
 
 cmd_create() {
-  need_qemu
   mkdir -p "$VM_DIR"
-  [ -f "$DISK" ] && die "$DISK already exists; delete it or use restore"
-  "$QEMU_IMG" create -f qcow2 "$(win "$DISK")" "$DISK_SIZE"
+  vm_exists && die "VM '$VM' already exists (vm.sh destroy to start over)"
+  ps "
+    New-VM -Name '$VM' -Generation 2 -MemoryStartupBytes $MEM -SwitchName '$SWITCH' \
+      -NewVHDPath '$(win "$VHDX")' -NewVHDSizeBytes $DISK_SIZE | Out-Null
+    Set-VM -Name '$VM' -ProcessorCount $CPUS -CheckpointType Standard -AutomaticCheckpointsEnabled \$false
+    Set-VMFirmware -VMName '$VM' -EnableSecureBoot Off
+    Set-VMMemory -VMName '$VM' -DynamicMemoryEnabled \$false
+  "
+  echo "created VM '$VM' ($CPUS cpu, $MEM, $DISK_SIZE, switch '$SWITCH')"
 }
 
 cmd_install() {
-  need_qemu
   [ -f "$ISO" ] || die "no ISO; run: vm.sh fetch"
-  [ -f "$DISK" ] || die "no disk; run: vm.sh create"
-  mapfile -t args < <(base_args)
-  "$QEMU" "${args[@]}" -cdrom "$(win "$ISO")" -boot d
+  vm_exists || die "no VM; run: vm.sh create"
+  ps "
+    Add-VMDvdDrive -VMName '$VM' -Path '$(win "$ISO")'
+    \$dvd = Get-VMDvdDrive -VMName '$VM'
+    Set-VMFirmware -VMName '$VM' -FirstBootDevice \$dvd
+    Start-VM -Name '$VM'
+  "
+  cmd_console
 }
 
-cmd_run() {
-  need_qemu
-  [ -f "$DISK" ] || die "no disk; run: vm.sh create && vm.sh install"
-  mapfile -t args < <(base_args)
-  "$QEMU" "${args[@]}"
+cmd_seal() {
+  vm_exists || die "no VM"
+  [ "$(vm_state)" = Off ] || die "shut the VM down first"
+  ps "
+    Get-VMDvdDrive -VMName '$VM' | Remove-VMDvdDrive
+    if ('${1:-}' -eq '--force') { Get-VMCheckpoint -VMName '$VM' -Name vanilla -ErrorAction SilentlyContinue | Remove-VMCheckpoint -Confirm:\$false }
+    Checkpoint-VM -Name '$VM' -SnapshotName vanilla
+  "
+  echo "sealed: checkpoint 'vanilla' taken"
 }
 
-cmd_snapshot() { need_qemu; "$QEMU_IMG" snapshot -c "${1:?name}" "$(win "$DISK")"; }
-cmd_restore()  { need_qemu; "$QEMU_IMG" snapshot -a "${1:?name}" "$(win "$DISK")"; }
-cmd_ssh() { ssh -p "$SSH_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${1:-root}@localhost"; }
-cmd_snapshots() { need_qemu; "$QEMU_IMG" snapshot -l "$(win "$DISK")"; }
+cmd_reset() {
+  vm_exists || die "no VM"
+  [ "$(vm_state)" = Off ] || ps "Stop-VM -Name '$VM' -TurnOff -Force"
+  ps "Restore-VMCheckpoint -Name '${1:-vanilla}' -VMName '$VM' -Confirm:\$false"
+  echo "restored checkpoint '${1:-vanilla}'"
+}
+
+cmd_run()     { vm_exists || die "no VM"; ps "Start-VM -Name '$VM'"; cmd_console; }
+cmd_stop()    { ps "Stop-VM -Name '$VM' -Force"; }
+cmd_kill()    { ps "Stop-VM -Name '$VM' -TurnOff -Force"; }
+cmd_console() { (cd /mnt/c && cmd.exe /c start vmconnect.exe localhost "$VM" >/dev/null 2>&1) || true; }
+cmd_status()  { ps "Get-VM -Name '$VM' | Format-Table Name, State, CPUUsage, MemoryAssigned, Uptime -AutoSize"; }
+
+cmd_ip() {
+  local ip
+  ip="$(ps "
+    \$nic = Get-VMNetworkAdapter -VMName '$VM'
+    \$ip = \$nic.IPAddresses | Where-Object { \$_ -notmatch ':' } | Select-Object -First 1
+    if (-not \$ip) {
+      \$mac = \$nic.MacAddress -replace '(..)(?!\$)','\$1-'
+      \$ip = (Get-NetNeighbor -LinkLayerAddress \$mac -AddressFamily IPv4 -ErrorAction SilentlyContinue | Select-Object -First 1).IPAddress
+    }
+    \$ip
+  ")"
+  [ -n "$ip" ] || die "no IPv4 yet (VM booted?)"
+  echo "$ip"
+}
+
+cmd_key() {
+  local user="${1:?user}" keydir="$(wslpath -u "$win_home")/.ssh" pub
+  mkdir -p "$keydir"
+  [ -f "$keydir/id_ed25519" ] || ssh-keygen.exe -q -t ed25519 -N "" -f "$(win "$keydir/id_ed25519")" -C ikigai-vm
+  pub="$(tr -d '\r\n' < "$keydir/id_ed25519.pub")"
+  "$SSH" $(ssh_opts) "$user@$(cmd_ip)" \
+    "mkdir -p ~/.ssh && chmod 700 ~/.ssh && grep -qF '$pub' ~/.ssh/authorized_keys 2>/dev/null || echo '$pub' >> ~/.ssh/authorized_keys; chmod 600 ~/.ssh/authorized_keys && echo key installed"
+}
+
+cmd_ssh()  { "$SSH" $(ssh_opts) "${1:-root}@$(cmd_ip)"; }
+
+cmd_sync() {
+  local user="${1:?user}" dest=".local/share/ikigai" ip
+  ip="$(cmd_ip)"
+  git -C "$(dirname "$0")/.." ls-files -z --cached --others --exclude-standard \
+    | tar --null -T - -czf - \
+    | "$SSH" $(ssh_opts) "$user@$ip" "rm -rf $dest && mkdir -p $dest && tar -xzf - -C $dest && echo synced"
+}
+
+cmd_snapshot()  { ps "Checkpoint-VM -Name '$VM' -SnapshotName '${1:?name}'"; }
+cmd_snapshots() { ps "Get-VMCheckpoint -VMName '$VM' | Format-Table Name, CreationTime -AutoSize"; }
+
+cmd_destroy() {
+  vm_exists || die "no VM"
+  [ "$(vm_state)" = Off ] || ps "Stop-VM -Name '$VM' -TurnOff -Force"
+  ps "Remove-VM -Name '$VM' -Force"
+  rm -f "$VHDX"
+  echo "destroyed VM '$VM' and $VHDX"
+}
 
 usage() {
   cat <<USAGE
 usage: vm.sh <command>
   fetch              download + verify Arch ISO
-  create             create blank ${DISK_SIZE} disk
-  install            boot ISO to do the vanilla Arch install
-  run                boot from disk
-  snapshot <name>    save disk snapshot (vanilla, aged, ...)
-  restore <name>     roll disk back to snapshot
-  snapshots          list snapshots
-  ssh [user]         ssh into the running VM (port $SSH_PORT)
+  create             create Gen2 Hyper-V VM + ${DISK_SIZE} VHDX
+  install            attach ISO, boot it, open console
+  seal [--force]     eject ISO, take 'vanilla' checkpoint (VM must be off); --force replaces an existing one
+  reset [name]       roll back to checkpoint (default: vanilla)
+  run                start VM + open console
+  stop | kill        graceful shutdown | hard power off
+  console            open vmconnect window
+  status             VM state
+  ip                 guest IPv4
+  key <user>         install a host ssh key in the VM (do this before sync)
+  ssh [user]         ssh into the VM
+  sync <user>        copy this working tree into the VM at ~/.local/share/ikigai
+  snapshot <name>    take a checkpoint (e.g. phase1)
+  snapshots          list checkpoints
+  destroy            remove VM and disk
+env: VM_SSH=$SSH VM_NAME=$VM VM_CPUS=$CPUS VM_MEM=$MEM VM_DISK=$DISK_SIZE VM_SWITCH='$SWITCH'
 VM dir: $VM_DIR
 USAGE
 }
 
 case "${1:-}" in
-  fetch|create|install|run|snapshots) "cmd_$1" ;;
-  snapshot|restore|ssh) "cmd_$1" "${2:-}" ;;
+  fetch|create|install|run|stop|kill|console|status|ip|snapshots|destroy) "cmd_$1" ;;
+  reset|ssh|sync|snapshot|seal|key) "cmd_$1" "${2:-}" ;;
   *) usage; exit 1 ;;
 esac

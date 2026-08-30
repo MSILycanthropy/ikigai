@@ -25,7 +25,8 @@ desktop; Ikigai provides curation, theming, and ops tooling.
 | Theming | Hand-curated theme dirs; **Tokyo Night** is the default and only launch theme |
 | Hardware | AMD/Intel first-class; NVIDIA best-effort (driver installed, honestly documented); VM install is the named demo path |
 | License | MIT, public from first commit |
-| QA | shellcheck + container dry-run in CI; scripted QEMU fresh-install smoke test before tags; migrations tested against an aged-install snapshot |
+| QA | shellcheck + container dry-run in CI; scripted Hyper-V fresh-install smoke test (`scripts/vm.sh`) before tags; migrations tested against an aged-install checkpoint |
+| AUR | Installer never calls an AUR helper: `makepkg` directly via `aur()` in `packages.sh`. `paru` is built from source (AUR `-bin` builds go stale on pacman soname bumps — hit 2026-08-29). Long-term fix is a custom repo (v2), Omarchy-style |
 
 ## v1 cutline
 
@@ -72,12 +73,13 @@ Update state model: `~/.local/share/ikigai` is the live checkout;
 
 cosmic, ghostty, zsh, starship, zed, neovim, lazygit, docker, docker-compose,
 mise, btop, ripgrep, fd, fzf, bat, eza, wl-clipboard, ttf-jetbrains-mono-nerd,
-noto-fonts(-emoji). AUR: paru-bin (helper), zen-browser-bin.
+noto-fonts(-emoji), pipewire stack, `hyperv` (Hyper-V guests only).
+AUR (via makepkg): paru (source), zen-browser-bin.
 
 ## Build order
 
-1. **Skeleton + happy path.** boot.sh → install.sh → packages.sh in a QEMU VM:
-   fresh Arch minimal → reboot into COSMIC login. Nothing else.
+1. **Skeleton + happy path.** boot.sh → install.sh → packages.sh in a Hyper-V VM:
+   fresh Arch minimal → reboot into COSMIC login. Nothing else. ✅ 2026-08-29
 2. **Seed + theme.** configs.sh + Tokyo Night across COSMIC/Ghostty/Zed/Neovim/btop.
    Research task here: exact COSMIC RON keys for theme/panel/shortcuts (schema is
    version-sensitive — pin findings to the COSMIC version in `extra`).
@@ -85,7 +87,8 @@ noto-fonts(-emoji). AUR: paru-bin (helper), zen-browser-bin.
    Test against a snapshot of the Phase-1 VM.
 4. **Keybind layer + ikigai-keys.**
 5. **CI + smoke test.** shellcheck, container dry-run of installer, scripted
-   QEMU fresh-install script.
+   fresh-install run via `scripts/vm.sh` (Hyper-V; QEMU/WHPX on Windows was
+   abandoned — MSI/MMIO emulation failures and a corrupted image).
 6. **README, screenshots, public launch.**
 
 ## Accepted risks
