@@ -13,7 +13,7 @@ step() { echo; echo "==> [$1]"; }
 fail() { echo; echo "!!! install failed in step '$CURRENT' (see $LOG)" >&2; }
 trap fail ERR
 
-sudo -v
+sudo true
 ( while true; do sudo -n true; sleep 50; done ) 2>/dev/null &
 SUDO_KEEPALIVE=$!
 trap 'kill $SUDO_KEEPALIVE 2>/dev/null' EXIT
