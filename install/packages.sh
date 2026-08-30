@@ -36,9 +36,5 @@ aur() {
   rm -rf "$build"
 }
 
-paru --version >/dev/null 2>&1 || {
-  stale=$(pacman -Qq paru-bin paru-bin-debug 2>/dev/null || true)
-  [ -z "$stale" ] || sudo pacman -Rns --noconfirm $stale
-  aur paru
-}
+paru --version >/dev/null 2>&1 || aur paru
 for pkg in "${AUR[@]}"; do pacman -Q "$pkg" >/dev/null 2>&1 || aur "$pkg"; done

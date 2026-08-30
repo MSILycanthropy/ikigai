@@ -25,7 +25,7 @@ desktop; Ikigai provides curation, theming, and ops tooling.
 | Theming | Hand-curated theme dirs; **Tokyo Night** is the default and only launch theme |
 | Hardware | AMD/Intel first-class; NVIDIA best-effort (driver installed, honestly documented); VM install is the named demo path |
 | License | MIT, public from first commit |
-| QA | shellcheck + container dry-run in CI; scripted Hyper-V fresh-install smoke test (`scripts/vm.sh`) before tags; migrations tested against an aged-install checkpoint |
+| QA | CI: shellcheck + `archlinux` container checks (`scripts/ci-check.sh`). Manual before tags: both install paths on Hyper-V via `scripts/vm.sh` (checkpoints `vanilla`, `phase1`, `phase2`) |
 | AUR | Installer never calls an AUR helper: `makepkg` directly via `aur()` in `packages.sh`. `paru` is built from source (AUR `-bin` builds go stale on pacman soname bumps — hit 2026-08-29). Long-term fix is a custom repo (v2), Omarchy-style |
 
 ## v1 cutline
@@ -38,38 +38,29 @@ desktop; Ikigai provides curation, theming, and ops tooling.
 ```
 ikigai/
 ├── boot.sh                 # curl-able entry: installs git, clones to ~/.local/share/ikigai, execs install.sh
-├── install.sh              # orchestrator: runs install/*.sh in order, logs, fails loud
+├── install.sh              # orchestrator: runs install/*.sh in order, logs, fails loud, records installed commit
 ├── install/
-│   ├── preflight.sh        # Arch check, network, non-root w/ sudo, GPU detect (AMD/Intel/NVIDIA)
-│   ├── packages.sh         # pacman set, AUR helper (paru), AUR set
-│   ├── configs.sh          # seed ~/.config from config/ (copy, never symlink — hand-off model)
-│   ├── theme.sh            # install + activate Tokyo Night
-│   ├── keybinds.sh         # write COSMIC custom-shortcuts layer
-│   └── services.sh         # enable docker, cosmic-greeter, timers
-├── bin/                    # on PATH via zsh config
-│   ├── ikigai-update       # git pull → run unapplied migrations → pacman -Syu
-│   ├── ikigai-theme-set    # v1: re-applies tokyo-night; contract designed for N themes
-│   └── ikigai-keys         # keybinding cheatsheet
-├── config/                 # canonical seed configs
-│   ├── cosmic/             # RON files: theme, panel/dock layout, shortcuts
-│   ├── ghostty/
-│   ├── zed/
-│   ├── nvim/
-│   ├── zsh/
-│   └── starship.toml
-├── themes/
-│   └── tokyo-night/        # cosmic theme RON, ghostty colors, zed+nvim theme pointers,
-│                           # btop/lazygit themes, wallpaper
-├── migrations/             # <unix-timestamp>.sh, applied state in ~/.local/state/ikigai/
-├── LICENSE
-└── README.md
+│   ├── preflight.sh        # Arch, UEFI, non-root w/ sudo, network, GPU detect → state/gpu
+│   ├── packages.sh         # pacman set (+GPU/VM extras), AUR via makepkg (paru from source, zen-browser-bin)
+│   ├── configs.sh          # seed ~/.config (only if absent; hash recorded in state/seeds), COSMIC defaults → /usr/local/share/cosmic
+│   ├── theme.sh            # → bin/ikigai-theme-set tokyo-night
+│   └── services.sh         # greeter/docker/NM (+hv_kvp_daemon), docker group, zsh, bin/ → /usr/local/bin
+├── bin/
+│   ├── ikigai-theme-set    # app theme files → ~/.config; COSMIC theme + wallpaper → system layer
+│   └── ikigai-keys         # cheatsheet from defaults+custom+system_actions; Super+Shift+/
+├── config/                 # seeds: zsh, starship, git, ghostty, zellij, zed, yazi, nvim, bat, btop; cosmic/ (system-layer RON)
+├── themes/tokyo-night/     # vendored folke extras (scripts/vendor-tokyonight.sh), builder.ron + built COSMIC theme, wallpaper
+├── tools/cosmic-theme-gen/ # dev-only Rust: builder.ron → CosmicTheme.Dark/v2 (pinned libcosmic rev)
+├── scripts/                # vm.sh (Hyper-V harness), vendor-*.sh, ci-check.sh
+├── archinstall.json        # install path B
+├── docs/desktop.png, README.md, PLAN.md, THIRD_PARTY.md, LICENSE
 ```
 
-Update state model: `~/.local/share/ikigai` is the live checkout;
-`~/.local/state/ikigai/migrations/` records applied migration filenames.
-`ikigai-update` runs anything in `migrations/` not recorded there, oldest first.
+State: `~/.local/share/ikigai` is the live checkout; `~/.local/state/ikigai/` holds
+`install.log`, `gpu`, `installed_commit`, and `seeds/` (sha256 of each seeded file at
+seed time — the input a future reconcile-style update needs).
 
-## Curated package set (draft — finalize in Phase 1)
+## Curated package set (final for v1)
 
 cosmic, ghostty, zsh, starship, zed, neovim, lazygit, docker, docker-compose,
 mise, zellij, yazi, lazydocker, btop, ripgrep, fd, fzf, bat, eza, dust, git-delta,
@@ -107,8 +98,8 @@ AUR (via makepkg): paru (source), zen-browser-bin.
    (c) wallpaper (NASA SVS 13831, public domain) + `system_actions` + `custom` shortcuts +
        dock favorites (`CosmicAppList/v1/favorites`; the applet reads it at login only) ✅
    (d) `ikigai-theme-set` + full clean-install verification.
-3. **Update machinery — deferred.** Only prerequisite now: `install.sh` records the
-   installed commit and `configs.sh` records seed hashes, so early installs aren't stranded.
+3. **Update machinery — deferred.** Prerequisite done 2026-08-30: `install.sh` records
+   `installed_commit`, `configs.sh` records seed hashes in `state/seeds/`.
 4. **`ikigai-keys` cheatsheet.** ✅ 2026-08-30. Parses `defaults` + `custom` + `system_actions`
    at runtime (same merge cosmic-comp does), grouped; `--fzf` for search. Bound to
    Super+Shift+/ (keysym `slash` with Shift — not `question`). `bin/` is symlinked into

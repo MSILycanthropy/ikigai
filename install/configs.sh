@@ -3,6 +3,8 @@
 set -euo pipefail
 
 SRC="$IKIGAI_PATH/config"
+SEEDS="$IKIGAI_STATE/seeds"
+mkdir -p "$SEEDS"
 skipped=()
 
 seed() {
@@ -12,6 +14,7 @@ seed() {
   fi
   mkdir -p "$(dirname "$to")"
   cp "$from" "$to"
+  sha256sum "$to" | cut -d' ' -f1 > "$SEEDS/${to//\//%}"
   echo "seeded $to"
 }
 

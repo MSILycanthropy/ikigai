@@ -19,7 +19,9 @@ SUDO_KEEPALIVE=$!
 trap 'kill $SUDO_KEEPALIVE 2>/dev/null' EXIT
 
 exec > >(tee -a "$LOG") 2>&1
-echo "ikigai install $(date -Is) — $(git -C "$IKIGAI_PATH" rev-parse --short HEAD 2>/dev/null || echo unversioned)"
+commit="$(git -C "$IKIGAI_PATH" rev-parse HEAD 2>/dev/null || echo unversioned)"
+echo "ikigai install $(date -Is) — ${commit:0:7}"
+echo "$commit" > "$IKIGAI_STATE/installed_commit"
 
 for CURRENT in "${STEPS[@]}"; do
   step "$CURRENT"
