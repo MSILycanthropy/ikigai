@@ -21,3 +21,12 @@ find themes config -type f \( -name '*.ron' -o -path '*/v[0-9]/*' \) | while rea
   grep -q . "$f" || { echo "empty config file: $f"; exit 1; }
 done
 echo "config files non-empty"
+
+python -c '
+import json; d = json.load(open("archinstall.json"))
+assert d["profile_config"]["profile"]["main"] == "Minimal"
+assert d["bootloader_config"]["bootloader"] == "Systemd-boot"
+assert d["network_config"]["type"] == "nm"
+assert any("boot.sh" in c for c in d["custom_commands"])
+'
+echo "archinstall.json ok"

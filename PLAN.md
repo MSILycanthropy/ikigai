@@ -113,9 +113,12 @@ AUR (via makepkg): paru (source), zen-browser-bin.
    at runtime (same merge cosmic-comp does), grouped; `--fzf` for search. Bound to
    Super+Shift+/ (keysym `slash` with Shift — not `question`). `bin/` is symlinked into
    `/usr/local/bin` at install so compositor `Spawn` can find it.
-5. **CI + smoke test.** shellcheck, container dry-run of installer, scripted
-   fresh-install run via `scripts/vm.sh` (Hyper-V; QEMU/WHPX on Windows was
-   abandoned — MSI/MMIO emulation failures and a corrupted image).
+5. **CI + smoke test.** ✅ 2026-08-30. GitHub Actions: shellcheck (severity warning,
+   `config/` `themes/` `tools/` excluded — zsh + vendored) and an `archlinux:latest` job
+   running `scripts/ci-check.sh` (bash -n, every curated package resolves via
+   `pacman -Sp`, GPU/VM packages exist, no empty config files). The fresh-install smoke
+   test stays manual on Hyper-V via `scripts/vm.sh` (QEMU/WHPX on Windows was abandoned —
+   MSI/MMIO emulation failures and a corrupted image).
 6. **README, screenshots, public launch.**
 
 ## Accepted risks
