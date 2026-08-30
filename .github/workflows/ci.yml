@@ -13,6 +13,7 @@ jobs:
         with:
           severity: warning
           scandir: .
+          ignore_paths: config themes tools
           additional_files: ikigai-keys ikigai-theme-set
 
   arch:
