@@ -25,8 +25,12 @@ esac
 
 sudo pacman -Syu --needed --noconfirm "${PACMAN[@]}"
 
+# Build on disk, not /tmp: tmpfs is RAM-limited and a Rust build needs GBs.
+BUILD_ROOT="${XDG_CACHE_HOME:-$HOME/.cache}/ikigai/build"
+mkdir -p "$BUILD_ROOT"
+
 aur() {
-  local build; build="$(mktemp -d)"
+  local build; build="$(mktemp -d -p "$BUILD_ROOT")"
   git clone -q "https://aur.archlinux.org/$1.git" "$build/$1"
   (cd "$build/$1" && makepkg -si --noconfirm --needed)
   rm -rf "$build"
