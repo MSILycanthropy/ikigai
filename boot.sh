@@ -7,7 +7,7 @@ IKIGAI_REF="${IKIGAI_REF:-main}"
 IKIGAI_PATH="${IKIGAI_PATH:-$HOME/.local/share/ikigai}"
 
 echo "==> Ikigai bootstrap"
-sudo pacman -Sy --needed --noconfirm git
+sudo pacman -Syu --needed --noconfirm git
 
 if [ -d "$IKIGAI_PATH/.git" ]; then
   git -C "$IKIGAI_PATH" fetch -q origin "$IKIGAI_REF"

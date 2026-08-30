@@ -21,8 +21,11 @@ win() { wslpath -w "$1"; }
 die() { echo "vm.sh: $*" >&2; exit 1; }
 ps()  { powershell.exe -NoProfile -NonInteractive -Command "\$ErrorActionPreference='Stop'; $*" | tr -d '\r'; }
 # WSL (mirrored networking) has no route to the Default Switch; the host does.
+# Host-key checking is off on purpose: this only ever talks to the throwaway VM.
 SSH=${VM_SSH:-ssh.exe}
-SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o LogLevel=ERROR)
+SSH_KEY="$(wslpath -u "$win_home")/.ssh/ikigai-vm"
+SSH_OPTS=(-i "$(win "$SSH_KEY")" -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o LogLevel=ERROR)
+ARCH_RELEASE_KEY=3E80CA1A8B89F69CBA57D98A76A5EF9054449A5C
 
 vm_exists() { ps "Get-VM -Name '$VM' -ErrorAction SilentlyContinue | Out-Null; \$?" | grep -q True; }
 vm_state()  { ps "(Get-VM -Name '$VM').State"; }
@@ -31,8 +34,9 @@ cmd_fetch() {
   mkdir -p "$VM_DIR"
   curl -fL --progress-bar -o "$ISO" "$ISO_MIRROR/archlinux-x86_64.iso"
   curl -fsSL -o "$ISO.sig" "$ISO_MIRROR/archlinux-x86_64.iso.sig"
-  gpg --auto-key-locate clear,wkd -v --locate-external-key pierre@archlinux.org >/dev/null 2>&1 || true
-  gpg --verify "$ISO.sig" "$ISO" || die "ISO signature verification failed"
+  gpg --auto-key-locate clear,wkd -v --locate-external-key pierre@archlinux.org >/dev/null 2>&1
+  gpg --status-fd 1 --verify "$ISO.sig" "$ISO" 2>/dev/null | grep -q "VALIDSIG $ARCH_RELEASE_KEY" \
+    || die "ISO signature verification failed (expected Arch release key $ARCH_RELEASE_KEY)"
   echo "fetched + verified $ISO"
 }
 
@@ -101,11 +105,10 @@ cmd_ip() {
 }
 
 cmd_key() {
-  local user="${1:?user}" keydir pub
-  keydir="$(wslpath -u "$win_home")/.ssh"
-  mkdir -p "$keydir"
-  [ -f "$keydir/id_ed25519" ] || ssh-keygen.exe -q -t ed25519 -N "" -f "$(win "$keydir/id_ed25519")" -C ikigai-vm
-  pub="$(tr -d '\r\n' < "$keydir/id_ed25519.pub")"
+  local user="${1:?user}" pub
+  mkdir -p "$(dirname "$SSH_KEY")"
+  [ -f "$SSH_KEY" ] || ssh-keygen.exe -q -t ed25519 -N "" -f "$(win "$SSH_KEY")" -C ikigai-vm
+  pub="$(tr -d '\r\n' < "$SSH_KEY.pub")"
   "$SSH" "${SSH_OPTS[@]}" "$user@$(cmd_ip)" \
     "mkdir -p ~/.ssh && chmod 700 ~/.ssh && grep -qF '$pub' ~/.ssh/authorized_keys 2>/dev/null || echo '$pub' >> ~/.ssh/authorized_keys; chmod 600 ~/.ssh/authorized_keys && echo key installed"
 }

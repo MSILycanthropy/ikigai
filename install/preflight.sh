@@ -10,6 +10,11 @@ sudo -n true 2>/dev/null || die "user $(id -un) cannot sudo"
 [ -d /sys/firmware/efi ] || die "UEFI boot required (cosmic-greeter/systemd-boot assumptions)"
 curl -fsS --max-time 10 https://archlinux.org >/dev/null || die "no network"
 
+# archinstall path grants temporary NOPASSWD sudo; if a previous run was interrupted, drop it.
+if [ -f /etc/sudoers.d/90-ikigai-install ] && ! systemd-detect-virt -rq; then
+  sudo rm -f /etc/sudoers.d/90-ikigai-install && echo "removed stale install-time sudoers grant"
+fi
+
 gpu=none
 for vendor in /sys/class/drm/card[0-9]/device/vendor; do
   [ -r "$vendor" ] || continue

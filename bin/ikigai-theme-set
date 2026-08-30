@@ -13,6 +13,9 @@ if [ -z "$THEME" ] || [ ! -d "$T" ]; then
   exit 2
 fi
 
+BACKUP="${XDG_STATE_HOME:-$HOME/.local/state}/ikigai/backup/$(date +%Y%m%d-%H%M%S)"
+backup() { [ -e "$1" ] || return 0; mkdir -p "$BACKUP"; mv "$1" "$BACKUP/"; echo "backed up $1 → $BACKUP/"; }
+
 put() { mkdir -p "$(dirname "$2")"; cp "$T/$1" "$2"; }
 
 put ghostty/tokyonight_night          "$HOME/.config/ghostty/themes/tokyonight_night"
@@ -21,6 +24,7 @@ put yazi/tokyonight_night.toml        "$HOME/.config/yazi/theme.toml"
 put eza/tokyonight_night.yml          "$HOME/.config/eza/theme.yml"
 put fzf/tokyonight_night.sh           "$HOME/.config/fzf/theme.sh"
 put delta/tokyonight_night.gitconfig  "$HOME/.config/git/tokyonight.gitconfig"
+backup "$HOME/.config/lazygit/config.yml"
 put lazygit/tokyonight_night.yml      "$HOME/.config/lazygit/config.yml"
 put btop/tokyonight_night.theme       "$HOME/.config/btop/themes/tokyonight_night.theme"
 put sublime/tokyonight_night.tmTheme  "$(bat --config-dir)/themes/tokyonight_night.tmTheme"
@@ -36,6 +40,7 @@ sudo install -Dm644 "$T/wallpaper.jpg" "/usr/local/share/backgrounds/ikigai/$THE
 done
 
 # A user-layer theme (written by Settings on first login) would shadow ours.
-rm -rf "$HOME/.config/cosmic/com.system76.CosmicTheme.Dark" "$HOME/.config/cosmic/com.system76.CosmicTheme.Dark.Builder"
+backup "$HOME/.config/cosmic/com.system76.CosmicTheme.Dark"
+backup "$HOME/.config/cosmic/com.system76.CosmicTheme.Dark.Builder"
 
 echo "theme: $THEME"

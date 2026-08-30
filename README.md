@@ -44,9 +44,9 @@ won't touch your dotfiles, but two greeters will be enabled and yours may win.
 | Desktop | [COSMIC](https://system76.com/cosmic) from Arch `extra`, Tokyo Night everywhere, NASA black-hole wallpaper |
 | Terminal | [Ghostty](https://ghostty.org) + [zellij](https://zellij.dev) (unlock-first keybinds, `zj` to attach) |
 | Shell | zsh (no framework) + [starship](https://starship.rs), autosuggestions, syntax highlighting, oh-my-zsh's git aliases |
-| Editor | [Zed](https://zed.dev); Neovim with a minimal themed config |
+| Editor | [Zed](https://zed.dev) (fetches the Tokyo Night extension from Zed's registry on first launch); Neovim with a minimal themed config |
 | Browser | [Zen](https://zen-browser.app) |
-| Runtimes | [mise](https://mise.jdx.dev) — `mise use -g node@lts`; Docker + lazydocker |
+| Runtimes | [mise](https://mise.jdx.dev) — `mise use -g node@lts`; Docker + lazydocker (you're added to the `docker` group, which is root-equivalent) |
 | TUIs | yazi (`y`), lazygit (`lg`), btop |
 | CLI | ripgrep, fd, fzf, bat, eza, dust, git-delta, tealdeer, jq — with `ls`/`cat`/`du`/`grep` aliased to the modern ones |
 | Fonts | JetBrainsMono Nerd Font, Noto |
@@ -69,7 +69,9 @@ Stock COSMIC bindings, plus:
   `~/.config/cosmic` and override per key — Ikigai never fights you for them.
 - **App configs are seeded once** into `~/.config`, only where nothing exists. Your
   dotfiles are never overwritten (`IKIGAI_FORCE=1` if you want ours).
-- **Theme files are Ikigai-owned** and re-applied by `ikigai-theme-set tokyo-night`.
+- **Theme files are Ikigai-owned** and re-applied by `ikigai-theme-set tokyo-night`. That
+  includes lazygit's `config.yml` and any COSMIC theme customised in Settings — both are
+  backed up to `~/.local/state/ikigai/backup/` before being replaced.
 - **No AUR helper in the installer.** AUR packages are built with `makepkg`; `paru`
   is installed (from source) for *you* to use afterwards.
 
