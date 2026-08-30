@@ -22,6 +22,7 @@ find themes config -type f \( -name '*.ron' -o -path '*/v[0-9]/*' \) | while rea
 done
 echo "config files non-empty"
 
+[ "$(id -u)" -eq 0 ] && pacman -S --noconfirm --needed python >/dev/null
 python -c '
 import json; d = json.load(open("archinstall.json"))
 assert d["profile_config"]["profile"]["main"] == "Minimal"
