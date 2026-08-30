@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# curl -fsSL https://raw.githubusercontent.com/<org>/ikigai/main/boot.sh | bash
+# curl -fsSL https://raw.githubusercontent.com/MSILycanthropy/ikigai/main/boot.sh | bash
 set -euo pipefail
 
 IKIGAI_REPO="${IKIGAI_REPO:-https://github.com/MSILycanthropy/ikigai.git}"
