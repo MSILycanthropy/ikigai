@@ -32,7 +32,7 @@ Item {
         name: Apps.glyphFor(button.task.appId)
         size: Theme.iconSize
         fill: button.active
-        color: button.active ? Theme.colors.accent : button.running ? Theme.colors.fg : Theme.colors.muted
+        color: button.active ? Theme.colors.primary : button.running ? Theme.colors.fg : Theme.colors.fgVariant
 
         Behavior on color {
             ColorAnimation { duration: Motion.fastEffects }
@@ -49,7 +49,7 @@ Item {
         width: 2
         height: button.active ? 16 : 6
         radius: 1
-        color: Theme.colors.accent
+        color: Theme.colors.primary
         visible: button.running
 
         Behavior on height {

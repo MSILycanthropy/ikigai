@@ -11,15 +11,18 @@ from pathlib import Path
 FONT = {"family": "Noto Sans", "size": 12, "icons": "Phosphor", "iconsFill": "Phosphor-Fill"}
 RADIUS = 8
 
-SHELL_TOKENS = (
-    "surface", "surfaceContainerLow", "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest",
-    "onSurface", "onSurfaceVariant", "outline", "outlineVariant",
-    "primary", "onPrimary", "primaryContainer", "onPrimaryContainer", "error",
-)
+# QML reserves on<Capital> identifiers for signal handlers, so M3's on* tokens get a Fg suffix.
+SHELL_TOKENS = {
+    "surface": "surface", "surfaceContainerLow": "surfaceContainerLow", "surfaceContainer": "surfaceContainer",
+    "surfaceContainerHigh": "surfaceContainerHigh", "surfaceContainerHighest": "surfaceContainerHighest",
+    "fg": "onSurface", "fgVariant": "onSurfaceVariant", "outline": "outline", "outlineVariant": "outlineVariant",
+    "primary": "primary", "primaryFg": "onPrimary", "primaryContainer": "primaryContainer",
+    "primaryContainerFg": "onPrimaryContainer", "error": "error",
+}
 
 
 def shell_json(palette):
-    colors = {k: palette["m3"][k] for k in SHELL_TOKENS}
+    colors = {k: palette["m3"][v] for k, v in SHELL_TOKENS.items()}
     colors["success"] = palette["ansi"]["green"]
     colors["warning"] = palette["ansi"]["yellow"]
     return json.dumps({"font": FONT, "radius": RADIUS, "colors": colors}, indent=2) + "\n"

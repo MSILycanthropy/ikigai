@@ -32,7 +32,7 @@ Column {
         anchors.horizontalCenter: parent.horizontalCenter
         topPadding: 4
         text: Qt.formatDate(clock.date, "d MMM")
-        color: Theme.colors.muted
+        color: Theme.colors.fgVariant
         font.family: Theme.fontFamily
         font.pointSize: Theme.fontSize - 3
     }

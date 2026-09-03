@@ -1,15 +1,27 @@
 {
-  "font": { "family": "Noto Sans", "size": 12, "icons": "Phosphor", "iconsFill": "Phosphor-Fill" },
+  "font": {
+    "family": "Noto Sans",
+    "size": 12,
+    "icons": "Phosphor",
+    "iconsFill": "Phosphor-Fill"
+  },
   "radius": 8,
   "colors": {
-    "bg": "#1a1b26",
-    "surface": "#24283b",
-    "border": "#414868",
+    "surface": "#1a1b26",
+    "surfaceContainerLow": "#1f2335",
+    "surfaceContainer": "#24283b",
+    "surfaceContainerHigh": "#292e42",
+    "surfaceContainerHighest": "#3b4261",
     "fg": "#c0caf5",
-    "muted": "#a9b1d6",
-    "accent": "#7aa2f7",
-    "red": "#f7768e",
-    "green": "#9ece6a",
-    "yellow": "#e0af68"
+    "fgVariant": "#a9b1d6",
+    "outline": "#565f89",
+    "outlineVariant": "#414868",
+    "primary": "#7aa2f7",
+    "primaryFg": "#1a1b26",
+    "primaryContainer": "#3d59a1",
+    "primaryContainerFg": "#c0caf5",
+    "error": "#f7768e",
+    "success": "#9ece6a",
+    "warning": "#e0af68"
   }
 }

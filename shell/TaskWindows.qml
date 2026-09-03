@@ -74,7 +74,7 @@ PopupCard {
                     }
                     name: "x"
                     size: 14
-                    color: Theme.colors.muted
+                    color: Theme.colors.fgVariant
                     opacity: rowHover.hovered ? 1 : 0
 
                     MouseArea {

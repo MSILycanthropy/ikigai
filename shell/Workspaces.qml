@@ -40,7 +40,7 @@ PopupCard {
                         verticalCenter: parent.verticalCenter
                     }
                     text: row.modelData.name
-                    color: row.modelData.active ? Theme.colors.accent : Theme.colors.fg
+                    color: row.modelData.active ? Theme.colors.primary : Theme.colors.fg
                     font.family: Theme.fontFamily
                     font.pointSize: Theme.fontSize
                     font.bold: row.modelData.active

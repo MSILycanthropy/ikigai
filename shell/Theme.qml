@@ -37,15 +37,22 @@ Singleton {
             }
             property int radius: 8
             property JsonObject colors: JsonObject {
-                property string bg: "#1a1b26"
-                property string surface: "#24283b"
-                property string border: "#414868"
-                property string fg: "#c0caf5"
-                property string muted: "#a9b1d6"
-                property string accent: "#7aa2f7"
-                property string red: "#f7768e"
-                property string green: "#9ece6a"
-                property string yellow: "#e0af68"
+                property string surface: "#100e0d"
+                property string surfaceContainerLow: "#161312"
+                property string surfaceContainer: "#1c1918"
+                property string surfaceContainerHigh: "#231f1d"
+                property string surfaceContainerHighest: "#2a2523"
+                property string fg: "#eee3e0"
+                property string fgVariant: "#b2a9a7"
+                property string outline: "#7c7472"
+                property string outlineVariant: "#4d4645"
+                property string primary: "#86adff"
+                property string primaryFg: "#002c66"
+                property string primaryContainer: "#6e9fff"
+                property string primaryContainerFg: "#002150"
+                property string error: "#ff716c"
+                property string success: "#7fc581"
+                property string warning: "#d4ab4f"
             }
         }
     }

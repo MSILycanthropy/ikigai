@@ -87,7 +87,7 @@ PanelWindow {
 
             BlobGroup {
                 id: blobs
-                color: Theme.colors.bg
+                color: Theme.colors.surface
                 smoothing: Theme.smoothing
             }
 
