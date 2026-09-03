@@ -42,10 +42,12 @@ won't touch your dotfiles, but two greeters will be enabled and yours may win.
 | | |
 |---|---|
 | Desktop | [COSMIC](https://system76.com/cosmic) from Arch `extra`, Tokyo Night everywhere, NASA black-hole wallpaper |
+| Rail | Ikigai's own [Quickshell](https://quickshell.org) shell (the experimental "Ikigai" session): a thin autohiding rail inside a rounded frame, popouts that melt out of it. The look, and the blob renderer that draws it, are [soramanew's caelestia-shell](https://github.com/caelestia-dots/shell) — see [Credits](#credits) |
 | Terminal | [Ghostty](https://ghostty.org) + [zellij](https://zellij.dev) (unlock-first keybinds, `zj` to attach) |
 | Shell | zsh (no framework) + [starship](https://starship.rs), autosuggestions, syntax highlighting, oh-my-zsh's git aliases |
 | Editor | [Zed](https://zed.dev) (fetches the Tokyo Night extension from Zed's registry on first launch); Neovim with a minimal themed config |
 | Browser | [Zen](https://zen-browser.app) |
+| Apps | [Discord](https://discord.com) and [YouTube Music](https://github.com/pear-devs/pear-desktop) (th-ch's desktop app, now Pear Desktop, AUR `pear-desktop-bin`), pinned at the bottom of the rail |
 | Runtimes | [mise](https://mise.jdx.dev) — `mise use -g node@lts`; Docker + lazydocker (you're added to the `docker` group, which is root-equivalent) |
 | TUIs | yazi (`y`), lazygit (`lg`), btop |
 | CLI | ripgrep, fd, fzf, bat, eza, dust, git-delta, tealdeer, jq — with `ls`/`cat`/`du`/`grep` aliased to the modern ones |
@@ -114,6 +116,15 @@ AUR at all, an ISO with an SSH-first console, a second theme
 (`tools/cosmic-theme-gen` is ready for it).
 
 Notes on how COSMIC's config layering actually works: [docs/cosmic-config.md](docs/cosmic-config.md).
+
+## Credits
+
+The rail is a port of [caelestia-shell](https://github.com/caelestia-dots/shell) by
+[soramanew](https://github.com/soramanew): its frame-and-rail layout, its Material 3
+motion, and above all its blob renderer, the Qt Quick plugin that draws every panel as a
+signed distance field and melts them together. Ikigai vendors that plugin verbatim
+(`shell/plugin/blobs`, `scripts/vendor-blobs.sh`) and re-implements the QML around it for
+cosmic-comp. If you like how this looks, that's their work.
 
 ## License
 

@@ -5,7 +5,7 @@ PACMAN=(
   base-devel git rust quickshell qt6-shadertools cmake ninja vulkan-headers
   cosmic cosmic-greeter
   ghostty zsh zsh-autosuggestions zsh-syntax-highlighting zsh-completions starship
-  zed neovim lazygit
+  zed neovim lazygit discord
   docker docker-compose lazydocker mise
   zellij yazi btop
   ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard
@@ -13,7 +13,7 @@ PACMAN=(
   pipewire pipewire-pulse wireplumber
   xdg-user-dirs
 )
-AUR=(zen-browser-bin vicinae-bin)
+AUR=(zen-browser-bin vicinae-bin pear-desktop-bin)
 
 case "$(cat "$IKIGAI_STATE/gpu")" in
   nvidia) PACMAN+=(nvidia-open-dkms nvidia-utils linux-headers) ;;

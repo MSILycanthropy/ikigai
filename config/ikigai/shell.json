@@ -1,7 +1,7 @@
 {
   "pinned": {
     "top": ["com.mitchellh.ghostty", "zen", "dev.zed.Zed"],
-    "bottom": ["youtube-music", "discord"]
+    "bottom": ["com.github.th-ch.youtube-music", "discord"]
   },
   "autohide": true,
   "scale": 1.0
