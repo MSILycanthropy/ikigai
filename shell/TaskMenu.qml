@@ -23,8 +23,8 @@ PopupCard {
     }
 
     shown: active
-    width: 220
-    height: rows.implicitHeight + 12
+    implicitWidth: 220
+    implicitHeight: rows.implicitHeight + 12
 
     Column {
         id: rows
@@ -51,7 +51,7 @@ PopupCard {
                     opacity: rowHover.hovered ? 1 : 0
 
                     Behavior on opacity {
-                        NumberAnimation { duration: Motion.quick }
+                        Anim { effects: true; fast: true }
                     }
                 }
 

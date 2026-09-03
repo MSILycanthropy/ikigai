@@ -19,7 +19,7 @@ Item {
         opacity: hover.hovered || button.checked ? 1 : 0
 
         Behavior on opacity {
-            NumberAnimation { duration: Motion.quick }
+            Anim { effects: true; fast: true }
         }
     }
 

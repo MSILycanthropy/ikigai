@@ -1,33 +1,35 @@
 import QtQuick
 
-// Card beside the rail: springs out of the rail edge while its content fades in. Sized
-// by whoever fills it; the host leaves Motion.slack on the left for the gap to the rail.
-// The body itself is drawn by Goo from this item's geometry.
+// Card beside the rail: grows out of the rail edge while its content fades in, and
+// shrinks back into it. Subclasses set implicitWidth/Height; the body is drawn by the
+// blob layer in Bar from this item's geometry.
 Item {
     property bool shown: false
     default property alias content: body.data
 
-    x: shown ? Motion.slack : Motion.slack - Motion.rise
-    visible: body.opacity > 0
+    width: shown ? implicitWidth : 0
+    height: shown ? implicitHeight : 0
+    visible: width > 0
+    clip: true
 
     Item {
         id: body
-        anchors {
-            fill: parent
-            margins: 6
-        }
+        x: 6
+        y: 6
+        width: parent.implicitWidth - 12
+        height: parent.implicitHeight - 12
         opacity: shown ? 1 : 0
 
         Behavior on opacity {
-            NumberAnimation { duration: Motion.standard }
+            Anim { effects: true }
         }
     }
 
-    Behavior on x {
-        Slide {
-            duration: Motion.slow
-            easing.type: Motion.spring
-            easing.overshoot: 1.4
-        }
+    Behavior on width {
+        Anim {}
+    }
+
+    Behavior on height {
+        Anim {}
     }
 }

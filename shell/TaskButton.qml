@@ -21,7 +21,7 @@ Item {
         opacity: hover.hovered ? 1 : 0
 
         Behavior on opacity {
-            NumberAnimation { duration: Motion.quick }
+            Anim { effects: true; fast: true }
         }
     }
 
@@ -43,10 +43,7 @@ Item {
         visible: button.running
 
         Behavior on width {
-            NumberAnimation {
-                duration: Motion.quick
-                easing.type: Motion.settle
-            }
+            Anim { fast: true }
         }
     }
 

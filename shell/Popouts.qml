@@ -12,7 +12,7 @@ Item {
     // The open card, or the one still sliding back in, so the goo can absorb it.
     readonly property Item card: menu.active ? menu : workspaces.active ? workspaces : menu.visible ? menu : workspaces.visible ? workspaces : null
 
-    width: 260 + 2 * Motion.slack
+    width: 260
 
     function openMenu(task, at) {
         workspaces.active = false;
@@ -44,7 +44,7 @@ Item {
 
     Timer {
         id: leave
-        interval: 400
+        interval: Motion.grace
         onTriggered: popouts.close()
     }
 

@@ -7,8 +7,8 @@ PopupCard {
     property bool active: false
 
     shown: active
-    width: 260
-    height: list.implicitHeight + 12
+    implicitWidth: 260
+    implicitHeight: list.implicitHeight + 12
 
     Column {
         id: list
@@ -36,7 +36,7 @@ PopupCard {
                     opacity: row.modelData.active ? 1 : rowHover.hovered ? 0.5 : 0
 
                     Behavior on opacity {
-                        NumberAnimation { duration: Motion.quick }
+                        Anim { effects: true; fast: true }
                     }
                 }
 

@@ -117,4 +117,4 @@ Notes on how COSMIC's config layering actually works: [docs/cosmic-config.md](do
 
 ## License
 
-MIT. Vendored third-party files are listed in [THIRD_PARTY.md](THIRD_PARTY.md).
+MIT, except `shell/` which is GPL-3.0 because it builds on caelestia-shell's blob renderer. Vendored third-party files are listed in [THIRD_PARTY.md](THIRD_PARTY.md).

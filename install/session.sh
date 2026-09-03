@@ -20,10 +20,11 @@ sudo systemctl --global enable -q vicinae.service
 (cd "$IKIGAI_PATH/shell" && find . -type f) | while read -r f; do
   sudo install -Dm644 "$IKIGAI_PATH/shell/$f" "/usr/local/share/ikigai/shell/$f"
 done
-# Qt Quick only loads precompiled shaders; qsb bundles GLSL for desktop and GLES.
-for f in "$IKIGAI_PATH"/shell/shaders/*.frag; do
-  /usr/lib/qt6/bin/qsb --glsl "300es,150" -o "$f.qsb.tmp" "$f"
-  sudo install -Dm644 "$f.qsb.tmp" "/usr/local/share/ikigai/shell/shaders/$(basename "$f").qsb"
-  rm -f "$f.qsb.tmp"
-done
+# The blob renderer is a Qt Quick plugin (shell/plugin); the shell unit adds
+# /usr/local/lib/qt6/qml to the QML import path.
+BLOBS_BUILD="${XDG_CACHE_HOME:-$HOME/.cache}/ikigai/build/blobs"
+cmake -S "$IKIGAI_PATH/shell/plugin" -B "$BLOBS_BUILD" -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_INSTALL_LIBDIR=lib >/dev/null
+cmake --build "$BLOBS_BUILD" >/dev/null
+sudo cmake --install "$BLOBS_BUILD" >/dev/null
 echo "installed ikigai-session + ikigai-bridge + shell; 'Ikigai' session entry in the greeter"

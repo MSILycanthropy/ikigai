@@ -5,7 +5,6 @@ singleton Bridge 1.0 Bridge.qml
 singleton Tasks 1.0 Tasks.qml
 Bar 1.0 Bar.qml
 Clock 1.0 Clock.qml
-Slide 1.0 Slide.qml
 Taskbar 1.0 Taskbar.qml
 TaskButton 1.0 TaskButton.qml
 TaskMenu 1.0 TaskMenu.qml
@@ -16,4 +15,5 @@ singleton Apps 1.0 Apps.qml
 BarButton 1.0 BarButton.qml
 Glyph 1.0 Glyph.qml
 Popouts 1.0 Popouts.qml
-Goo 1.0 Goo.qml
+Anim 1.0 Anim.qml
+Exclusions 1.0 Exclusions.qml

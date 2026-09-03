@@ -19,7 +19,7 @@ is an experimental greeter entry next to stock COSMIC.
 |---|---|
 | First swap milestone | Shell v0 = taskbar + launcher + notifications + tray/volume/clock. OSD included (small once volume exists). Idle/lock and greeter after. |
 | Shell files | Ikigai-owned: `shell/` in the repo → `/usr/local/share/ikigai/shell/`, run by `ikigai-shell.service` (`qs -p …/shell.qml`). Users don't edit QML. |
-| Bar | Thin left rail (40 px), autohiding, in the style of caelestia-shell: pinned + running apps at the top, clock stacked at the bottom, popouts to the right. Autohide shrinks the layer surface to a strip; it never unmaps (cosmic-comp#1590). |
+| Bar | caelestia-shell's look, on its vendored blob renderer (`shell/plugin`, GPL-3): a rounded 10 px frame around the desktop, a thin (40 px) autohiding rail that grows out of the frame's left border, cards that melt out of the rail. One full-screen layer per screen plus four 1 px exclusion windows; nothing ever unmaps (cosmic-comp#1590). Pinned + running apps at the top, clock stacked at the bottom. |
 | Launcher | Vicinae (`vicinae-bin`), upstream's `vicinae.service` enabled into `graphical-session.target` plus a drop-in that sets `XDG_CURRENT_DESKTOP=Ikigai` (Vicinae refuses layer-shell on "cosmic"; the patched Qt makes it safe). Super, the start button and the search icon run `vicinae toggle`. Palette-only theming via its bundled Tokyo Night, telemetry off, welcome tour kept. Replaces cosmic-launcher and app-library. |
 | Notifications | Quickshell NotificationServer: toasts top-right with actions, history panel from the clock, do-not-disturb. Replaces cosmic-notifications. |
 | Status items v0 | Clock + notification badge, system tray (StatusNotifier), volume (PipeWire). Network and battery after the swap. |

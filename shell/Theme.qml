@@ -9,7 +9,11 @@ Singleton {
     readonly property int barWidth: Math.round(40 * Config.scale)
     readonly property int iconSize: Math.round(20 * Config.scale)
     readonly property real fontSize: theme.font.size * Config.scale
-    readonly property int goo: Math.round(14 * Config.scale)
+    // The frame around the desktop and how blobs melt into it (caelestia-shell's defaults).
+    readonly property int border: Math.round(10 * Config.scale)
+    readonly property int rounding: Math.round(25 * Config.scale)
+    readonly property int smoothing: Math.round(20 * Config.scale)
+    readonly property int cardRadius: Math.round(28 * Config.scale)
     readonly property string fontFamily: theme.font.family
     readonly property string iconFont: theme.font.icons
 

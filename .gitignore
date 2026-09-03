@@ -1,3 +1,2 @@
 tools/*/target/
 session/target/
-*.qsb.tmp

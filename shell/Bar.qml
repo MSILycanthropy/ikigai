@@ -1,40 +1,51 @@
 import Quickshell
+import Quickshell.Wayland
 import QtQuick
+import QtQuick.Effects
+import Ikigai.Blobs
 
+// One full-screen layer per screen: the frame around the desktop, the rail sunk into its
+// left border, and any open card, all drawn as blobs of a single group so they melt
+// together. Reserved space comes from Exclusions.
 PanelWindow {
     id: bar
 
     property bool shown: true
     readonly property bool wanted: !Config.autohide || hover.hovered
+    property real reveal: shown ? 1 : 0
+    // The left border thickens into the rail as it reveals.
+    readonly property real railWidth: Theme.border + (Theme.barWidth - Theme.border) * reveal
 
     anchors {
         left: true
+        right: true
         top: true
         bottom: true
     }
-    // Wide enough for the rail and a card; stay so while any content is on screen, so the
-    // strip only appears after the slide.
-    implicitWidth: content.x > -Theme.barWidth ? Theme.barWidth + popouts.width : 2
-    exclusionMode: ExclusionMode.Normal
-    exclusiveZone: Config.autohide ? 0 : Theme.barWidth
+    exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.layer: WlrLayer.Top
+    WlrLayershell.namespace: "ikigai:bar"
     color: "transparent"
 
-    // Input only on the rail and the open card; the rest of the window passes through.
-    // The rail region stays at x 0 so the 2 px strip keeps hover while hidden.
+    // Input only on the rail (the bare border while hidden) and the open card.
     mask: Region {
         x: 0
         y: 0
-        width: Theme.barWidth
+        width: bar.railWidth
         height: bar.height
 
         regions: [
             Region {
-                x: content.x + Theme.barWidth
+                x: bar.railWidth
                 y: popouts.card ? popouts.card.y : 0
-                width: popouts.card ? popouts.card.x + popouts.card.width : 0
+                width: popouts.card ? popouts.card.width : 0
                 height: popouts.card ? popouts.card.height : 0
             }
         ]
+    }
+
+    Behavior on reveal {
+        Anim { standard: true }
     }
 
     // Reveal at once; hide after a grace period so grazing the edge doesn't flicker.
@@ -49,8 +60,13 @@ PanelWindow {
 
     Timer {
         id: hideTimer
-        interval: 400
+        interval: Motion.grace
         onTriggered: bar.shown = bar.wanted
+    }
+
+    Exclusions {
+        screen: bar.screen
+        left: Config.autohide ? Theme.border : Theme.barWidth
     }
 
     Item {
@@ -61,36 +77,55 @@ PanelWindow {
         }
 
         Item {
-            id: content
-            width: Theme.barWidth + popouts.width
-            height: parent.height
-            x: bar.shown ? 0 : -Theme.barWidth
-
-            // Direction from the Behavior itself: property bindings on `shown` have no ordering guarantee.
-            Behavior on x {
-                id: slide
-                Slide {
-                    entering: slide.targetValue === 0
-                }
+            anchors.fill: parent
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                blurMax: 15
+                shadowColor: Qt.alpha("black", 0.6)
             }
 
-            Goo {
+            BlobGroup {
+                id: blobs
+                color: Theme.colors.bg
+                smoothing: Theme.smoothing
+            }
+
+            // Oversized by 50 so a closed card's bulge stays hidden in the border.
+            BlobInvertedRect {
                 anchors.fill: parent
-                card: popouts.card
-                cardOffset: popouts.x
+                anchors.margins: -50
+                group: blobs
+                radius: Theme.rounding
+                borderLeft: bar.railWidth + 50
+                borderRight: Theme.border + 50
+                borderTop: Theme.border + 50
+                borderBottom: Theme.border + 50
             }
 
-            Item {
-                id: rail
-                width: Theme.barWidth
-                height: parent.height
+            BlobRect {
+                group: blobs
+                x: popouts.x + (popouts.card ? 0 : -50)
+                y: popouts.card ? popouts.card.y : 0
+                implicitWidth: popouts.card ? popouts.card.width : 0
+                implicitHeight: popouts.card ? popouts.card.height : 0
+                radius: Theme.cardRadius
+                deformScale: 0.15 / 10000
             }
+        }
+
+        Item {
+            id: rail
+            x: bar.railWidth - Theme.barWidth
+            width: Theme.barWidth
+            height: parent.height
+            opacity: bar.reveal
 
             Taskbar {
                 anchors {
                     top: parent.top
-                    topMargin: 4
-                    horizontalCenter: rail.horizontalCenter
+                    topMargin: Theme.border
+                    horizontalCenter: parent.horizontalCenter
                 }
                 workspacesOpen: popouts.workspacesOpen
                 onMenuRequested: (task, at) => popouts.openMenu(task, at)
@@ -100,17 +135,17 @@ PanelWindow {
             Clock {
                 anchors {
                     bottom: parent.bottom
-                    bottomMargin: 8
-                    horizontalCenter: rail.horizontalCenter
+                    bottomMargin: Theme.border + 4
+                    horizontalCenter: parent.horizontalCenter
                 }
             }
+        }
 
-            Popouts {
-                id: popouts
-                x: Theme.barWidth
-                height: parent.height
-                hovered: hover.hovered
-            }
+        Popouts {
+            id: popouts
+            x: bar.railWidth
+            height: parent.height
+            hovered: hover.hovered
         }
     }
 }
