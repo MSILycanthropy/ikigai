@@ -57,6 +57,7 @@ Stock COSMIC bindings, plus:
 
 | Key | |
 |---|---|
+| `Super` | Launcher (Ikigai's in the Ikigai session, COSMIC's otherwise) |
 | `Super+Return` / `Super+T` | Ghostty |
 | `Super+E` | Zed |
 | `Super+B` | Zen |
@@ -74,10 +75,25 @@ Stock COSMIC bindings, plus:
   backed up to `~/.local/state/ikigai/backup/` before being replaced.
 - **No AUR helper in the installer.** AUR packages are built with `makepkg`; `paru`
   is installed (from source) for *you* to use afterwards.
+- **An "Ikigai" session entry, experimental.** `ikigai-session` starts cosmic-comp on
+  its own, gets `WAYLAND_DISPLAY` from cosmic-comp's session socket and brings up
+  `ikigai-session.target`; `ikigai-bridge` under it exposes COSMIC's toplevel and
+  workspace protocols on `$XDG_RUNTIME_DIR/ikigai-bridge.sock` as JSON lines; `ikigai-shell`
+  runs the Quickshell shell from `/usr/local/share/ikigai/shell`: an autohiding bottom bar
+  with a Windows-style taskbar (pinned + running apps, click to focus or minimize,
+  middle-click to close, right-click for pin/unpin, move to workspace, close), a task-view
+  button that switches workspaces, and a clock; `ikigai-launcher` is the search-first
+  launcher (Super, or the start and search buttons): fuzzy app search, pinned apps as
+  quick launch, lock / log out / restart / shut down. The shell reads its theme from
+  `~/.local/state/ikigai/shell-theme.json` (written by `ikigai-theme-set`) and your settings
+  from `~/.config/ikigai/shell.json` (seeded once: pinned apps, alignment, autohide, scale); both reload
+  live. Not yet: per-monitor window lists, drag to reorder pins. Stock COSMIC stays the
+  default in the greeter.
 
 Repo layout: `install/` (steps run by `install.sh`), `config/` (seeds), `themes/`
 (Tokyo Night for every app + the built COSMIC theme), `bin/` (`ikigai-keys`,
-`ikigai-theme-set`), `tools/cosmic-theme-gen` (dev-only: builds the COSMIC theme from
+`ikigai-theme-set`), `session/` (Rust: `ikigai-session` + `ikigai-bridge` and the session's
+user units, built at install), `shell/` (the Quickshell shell), `tools/cosmic-theme-gen` (dev-only: builds the COSMIC theme from
 `builder.ron`), `scripts/vm.sh` (Hyper-V test harness).
 
 ## Hardware

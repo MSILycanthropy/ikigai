@@ -1,0 +1,77 @@
+# Ikigai v2 plan
+
+Decided 2026-09-02. Ikigai keeps cosmic-comp (window chrome, floating-first with a tiling
+toggle) and the COSMIC portal, and replaces the rest of the COSMIC session with its own
+launcher and a Quickshell shell. Nothing ships until the swap (step G); until then "Ikigai"
+is an experimental greeter entry next to stock COSMIC.
+
+## Already done
+
+- `session/`: `ikigai-session` (cosmic-comp handshake, `ikigai-session.target`) and
+  `ikigai-bridge` (COSMIC toplevel + workspace protocols → `$XDG_RUNTIME_DIR/ikigai-bridge.sock`,
+  JSON lines). Units under `/usr/local/lib/systemd/user`, built at install (`rust`, ~30 s).
+- `ikigai-bg.service` runs cosmic-bg under the target: it reads the `CosmicBackground`
+  config Ikigai already ships, keeps the Settings wallpaper page working, and is a leaf.
+
+## Fixed decisions
+
+| Area | Decision |
+|---|---|
+| First swap milestone | Shell v0 = taskbar + launcher + notifications + tray/volume/clock. OSD included (small once volume exists). Idle/lock and greeter after. |
+| Shell files | Ikigai-owned: `shell/` in the repo → `/usr/local/share/ikigai/shell/`, run by `ikigai-shell.service` (`qs -p …/shell.qml`). Users don't edit QML. |
+| Bar | Windows 11 style: bottom, centered, icon-only pinned + running apps with a running indicator, autohiding. Autohide shrinks the layer surface to a strip; it never unmaps (cosmic-comp#1590). |
+| Launcher | One search-first Quickshell panel (DesktopEntries fuzzy search + power/logout actions) from the start button, the search icon and Super. Replaces cosmic-launcher and app-library. |
+| Notifications | Quickshell NotificationServer: toasts top-right with actions, history panel from the clock, do-not-disturb. Replaces cosmic-notifications. |
+| Status items v0 | Clock + notification badge, system tray (StatusNotifier), volume (PipeWire). Network and battery after the swap. |
+| Theme | `themes/<name>/shell.json` (palette, font, radius). `ikigai-theme-set` copies it to `~/.local/state/ikigai/shell-theme.json`; the QML watches it. Greeter and lock reuse it. |
+| User config | `~/.config/ikigai/shell.json`, seeded once: pinned apps (Ghostty, Zen, Zed, Settings), autohide, bar scale. Pin/unpin from the taskbar context menu writes it back. |
+| Daemons kept under the target | cosmic-settings-daemon (applies Settings), cosmic-idle (until the Quickshell lock). cosmic-osd is replaced by a Quickshell popup; volume/brightness keys route via cosmic-comp `system_actions` → `qs ipc`. |
+| Settings app | cosmic-settings stays; its Panel/Dock pages are inert and the README says so. |
+| First login | Nothing. cosmic-initial-setup is dropped at the swap; locale/keyboard come from archinstall or the existing system. |
+| Greeter | greetd + cosmic-comp + `qs -p greeter.qml` as the greeter user. Last user preselected with avatar, password, power buttons, small user switcher. Only the Ikigai session is offered. Replaces cosmic-greeter + daemon. |
+| Lock | ext-session-lock via Quickshell `WlSessionLock` in the shell process, PAM via Quickshell's Pam service, same UI as the greeter. Triggers: Super+L, launcher, cosmic-idle. Built with the greeter; cosmic-greeter's locker until then. |
+| The swap | Explicit package list replaces the `cosmic` meta: cosmic-comp, cosmic-greeter (until ours), cosmic-bg, cosmic-settings, cosmic-settings-daemon, cosmic-idle, cosmic-randr, cosmic-icon-theme, xdg-desktop-portal-cosmic. `ikigai.desktop` is the only session entry. No migration: v1 only ever existed on the VM. |
+
+## Steps
+
+Each step is built and verified on the Hyper-V VM (checkpoint `fresh-session-crate` is a
+fresh install + session crate) before the next starts.
+
+**A. Shell skeleton.** `shell/shell.qml` with a bar frame (clock only) and autohide;
+`ikigai-shell.service` wanted by the target; `quickshell` in the package list; installer
+copies `shell/` to `/usr/local/share/ikigai/shell`; `themes/tokyo-night/shell.json` +
+theme-set plumbing; `config/ikigai/shell.json` seed. Harness: add `vm.sh screenshot`
+(Hyper-V thumbnail) so shell work can be checked without the console.
+
+**B. Taskbar.** Bridge client in QML (`Socket` + `SplitParser`, reconnect on failure,
+snapshot → model). Pinned + running icons resolved through DesktopEntries by app id, running
+indicator, click activates / click-again minimizes / middle-click closes, context menu with
+pin/unpin and close. Task-view button: a workspace switcher popup fed by the bridge's
+`workspaces` events (activate, move window).
+
+**C. Launcher.** Search panel with fuzzy app results and actions (lock, log out = SIGTERM to
+`ikigai-session`, restart, shut down). Super and the shortcuts `Launcher` system action call
+`qs ipc`. Verify the Super-alone binding in cosmic-comp's shortcuts config.
+
+**D. Notifications.** NotificationServer, toasts with actions and timeouts, history panel
+from the clock, unread badge, DND toggle.
+
+**E. Tray, volume, OSD.** SystemTray icons with menus, PipeWire volume icon + slider popup +
+scroll, OSD popup for volume/brightness keys via `system_actions` → `qs ipc`.
+
+**F. Daemons.** `ikigai-settings-daemon.service` and `ikigai-idle.service` under the target.
+Check what cosmic-idle calls to lock and that cosmic-greeter's locker answers it.
+
+**G. The swap.** Package list, single session entry, drop cosmic-initial-setup, README
+rewrite (screenshot, keys, "Panel/Dock pages are inert"), fresh-install test on both
+archinstall paths, checkpoint `v2`.
+
+**H. Greeter + lock.** `greeter/greeter.qml`, greetd config + unit replacing
+`cosmic-greeter.service`, greeter user setup (theme + wallpaper readable), lock screen in the
+shell, drop cosmic-greeter/daemon from the package list.
+
+## After v2
+
+Network + battery items, the update command (reconcile seeds; rebuild `session/`; re-copy
+`shell/`), custom pacman repo with a PKGBUILD for `session/` and the patched qt6-base
+(which would lift the never-unmap rule), second theme, ISO.
