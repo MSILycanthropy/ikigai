@@ -16,9 +16,9 @@ Singleton {
     // Rail glyph for an app: the user's override, then apps Ikigai ships, then the
     // desktop entry's category, then a generic window.
     readonly property var known: ({
-        "com.mitchellh.ghostty": "terminal-window",
-        "zen": "browser",
-        "dev.zed.Zed": "code",
+        "com.mitchellh.ghostty": "brand:ghostty",
+        "zen": "brand:zen",
+        "dev.zed.Zed": "brand:zed",
         "com.github.th-ch.youtube-music": "youtube-logo",
         "discord": "discord-logo",
         "com.system76.CosmicSettings": "gear"
