@@ -123,6 +123,30 @@ cmd_sync() {
     | "$SSH" "${SSH_OPTS[@]}" "$user@$ip" "keep=\$(mktemp -d); [ -d $dest/tools ] && find $dest/tools -maxdepth 2 -name target -type d -exec cp -a --parents {} \$keep \\; ; rm -rf $dest && mkdir -p $dest && tar -xzf - -C $dest && cp -a \$keep/$dest/tools/. $dest/tools/ 2>/dev/null; rm -rf \$keep; echo synced"
 }
 
+# Hyper-V's thumbnail API hands back raw RGB565 at any requested size; ask for the
+# guest's current mode and let .NET turn it into a PNG on the host side.
+cmd_screenshot() {
+  local out="${1:-$VM_DIR/$VM.png}"
+  vm_exists || die "no VM"
+  [ "$(vm_state)" = Running ] || die "VM is not running"
+  ps "
+    Add-Type -AssemblyName System.Drawing
+    \$vm  = Get-CimInstance -Namespace root\virtualization\v2 -ClassName Msvm_ComputerSystem -Filter \"ElementName='$VM'\"
+    \$svc = Get-CimInstance -Namespace root\virtualization\v2 -ClassName Msvm_VirtualSystemManagementService
+    \$vsd = Get-CimAssociatedInstance -InputObject \$vm -ResultClassName Msvm_VirtualSystemSettingData | Where-Object { \$_.VirtualSystemType -eq 'Microsoft:Hyper-V:System:Realized' }
+    \$head = Get-CimAssociatedInstance -InputObject \$vm -ResultClassName Msvm_VideoHead | Select-Object -First 1
+    \$w = [int]\$head.CurrentHorizontalResolution; \$h = [int]\$head.CurrentVerticalResolution
+    \$r = Invoke-CimMethod -InputObject \$svc -MethodName GetVirtualSystemThumbnailImage -Arguments @{ TargetSystem = \$vsd; WidthPixels = \$w; HeightPixels = \$h }
+    if (\$r.ReturnValue -ne 0) { throw \"GetVirtualSystemThumbnailImage returned \$(\$r.ReturnValue)\" }
+    \$bmp = New-Object System.Drawing.Bitmap \$w, \$h, ([System.Drawing.Imaging.PixelFormat]::Format16bppRgb565)
+    \$bits = \$bmp.LockBits((New-Object System.Drawing.Rectangle 0, 0, \$w, \$h), 'WriteOnly', \$bmp.PixelFormat)
+    [System.Runtime.InteropServices.Marshal]::Copy([byte[]]\$r.ImageData, 0, \$bits.Scan0, \$w * \$h * 2)
+    \$bmp.UnlockBits(\$bits)
+    \$bmp.Save('$(win "$out")', [System.Drawing.Imaging.ImageFormat]::Png)
+    \"\${w}x\${h}\"
+  " | sed "s|^|screenshot: $out (|; s|\$|)|"
+}
+
 cmd_snapshot()  { ps "Checkpoint-VM -Name '$VM' -SnapshotName '${1:?name}'"; }
 cmd_snapshots() { ps "Get-VMCheckpoint -VMName '$VM' | Format-Table Name, CreationTime -AutoSize"; }
 
@@ -150,6 +174,7 @@ usage: vm.sh <command>
   key <user>         install a host ssh key in the VM (do this before sync)
   ssh [user]         ssh into the VM
   sync <user>        copy this working tree into the VM at ~/.local/share/ikigai
+  screenshot [file]  save the guest display as PNG (default: VM dir)
   snapshot <name>    take a checkpoint (e.g. phase1)
   snapshots          list checkpoints
   destroy            remove VM and disk
@@ -160,6 +185,6 @@ USAGE
 
 case "${1:-}" in
   fetch|create|install|run|stop|kill|console|status|ip|snapshots|destroy) "cmd_$1" ;;
-  reset|ssh|sync|snapshot|seal|key) "cmd_$1" "${2:-}" ;;
+  reset|ssh|sync|snapshot|seal|key|screenshot) "cmd_$1" "${2:-}" ;;
   *) usage; exit 1 ;;
 esac
