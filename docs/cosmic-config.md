@@ -22,3 +22,11 @@ What Ikigai relies on, verified 2026-08-29/30 against COSMIC `epoch-1.7.0` (Arch
 - App themes: vendor folke/tokyonight.nvim `extras/` (ghostty, btop, lazygit, fzf, eza,
   yazi, delta, sublime→bat). Zed: extension `tokyo-night` via `auto_install_extensions`.
   starship: hand-written `[palettes.tokyo_night]`. nvim: native `pack/*/start` clone.
+- **The system layer is one directory, not a per-key merge.** cosmic-config resolves a
+  config's system path with `find_data_file("<id>/v<N>")` and reads *every* key from that
+  first hit. Shipping `com.system76.CosmicSettings.Shortcuts/v1/{custom,system_actions}`
+  under `/usr/local/share/cosmic` therefore hid COSMIC's `defaults` (every stock binding,
+  including Super for the launcher) and produced the `shortcuts defaults config error:
+  GetKey("defaults", NotFound)` at every cosmic-comp start. `install/configs.sh` symlinks
+  `defaults` to the `/usr/share` copy so upstream changes still flow. Any other config we
+  overlay must ship all of its keys.

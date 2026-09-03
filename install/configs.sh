@@ -40,4 +40,8 @@ fi
 (cd "$SRC/cosmic" && find . -type f) | while read -r f; do
   sudo install -Dm644 "$SRC/cosmic/$f" "/usr/local/share/cosmic/$f"
 done
+# cosmic-config takes the first data dir holding a config's directory and reads every key
+# from it, so our Shortcuts overlay would hide COSMIC's own defaults. Link them in.
+SHORTCUTS=com.system76.CosmicSettings.Shortcuts/v1
+sudo ln -sfn "/usr/share/cosmic/$SHORTCUTS/defaults" "/usr/local/share/cosmic/$SHORTCUTS/defaults"
 echo "installed COSMIC defaults → /usr/local/share/cosmic"
