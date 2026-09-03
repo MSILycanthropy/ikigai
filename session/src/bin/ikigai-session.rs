@@ -17,13 +17,14 @@ use signal_hook::consts::{SIGHUP, SIGINT, SIGTERM};
 const TARGET: &str = "ikigai-session.target";
 const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 
-// Same values cosmic-session's start-cosmic exports, minus what we don't ship.
+// Same values cosmic-session's start-cosmic exports, minus what we don't ship. Qt apps
+// take their palette, fonts and icons from the GTK theme: "cosmic" names no plugin.
 const SESSION_ENV: &[(&str, &str)] = &[
     ("XDG_CURRENT_DESKTOP", "COSMIC"),
     ("XDG_SESSION_DESKTOP", "ikigai"),
     ("XDG_SESSION_TYPE", "wayland"),
     ("QT_QPA_PLATFORM", "wayland;xcb"),
-    ("QT_QPA_PLATFORMTHEME", "cosmic"),
+    ("QT_QPA_PLATFORMTHEME", "gtk3"),
     ("QT_AUTO_SCREEN_SCALE_FACTOR", "1"),
     ("QT_ENABLE_HIGHDPI_SCALING", "1"),
     ("GDK_BACKEND", "wayland,x11"),
