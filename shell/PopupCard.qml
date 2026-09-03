@@ -1,18 +1,25 @@
 import QtQuick
 
-// Card body for a popup beside the rail: springs out of the rail edge while fading in.
-// The popup window must be 2 * Motion.slack wider than the card: room on the left for
-// the gap to the rail and on the right for the overshoot.
+// Card beside the rail: springs out of the rail edge while fading in. Sized by whoever
+// fills it; the host leaves Motion.slack on the left for the gap to the rail.
 Rectangle {
     property bool shown: false
+    default property alias content: body.data
 
-    width: parent.width - 2 * Motion.slack
-    height: parent.height
     x: shown ? Motion.slack : Motion.slack - Motion.rise
     opacity: shown ? 1 : 0
+    visible: opacity > 0
     radius: Theme.radius
     color: Theme.colors.bg
     border.color: Theme.colors.border
+
+    Item {
+        id: body
+        anchors {
+            fill: parent
+            margins: 6
+        }
+    }
 
     Behavior on x {
         Slide {

@@ -1,17 +1,11 @@
-import Quickshell
 import QtQuick
 
-PopupWindow {
+PopupCard {
     id: menu
 
     property var task: null
+    property bool active: false
     readonly property var entries: task ? build(task, Bridge.workspaces) : []
-
-    function open(forTask, at) {
-        task = forTask;
-        anchor.item = at;
-        visible = true;
-    }
 
     function build(task, workspaces) {
         const name = task.entry ? task.entry.name : task.appId;
@@ -28,66 +22,58 @@ PopupWindow {
         return list;
     }
 
-    anchor.edges: Edges.Right
-    anchor.gravity: Edges.Right
-    grabFocus: true
-    color: "transparent"
-    implicitWidth: 220 + 2 * Motion.slack
-    implicitHeight: rows.implicitHeight + 12
+    shown: active
+    width: 220
+    height: rows.implicitHeight + 12
 
-    PopupCard {
-        shown: menu.visible
+    Column {
+        id: rows
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: parent.top
+        }
 
-        Column {
-            id: rows
-            anchors {
-                left: parent.left
-                right: parent.right
-                top: parent.top
-                margins: 6
-            }
+        Repeater {
+            model: menu.entries
 
-            Repeater {
-                model: menu.entries
+            Item {
+                id: row
+                required property var modelData
 
-                Item {
-                    id: row
-                    required property var modelData
+                width: rows.width
+                height: 32
 
-                    width: rows.width
-                    height: 32
+                Rectangle {
+                    anchors.fill: parent
+                    radius: Theme.radius - 2
+                    color: Theme.colors.surface
+                    opacity: rowHover.hovered ? 1 : 0
 
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: Theme.radius - 2
-                        color: Theme.colors.surface
-                        opacity: rowHover.hovered ? 1 : 0
-
-                        Behavior on opacity {
-                            NumberAnimation { duration: Motion.quick }
-                        }
+                    Behavior on opacity {
+                        NumberAnimation { duration: Motion.quick }
                     }
+                }
 
-                    Text {
-                        anchors.fill: parent
-                        leftPadding: 12
-                        verticalAlignment: Text.AlignVCenter
-                        text: row.modelData.label
-                        color: Theme.colors.fg
-                        font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontSize
-                    }
+                Text {
+                    anchors.fill: parent
+                    leftPadding: 12
+                    verticalAlignment: Text.AlignVCenter
+                    text: row.modelData.label
+                    color: Theme.colors.fg
+                    font.family: Theme.fontFamily
+                    font.pointSize: Theme.fontSize
+                }
 
-                    HoverHandler {
-                        id: rowHover
-                    }
+                HoverHandler {
+                    id: rowHover
+                }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            menu.visible = false;
-                            row.modelData.run();
-                        }
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        menu.active = false;
+                        row.modelData.run();
                     }
                 }
             }

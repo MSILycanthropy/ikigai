@@ -2,7 +2,12 @@ import Quickshell
 import QtQuick
 
 Column {
-    readonly property bool menuOpen: menu.visible || workspaces.visible
+    id: taskbar
+
+    property bool workspacesOpen: false
+
+    signal menuRequested(var task, Item at)
+    signal workspacesRequested(Item at)
 
     spacing: 4
 
@@ -54,8 +59,8 @@ Column {
 
     BarButton {
         id: taskView
-        checked: workspaces.visible
-        onClicked: workspaces.visible = !workspaces.visible
+        checked: taskbar.workspacesOpen
+        onClicked: taskbar.workspacesRequested(taskView)
 
         Rectangle {
             x: 0
@@ -87,16 +92,7 @@ Column {
         }
 
         TaskButton {
-            onMenuRequested: menu.open(task, this)
+            onMenuRequested: taskbar.menuRequested(task, this)
         }
-    }
-
-    TaskMenu {
-        id: menu
-    }
-
-    Workspaces {
-        id: workspaces
-        anchor.item: taskView
     }
 }

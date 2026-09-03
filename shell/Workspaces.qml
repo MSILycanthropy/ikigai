@@ -1,99 +1,93 @@
 import Quickshell
 import QtQuick
 
-PopupWindow {
+PopupCard {
     id: popup
 
-    anchor.edges: Edges.Right
-    anchor.gravity: Edges.Right
-    grabFocus: true
-    color: "transparent"
-    implicitWidth: 260 + 2 * Motion.slack
-    implicitHeight: list.implicitHeight + 12
+    property bool active: false
 
-    PopupCard {
-        shown: popup.visible
+    shown: active
+    width: 260
+    height: list.implicitHeight + 12
 
-        Column {
-            id: list
-            anchors {
-                left: parent.left
-                right: parent.right
-                top: parent.top
-                margins: 6
-            }
+    Column {
+        id: list
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: parent.top
+        }
 
-            Repeater {
-                model: Bridge.workspaces
+        Repeater {
+            model: Bridge.workspaces
 
-                Item {
-                    id: row
-                    required property var modelData
-                    readonly property var windows: Bridge.windows.filter(w => w.workspaces.includes(modelData.id))
+            Item {
+                id: row
+                required property var modelData
+                readonly property var windows: Bridge.windows.filter(w => w.workspaces.includes(modelData.id))
 
-                    width: list.width
-                    height: 40
+                width: list.width
+                height: 40
 
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: Theme.radius - 2
-                        color: Theme.colors.surface
-                        opacity: row.modelData.active ? 1 : rowHover.hovered ? 0.5 : 0
+                Rectangle {
+                    anchors.fill: parent
+                    radius: Theme.radius - 2
+                    color: Theme.colors.surface
+                    opacity: row.modelData.active ? 1 : rowHover.hovered ? 0.5 : 0
 
-                        Behavior on opacity {
-                            NumberAnimation { duration: Motion.quick }
-                        }
+                    Behavior on opacity {
+                        NumberAnimation { duration: Motion.quick }
                     }
+                }
 
-                    Text {
-                        id: name
-                        anchors {
-                            left: parent.left
-                            leftMargin: 12
-                            verticalCenter: parent.verticalCenter
-                        }
-                        text: row.modelData.name
-                        color: row.modelData.active ? Theme.colors.accent : Theme.colors.fg
-                        font.family: Theme.fontFamily
-                        font.pointSize: Theme.fontSize
-                        font.bold: row.modelData.active
+                Text {
+                    id: name
+                    anchors {
+                        left: parent.left
+                        leftMargin: 12
+                        verticalCenter: parent.verticalCenter
                     }
+                    text: row.modelData.name
+                    color: row.modelData.active ? Theme.colors.accent : Theme.colors.fg
+                    font.family: Theme.fontFamily
+                    font.pointSize: Theme.fontSize
+                    font.bold: row.modelData.active
+                }
 
-                    HoverHandler {
-                        id: rowHover
+                HoverHandler {
+                    id: rowHover
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        popup.active = false;
+                        Bridge.activateWorkspace(row.modelData.id);
                     }
+                }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            popup.visible = false;
-                            Bridge.activateWorkspace(row.modelData.id);
-                        }
+                Row {
+                    anchors {
+                        left: name.right
+                        leftMargin: 12
+                        verticalCenter: parent.verticalCenter
                     }
+                    spacing: 6
 
-                    Row {
-                        anchors {
-                            left: name.right
-                            leftMargin: 12
-                            verticalCenter: parent.verticalCenter
-                        }
-                        spacing: 6
+                    Repeater {
+                        model: row.windows
 
-                        Repeater {
-                            model: row.windows
+                        AppIcon {
+                            id: icon
+                            required property var modelData
 
-                            AppIcon {
-                                id: icon
-                                required property var modelData
+                            source: Quickshell.iconPath(Apps.iconFor(modelData.appId), "application-x-executable")
 
-                                source: Quickshell.iconPath(Apps.iconFor(modelData.appId), "application-x-executable")
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    onClicked: {
-                                        popup.visible = false;
-                                        Bridge.activate(icon.modelData.id);
-                                    }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    popup.active = false;
+                                    Bridge.activate(icon.modelData.id);
                                 }
                             }
                         }
