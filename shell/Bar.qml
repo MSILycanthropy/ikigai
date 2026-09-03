@@ -9,13 +9,13 @@ PanelWindow {
 
     anchors {
         left: true
-        right: true
+        top: true
         bottom: true
     }
-    // Stay full height while any content is on screen, so the strip only appears after the slide.
-    implicitHeight: content.y < Theme.barHeight ? Theme.barHeight : 2
+    // Stay full width while any content is on screen, so the strip only appears after the slide.
+    implicitWidth: content.x > -Theme.barWidth ? Theme.barWidth : 2
     exclusionMode: ExclusionMode.Normal
-    exclusiveZone: Config.autohide ? 0 : Theme.barHeight
+    exclusiveZone: Config.autohide ? 0 : Theme.barWidth
     color: "transparent"
 
     // Reveal at once; hide after a grace period so grazing the edge doesn't flicker.
@@ -42,12 +42,12 @@ PanelWindow {
 
         Item {
             id: content
-            width: parent.width
-            height: Theme.barHeight
-            y: bar.shown ? 0 : Theme.barHeight
+            width: Theme.barWidth
+            height: parent.height
+            x: bar.shown ? 0 : -Theme.barWidth
 
             // Direction from the Behavior itself: property bindings on `shown` have no ordering guarantee.
-            Behavior on y {
+            Behavior on x {
                 id: slide
                 Slide {
                     entering: slide.targetValue === 0
@@ -60,11 +60,11 @@ PanelWindow {
 
                 Rectangle {
                     anchors {
-                        left: parent.left
-                        right: parent.right
                         top: parent.top
+                        bottom: parent.bottom
+                        right: parent.right
                     }
-                    height: 1
+                    width: 1
                     color: Theme.colors.border
                 }
             }
@@ -72,18 +72,17 @@ PanelWindow {
             Taskbar {
                 id: taskbar
                 anchors {
-                    verticalCenter: parent.verticalCenter
-                    left: Config.align === "left" ? parent.left : undefined
-                    leftMargin: 4
-                    horizontalCenter: Config.align === "left" ? undefined : parent.horizontalCenter
+                    top: parent.top
+                    topMargin: 4
+                    horizontalCenter: parent.horizontalCenter
                 }
             }
 
             Clock {
                 anchors {
-                    right: parent.right
-                    rightMargin: 12
-                    verticalCenter: parent.verticalCenter
+                    bottom: parent.bottom
+                    bottomMargin: 8
+                    horizontalCenter: parent.horizontalCenter
                 }
             }
         }

@@ -9,8 +9,8 @@ Item {
 
     signal clicked
 
-    implicitWidth: Theme.barHeight - 8
-    implicitHeight: Theme.barHeight - 8
+    implicitWidth: Theme.barWidth - 8
+    implicitHeight: Theme.barWidth - 8
 
     Rectangle {
         anchors.fill: parent

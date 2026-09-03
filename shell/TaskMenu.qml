@@ -28,12 +28,12 @@ PopupWindow {
         return list;
     }
 
-    anchor.edges: Edges.Top
-    anchor.gravity: Edges.Top
+    anchor.edges: Edges.Right
+    anchor.gravity: Edges.Right
     grabFocus: true
     color: "transparent"
-    implicitWidth: 220
-    implicitHeight: rows.implicitHeight + 12 + 2 * Motion.slack
+    implicitWidth: 220 + 2 * Motion.slack
+    implicitHeight: rows.implicitHeight + 12
 
     PopupCard {
         shown: menu.visible

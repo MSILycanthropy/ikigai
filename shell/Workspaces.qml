@@ -4,12 +4,12 @@ import QtQuick
 PopupWindow {
     id: popup
 
-    anchor.edges: Edges.Top
-    anchor.gravity: Edges.Top
+    anchor.edges: Edges.Right
+    anchor.gravity: Edges.Right
     grabFocus: true
     color: "transparent"
-    implicitWidth: 260
-    implicitHeight: list.implicitHeight + 12 + 2 * Motion.slack
+    implicitWidth: 260 + 2 * Motion.slack
+    implicitHeight: list.implicitHeight + 12
 
     PopupCard {
         shown: popup.visible

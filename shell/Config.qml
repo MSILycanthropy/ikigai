@@ -9,7 +9,6 @@ Singleton {
 
     property alias pinned: config.pinned
     property alias autohide: config.autohide
-    property alias align: config.align
     property alias scale: config.scale
 
     function pin(appId) {
@@ -33,7 +32,6 @@ Singleton {
 
             property list<string> pinned: []
             property bool autohide: true
-            property string align: "left"
             property real scale: 1.0
         }
     }

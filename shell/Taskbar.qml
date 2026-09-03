@@ -1,7 +1,7 @@
 import Quickshell
 import QtQuick
 
-Row {
+Column {
     readonly property bool menuOpen: menu.visible || workspaces.visible
 
     spacing: 4
