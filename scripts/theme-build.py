@@ -114,11 +114,46 @@ def btop(palette):
     return "".join(f'theme[{k}]="{v}"\n' for k, v in values.items())
 
 
+def vicinae(palette):
+    m3, ansi, extra = palette["m3"], palette["ansi"], palette["extra"]
+    return f"""[meta]
+version = 1
+name = "Ikigai"
+description = "Ikigai's desktop palette: near-black warm greys with the wallpaper's blue."
+variant = "dark"
+
+[colors.core]
+background = "{m3["surface"]}"
+foreground = "{m3["onSurface"]}"
+secondary_background = "{m3["surfaceContainerLow"]}"
+border = "{m3["outlineVariant"]}"
+accent = "{m3["primary"]}"
+
+[colors.accents]
+blue = "{m3["primary"]}"
+green = "{ansi["green"]}"
+magenta = "{ansi["magenta"]}"
+orange = "{extra["orange"]}"
+purple = "{extra["purple"]}"
+red = "{ansi["red"]}"
+yellow = "{ansi["yellow"]}"
+cyan = "{ansi["cyan"]}"
+
+[colors.list.item.selection]
+background = "{m3["surfaceContainerHigh"]}"
+secondary_background = "{m3["surfaceContainerHighest"]}"
+
+[colors.grid.item]
+background = "{m3["surfaceContainer"]}"
+"""
+
+
 OUTPUTS = {
     "shell.json": shell_json,
     "cosmic/builder.ron": builder_ron,
     "ghostty/ikigai": ghostty,
     "btop/ikigai.theme": btop,
+    "vicinae/ikigai.toml": vicinae,
 }
 
 

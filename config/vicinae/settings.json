@@ -2,7 +2,7 @@
   "$schema": "https://vicinae.com/schemas/config.json",
   "telemetry": { "system_info": false },
   "theme": {
-    "dark":  { "name": "tokyo-night" },
-    "light": { "name": "tokyo-night" }
+    "dark":  { "name": "ikigai" },
+    "light": { "name": "ikigai" }
   }
 }

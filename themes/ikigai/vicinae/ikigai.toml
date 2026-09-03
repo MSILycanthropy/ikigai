@@ -1,0 +1,29 @@
+[meta]
+version = 1
+name = "Ikigai"
+description = "Ikigai's desktop palette: near-black warm greys with the wallpaper's blue."
+variant = "dark"
+
+[colors.core]
+background = "#100e0d"
+foreground = "#eee3e0"
+secondary_background = "#161312"
+border = "#4d4645"
+accent = "#86adff"
+
+[colors.accents]
+blue = "#86adff"
+green = "#7fc581"
+magenta = "#e093cf"
+orange = "#ec9c63"
+purple = "#c39dee"
+red = "#f4928a"
+yellow = "#d4ab4f"
+cyan = "#31c7d5"
+
+[colors.list.item.selection]
+background = "#231f1d"
+secondary_background = "#2a2523"
+
+[colors.grid.item]
+background = "#1c1918"
