@@ -41,12 +41,13 @@ won't touch your dotfiles, but two greeters will be enabled and yours may win.
 
 | | |
 |---|---|
-| Desktop | [COSMIC](https://system76.com/cosmic) from Arch `extra`, Tokyo Night everywhere, NASA black-hole wallpaper |
+| Desktop | [COSMIC](https://system76.com/cosmic) from Arch `extra`, NASA black-hole wallpaper |
+| Theme | One palette, `themes/ikigai/palette.json`: Material 3 neutrals seeded from the wallpaper's orange (near-black warm greys), the accent from its blue, and an ANSI 16 built in OKLCH. `scripts/theme-build.py` renders it into the rail, COSMIC (window chrome, libcosmic apps), Ghostty, btop, Vicinae and a libadwaita `gtk.css` that adw-gtk3 and Qt's gtk3 platform theme carry to GTK 3 and Qt apps. Every other terminal tool follows the terminal's ANSI colours |
 | Rail | Ikigai's own [Quickshell](https://quickshell.org) shell (the experimental "Ikigai" session): a thin autohiding rail inside a rounded frame, popouts that melt out of it. The look, and the blob renderer that draws it, are [soramanew's caelestia-shell](https://github.com/caelestia-dots/shell) — see [Credits](#credits) |
 | Icons | [Phosphor](https://phosphoricons.com) everywhere: the rail's glyphs, and an `Ikigai` symbolic icon theme built from Phosphor that COSMIC's window buttons, cosmic-settings, GTK header bars and Qt apps all pick up. Ghostty, Zen and Zed get hand-drawn marks in Phosphor's grammar on the rail (`shell/icons/brand`); app icons elsewhere stay their own |
 | Terminal | [Ghostty](https://ghostty.org) + [zellij](https://zellij.dev) (unlock-first keybinds, `zj` to attach) |
 | Shell | zsh (no framework) + [starship](https://starship.rs), autosuggestions, syntax highlighting, oh-my-zsh's git aliases |
-| Editor | [Zed](https://zed.dev) (fetches the Tokyo Night extension from Zed's registry on first launch); Neovim with a minimal themed config |
+| Editor | [Zed](https://zed.dev) (Tokyo Night, fetched from Zed's registry on first launch: the one app not on the Ikigai theme); Neovim with a minimal config on the terminal palette |
 | Browser | [Zen](https://zen-browser.app) |
 | Apps | [Discord](https://discord.com) and [YouTube Music](https://github.com/pear-devs/pear-desktop) (th-ch's desktop app, now Pear Desktop, AUR `pear-desktop-bin`), pinned at the bottom of the rail |
 | Runtimes | [mise](https://mise.jdx.dev) — `mise use -g node@lts`; Docker + lazydocker (you're added to the `docker` group, which is root-equivalent) |
@@ -73,9 +74,9 @@ Stock COSMIC bindings, plus:
   `~/.config/cosmic` and override per key — Ikigai never fights you for them.
 - **App configs are seeded once** into `~/.config`, only where nothing exists. Your
   dotfiles are never overwritten (`IKIGAI_FORCE=1` if you want ours).
-- **Theme files are Ikigai-owned** and re-applied by `ikigai-theme-set tokyo-night`. That
-  includes lazygit's `config.yml` and any COSMIC theme customised in Settings — both are
-  backed up to `~/.local/state/ikigai/backup/` before being replaced.
+- **Theme files are Ikigai-owned** and re-applied by `ikigai-theme-set ikigai`. Any
+  COSMIC theme customised in Settings is backed up to `~/.local/state/ikigai/backup/`
+  before being replaced.
 - **No AUR helper in the installer.** AUR packages are built with `makepkg`; `paru`
   is installed (from source) for *you* to use afterwards.
 - **An "Ikigai" session entry, experimental.** `ikigai-session` starts cosmic-comp on
@@ -87,7 +88,7 @@ Stock COSMIC bindings, plus:
   middle-click to close, right-click for pin/unpin, move to workspace, close), a task-view
   button that switches workspaces, and a clock. [Vicinae](https://vicinae.com) is the
   launcher (Super, or the start and search buttons), running as a layer-shell overlay on
-  the patched Qt below; its config is seeded once with Tokyo Night and telemetry off, and
+  the patched Qt below; its config is seeded once with the Ikigai theme and telemetry off, and
   its welcome tour runs on first login. The shell reads its theme from
   `~/.local/state/ikigai/shell-theme.json` (written by `ikigai-theme-set`) and your settings
   from `~/.config/ikigai/shell.json` (seeded once: pinned apps, alignment, autohide, scale); both reload
@@ -95,7 +96,7 @@ Stock COSMIC bindings, plus:
   default in the greeter.
 
 Repo layout: `install/` (steps run by `install.sh`), `config/` (seeds), `themes/`
-(Tokyo Night for every app + the built COSMIC theme), `bin/` (`ikigai-keys`,
+(`ikigai/palette.json` plus the app themes `scripts/theme-build.py` renders from it and the built COSMIC theme), `bin/` (`ikigai-keys`,
 `ikigai-theme-set`), `session/` (Rust: `ikigai-session` + `ikigai-bridge` and the session's
 user units, built at install), `shell/` (the Quickshell shell), `tools/cosmic-theme-gen` (dev-only: builds the COSMIC theme from
 `builder.ron`), `scripts/vm.sh` (Hyper-V test harness).
@@ -114,7 +115,7 @@ Early. Both install paths work end to end. No update mechanism yet — `git pull
 Next, roughly in order: an update command (reconcile seeded files `.pacnew`-style —
 the seed hashes are already recorded), a custom pacman repo so the installer needs no
 AUR at all, an ISO with an SSH-first console, a second theme
-(`tools/cosmic-theme-gen` is ready for it).
+(the palette pipeline and `tools/cosmic-theme-gen` are ready for it).
 
 Notes on how COSMIC's config layering actually works: [docs/cosmic-config.md](docs/cosmic-config.md).
 
