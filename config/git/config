@@ -36,5 +36,4 @@
 [delta]
 	navigate = true
 	line-numbers = true
-[include]
-	path = ~/.config/git/tokyonight.gitconfig
+	syntax-theme = ansi

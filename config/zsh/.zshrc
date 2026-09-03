@@ -48,7 +48,7 @@ y() {
 
 source /usr/share/fzf/key-bindings.zsh
 source /usr/share/fzf/completion.zsh
-source "$HOME/.config/fzf/theme.sh"
+export FZF_DEFAULT_OPTS="--color=16 --highlight-line --info=inline-right --ansi --layout=reverse --border=none"
 export FZF_DEFAULT_COMMAND="fd --type f --hidden --exclude .git"
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 

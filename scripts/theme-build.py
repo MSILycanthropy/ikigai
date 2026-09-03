@@ -77,9 +77,48 @@ def builder_ron(palette):
 """
 
 
+ANSI_ORDER = ("black", "red", "green", "yellow", "blue", "magenta", "cyan", "white",
+              "brightBlack", "brightRed", "brightGreen", "brightYellow", "brightBlue", "brightMagenta", "brightCyan", "brightWhite")
+
+
+def ghostty(palette):
+    m3, ansi = palette["m3"], palette["ansi"]
+    lines = [f"palette = {i}={ansi[name]}" for i, name in enumerate(ANSI_ORDER)]
+    lines += ["", f"background = {m3['surface']}", f"foreground = {m3['onSurface']}",
+              f"cursor-color = {m3['primary']}", f"cursor-text = {m3['onPrimary']}",
+              f"selection-background = {m3['surfaceContainerHighest']}", f"selection-foreground = {m3['onSurface']}"]
+    return "\n".join(lines) + "\n"
+
+
+def btop(palette):
+    m3, ansi = palette["m3"], palette["ansi"]
+    graph = lambda a, b, c: {"start": a, "mid": b, "end": c}
+    values = {
+        "main_bg": m3["surface"], "main_fg": m3["onSurface"], "title": m3["onSurface"], "hi_fg": m3["primary"],
+        "selected_bg": m3["surfaceContainerHighest"], "selected_fg": m3["primary"], "proc_misc": m3["onSurfaceVariant"],
+        "cpu_box": m3["outlineVariant"], "mem_box": m3["outlineVariant"], "net_box": m3["outlineVariant"],
+        "proc_box": m3["outlineVariant"], "div_line": m3["outlineVariant"],
+    }
+    gradients = {
+        "temp": graph(ansi["green"], ansi["yellow"], ansi["red"]),
+        "cpu": graph(ansi["blue"], ansi["cyan"], ansi["magenta"]),
+        "free": graph(ansi["green"], ansi["green"], ansi["brightGreen"]),
+        "cached": graph(ansi["cyan"], ansi["cyan"], ansi["brightCyan"]),
+        "available": graph(ansi["yellow"], ansi["yellow"], ansi["brightYellow"]),
+        "used": graph(ansi["red"], ansi["red"], ansi["brightRed"]),
+        "download": graph(ansi["blue"], ansi["blue"], ansi["brightBlue"]),
+        "upload": graph(ansi["magenta"], ansi["magenta"], ansi["brightMagenta"]),
+    }
+    for name, g in gradients.items():
+        values.update({f"{name}_{k}": v for k, v in g.items()})
+    return "".join(f'theme[{k}]="{v}"\n' for k, v in values.items())
+
+
 OUTPUTS = {
     "shell.json": shell_json,
     "cosmic/builder.ron": builder_ron,
+    "ghostty/ikigai": ghostty,
+    "btop/ikigai.theme": btop,
 }
 
 

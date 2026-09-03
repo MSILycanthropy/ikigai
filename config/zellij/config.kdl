@@ -1,7 +1,6 @@
 // Ikigai zellij config. Keybinds = zellij's built-in "Unlock First" preset
 // (Ctrl g unlocks, then single keys). Rendered from zellij v0.45.1 presets.rs.
 
-theme "tokyonight_night"
 show_startup_tips false
 
 default_mode "locked"

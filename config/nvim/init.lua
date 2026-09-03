@@ -1,4 +1,4 @@
--- Ikigai: minimal, themed. Replace freely — the installer never overwrites an existing config.
+-- Ikigai: minimal; the default colorscheme follows the terminal palette. Replace freely — the installer never overwrites an existing config.
 vim.g.mapleader = " "
 vim.opt.number = true
 vim.opt.relativenumber = false
@@ -18,4 +18,3 @@ vim.opt.undofile = true
 vim.opt.clipboard = "unnamedplus"
 vim.opt.updatetime = 250
 
-pcall(vim.cmd.colorscheme, "tokyonight-night")
