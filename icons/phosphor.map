@@ -3,6 +3,12 @@
 
 [actions]
 window-close x
+tab-new plus
+view-grid squares-four
+view-list list
+view-dual columns
+view-continuous rows
+view-paged file
 window-minimize minus
 window-maximize square
 window-restore arrows-in-simple
