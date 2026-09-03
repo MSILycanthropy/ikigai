@@ -10,16 +10,12 @@ smithay#1979.
 first, then destroy the role. Verified against qt6-base 6.11.2 on cosmic-comp 1.7.0
 (2026-09-01): hide, re-show and `LazyLoader` unload all survive.
 
-Until Ikigai ships a rebuilt `qt6-base` from its own repo, build only the Wayland plugin:
+`ikigai-qt-wayland` rebuilds only `libQt6WaylandClient.so` (the patched file compiles into
+it; the `libqwayland.so` plugin is a thin shim and stays stock) from the installed
+qt6-base's own release tarball, with Arch's configure options minus LTO and debug info.
+`install/qt.sh` installs it under `/usr/local/lib/ikigai`, runs it once, and adds a pacman
+hook so every qt6-base upgrade rebuilds it. State in `/var/lib/ikigai/qt-wayland`; source
+cache in `/var/cache/ikigai/qt`. `pacman -Qkk qt6-base` reports the one altered file.
 
-```sh
-git clone https://gitlab.archlinux.org/archlinux/packaging/packages/qt6-base
-cd qt6-base && makepkg --nobuild -s
-patch -d src/qtbase -p1 < wayland-unmap-before-role-destroy.patch
-# configure as the PKGBUILD does (INTERPROCEDURAL_OPTIMIZATION=OFF to skip LTO), then
-ninja -C src/build qwayland
-```
-
-Outputs: `src/build/lib/libQt6WaylandClient.so.6.11.2` and
-`src/build/lib/qt6/plugins/platforms/libqwayland.so`, dropped over the installed copies.
-Redo on every qt6-base bump (`pacman -Qkk qt6-base` reports the two altered files).
+If the patch ever stops applying, the hook fails loudly and the stock library stays: the
+shell survives (it never unmaps), Vicinae crashes on close until the patch is updated.

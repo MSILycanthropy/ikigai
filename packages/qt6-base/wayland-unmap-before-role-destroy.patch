@@ -5,12 +5,9 @@
          mExposed = false;
          sendExposeEvent(QRect());
 -        resetSurfaceRole();
-+        // Unmap the surface while it still has its role. Committing to a
-+        // surface whose role object was already destroyed is rejected by
-+        // some compositors (Smithay/COSMIC), which drop the connection.
          mSurface->attach(nullptr, 0, 0);
          mSurface->commit();
 +        resetSurfaceRole();
      }
  }
- 
+

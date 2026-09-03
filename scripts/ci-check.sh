@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-for f in boot.sh install.sh install/*.sh bin/* scripts/*.sh; do bash -n "$f"; done
+for f in boot.sh install.sh install/*.sh bin/* scripts/*.sh packages/qt6-base/ikigai-qt-wayland; do bash -n "$f"; done
 echo "syntax ok"
 
 [ "$(id -u)" -eq 0 ] && pacman -Sy --noconfirm >/dev/null
