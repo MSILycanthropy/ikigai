@@ -3,6 +3,7 @@
     "top": ["com.mitchellh.ghostty", "zen", "dev.zed.Zed"],
     "bottom": ["com.github.th-ch.youtube-music", "discord"]
   },
+  "icons": {},
   "autohide": true,
   "scale": 1.0
 }

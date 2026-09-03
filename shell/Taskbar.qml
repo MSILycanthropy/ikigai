@@ -15,21 +15,10 @@ Column {
     BarButton {
         onClicked: Quickshell.execDetached(["vicinae", "toggle"])
 
-        Grid {
+        Glyph {
             anchors.centerIn: parent
-            columns: 2
-            spacing: 2
-
-            Repeater {
-                model: 4
-
-                Rectangle {
-                    width: 7
-                    height: 7
-                    radius: 2
-                    color: Theme.colors.accent
-                }
-            }
+            name: "squares-four"
+            size: Theme.iconSize
         }
     }
 
@@ -38,26 +27,11 @@ Column {
         checked: taskbar.workspacesOpen
         onClicked: taskbar.workspacesRequested(taskView)
 
-        Rectangle {
-            x: 0
-            y: 5
-            width: 13
-            height: 13
-            radius: 3
-            color: "transparent"
-            border.width: 2
-            border.color: Theme.colors.fg
-        }
-
-        Rectangle {
-            x: 5
-            y: 0
-            width: 13
-            height: 13
-            radius: 3
-            color: Theme.colors.bg
-            border.width: 2
-            border.color: Theme.colors.fg
+        Glyph {
+            anchors.centerIn: parent
+            name: "cards"
+            size: Theme.iconSize
+            fill: taskbar.workspacesOpen
         }
     }
 

@@ -1,5 +1,5 @@
 {
-  "font": { "family": "Noto Sans", "size": 12, "icons": "JetBrainsMono Nerd Font" },
+  "font": { "family": "Noto Sans", "size": 12, "icons": "Phosphor", "iconsFill": "Phosphor-Fill" },
   "radius": 8,
   "colors": {
     "bg": "#1a1b26",

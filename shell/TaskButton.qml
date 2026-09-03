@@ -26,9 +26,16 @@ Item {
         pressed: press.pressed
     }
 
-    AppIcon {
+    Glyph {
         anchors.centerIn: parent
-        source: Quickshell.iconPath(Apps.iconFor(button.task.appId), "application-x-executable")
+        name: Apps.glyphFor(button.task.appId)
+        size: Theme.iconSize
+        fill: button.active
+        color: button.active ? Theme.colors.accent : button.running ? Theme.colors.fg : Theme.colors.muted
+
+        Behavior on color {
+            ColorAnimation { duration: Motion.fastEffects }
+        }
     }
 
     // Running mark on the rail edge: short while running, long while focused.
@@ -38,9 +45,9 @@ Item {
             leftMargin: -3
             verticalCenter: parent.verticalCenter
         }
-        width: 3
-        height: button.active ? 18 : 8
-        radius: 1.5
+        width: 2
+        height: button.active ? 16 : 6
+        radius: 1
         color: Theme.colors.accent
         visible: button.running
 

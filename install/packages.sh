@@ -13,7 +13,7 @@ PACMAN=(
   pipewire pipewire-pulse wireplumber
   xdg-user-dirs
 )
-AUR=(zen-browser-bin vicinae-bin pear-desktop-bin)
+AUR=(zen-browser-bin vicinae-bin pear-desktop-bin ttf-phosphor-icons)
 
 case "$(cat "$IKIGAI_STATE/gpu")" in
   nvidia) PACMAN+=(nvidia-open-dkms nvidia-utils linux-headers) ;;

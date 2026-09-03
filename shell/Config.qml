@@ -8,6 +8,7 @@ Singleton {
     readonly property string configDir: (Quickshell.env("XDG_CONFIG_HOME") || Quickshell.env("HOME") + "/.config") + "/ikigai"
 
     property alias pinned: config.pinned
+    property alias icons: config.icons
     property alias autohide: config.autohide
     property alias scale: config.scale
 
@@ -35,6 +36,7 @@ Singleton {
                 property list<string> top: []
                 property list<string> bottom: []
             }
+            property var icons: ({})
             property bool autohide: true
             property real scale: 1.0
         }

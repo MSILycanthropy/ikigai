@@ -72,7 +72,7 @@ PopupCard {
                         rightMargin: 10
                         verticalCenter: parent.verticalCenter
                     }
-                    text: "󰅖"
+                    name: "x"
                     size: 14
                     color: Theme.colors.muted
                     opacity: rowHover.hovered ? 1 : 0
