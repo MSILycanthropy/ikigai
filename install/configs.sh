@@ -30,6 +30,7 @@ seed nvim/init.lua           "$HOME/.config/nvim/init.lua"
 seed bat/config              "$HOME/.config/bat/config"
 seed btop/btop.conf          "$HOME/.config/btop/btop.conf"
 seed ikigai/shell.json       "$HOME/.config/ikigai/shell.json"
+seed vicinae/settings.json   "$HOME/.config/vicinae/settings.json"
 
 if [ ${#skipped[@]} -gt 0 ]; then
   echo "kept existing (IKIGAI_FORCE=1 to overwrite):"
