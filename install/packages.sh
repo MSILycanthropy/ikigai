@@ -9,7 +9,7 @@ PACMAN=(
   docker docker-compose lazydocker mise
   zellij yazi btop
   ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard
-  ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji
+  ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji adw-gtk-theme
   pipewire pipewire-pulse wireplumber
   xdg-user-dirs
 )

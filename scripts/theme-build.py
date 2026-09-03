@@ -148,12 +148,41 @@ background = "{m3["surfaceContainer"]}"
 """
 
 
+def gtk_css(palette):
+    m3, ansi = palette["m3"], palette["ansi"]
+    colours = {
+        "window_bg_color": m3["surfaceContainerLow"], "window_fg_color": m3["onSurface"],
+        "view_bg_color": m3["surface"], "view_fg_color": m3["onSurface"],
+        "headerbar_bg_color": m3["surfaceContainer"], "headerbar_fg_color": m3["onSurface"],
+        "headerbar_border_color": m3["onSurface"], "headerbar_backdrop_color": m3["surfaceContainerLow"],
+        "headerbar_shade_color": "rgba(0, 0, 0, 0.36)", "headerbar_darker_shade_color": "rgba(0, 0, 0, 0.9)",
+        "sidebar_bg_color": m3["surfaceContainer"], "sidebar_fg_color": m3["onSurface"],
+        "sidebar_backdrop_color": m3["surfaceContainerLow"], "sidebar_border_color": "rgba(0, 0, 0, 0.36)",
+        "sidebar_shade_color": "rgba(0, 0, 0, 0.25)",
+        "secondary_sidebar_bg_color": m3["surfaceContainerLow"], "secondary_sidebar_fg_color": m3["onSurface"],
+        "secondary_sidebar_backdrop_color": m3["surface"], "secondary_sidebar_border_color": "rgba(0, 0, 0, 0.36)",
+        "secondary_sidebar_shade_color": "rgba(0, 0, 0, 0.25)",
+        "card_bg_color": m3["surfaceContainerHigh"], "card_fg_color": m3["onSurface"], "card_shade_color": "rgba(0, 0, 0, 0.36)",
+        "dialog_bg_color": m3["surfaceContainerHigh"], "dialog_fg_color": m3["onSurface"],
+        "popover_bg_color": m3["surfaceContainerHigh"], "popover_fg_color": m3["onSurface"], "popover_shade_color": "rgba(0, 0, 0, 0.25)",
+        "thumbnail_bg_color": m3["surfaceContainerHighest"], "thumbnail_fg_color": m3["onSurface"],
+        "shade_color": "rgba(0, 0, 0, 0.36)", "scrollbar_outline_color": "rgba(0, 0, 0, 0.5)",
+        "accent_bg_color": m3["primaryContainer"], "accent_fg_color": m3["onPrimaryContainer"], "accent_color": m3["primary"],
+        "destructive_bg_color": m3["errorContainer"], "destructive_fg_color": m3["onErrorContainer"], "destructive_color": m3["error"],
+        "error_bg_color": m3["errorContainer"], "error_fg_color": m3["onErrorContainer"], "error_color": m3["error"],
+        "success_bg_color": ansi["green"], "success_fg_color": m3["surface"], "success_color": ansi["green"],
+        "warning_bg_color": ansi["yellow"], "warning_fg_color": m3["surface"], "warning_color": ansi["yellow"],
+    }
+    return "".join(f"@define-color {k} {v};\n" for k, v in colours.items())
+
+
 OUTPUTS = {
     "shell.json": shell_json,
     "cosmic/builder.ron": builder_ron,
     "ghostty/ikigai": ghostty,
     "btop/ikigai.theme": btop,
     "vicinae/ikigai.toml": vicinae,
+    "gtk/gtk.css": gtk_css,
 }
 
 
