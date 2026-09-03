@@ -17,6 +17,7 @@ Singleton {
     function activateWorkspace(workspace) { send({ request: "activate_workspace", workspace: workspace }); }
 
     function send(request) {
+        console.info("bridge request", JSON.stringify(request));
         if (!link.item || !link.item.connected)
             return;
         link.item.write(JSON.stringify(request) + "\n");

@@ -12,12 +12,13 @@ Singleton {
     property alias scale: config.scale
 
     function pin(appId) {
-        config.pinned = [...config.pinned, appId];
+        config.pinned.top = [...config.pinned.top, appId];
         file.writeAdapter();
     }
 
     function unpin(appId) {
-        config.pinned = [...config.pinned].filter(a => a !== appId);
+        config.pinned.top = [...config.pinned.top].filter(a => a !== appId);
+        config.pinned.bottom = [...config.pinned.bottom].filter(a => a !== appId);
         file.writeAdapter();
     }
 
@@ -30,7 +31,10 @@ Singleton {
         JsonAdapter {
             id: config
 
-            property list<string> pinned: []
+            property JsonObject pinned: JsonObject {
+                property list<string> top: []
+                property list<string> bottom: []
+            }
             property bool autohide: true
             property real scale: 1.0
         }

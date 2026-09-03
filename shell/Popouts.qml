@@ -9,27 +9,38 @@ Item {
     property Item anchorItem: null
     property bool hovered: false
     readonly property bool workspacesOpen: workspaces.active
-    // The open card, or the one still sliding back in, so the goo can absorb it.
-    readonly property Item card: menu.active ? menu : workspaces.active ? workspaces : menu.visible ? menu : workspaces.visible ? workspaces : null
+    readonly property list<Item> cards: [menu, windows, workspaces]
+    // The open card, or the one still shrinking back, so the goo can absorb it.
+    readonly property Item card: cards.find(c => c.active) || cards.find(c => c.visible) || null
 
     width: 260
 
     function openMenu(task, at) {
-        workspaces.active = false;
-        menu.task = task;
-        anchorItem = at;
-        menu.active = true;
+        show(menu, at, task);
+    }
+
+    function openWindows(task, at) {
+        if (!menu.active)
+            show(windows, at, task);
     }
 
     function toggleWorkspaces(at) {
-        menu.active = false;
+        if (workspaces.active)
+            close();
+        else
+            show(workspaces, at, null);
+    }
+
+    function show(card, at, task) {
+        for (const c of cards)
+            c.active = c === card;
+        card.task = task;
         anchorItem = at;
-        workspaces.active = !workspaces.active;
     }
 
     function close() {
-        menu.active = false;
-        workspaces.active = false;
+        for (const c of cards)
+            c.active = false;
     }
 
     // Centre the card on its button, kept inside the screen.
@@ -51,6 +62,11 @@ Item {
     TaskMenu {
         id: menu
         y: popouts.alignedY(menu)
+    }
+
+    TaskWindows {
+        id: windows
+        y: popouts.alignedY(windows)
     }
 
     Workspaces {

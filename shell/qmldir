@@ -17,3 +17,5 @@ Glyph 1.0 Glyph.qml
 Popouts 1.0 Popouts.qml
 Anim 1.0 Anim.qml
 Exclusions 1.0 Exclusions.qml
+TaskGroup 1.0 TaskGroup.qml
+TaskWindows 1.0 TaskWindows.qml

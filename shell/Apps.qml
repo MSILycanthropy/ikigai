@@ -21,6 +21,7 @@ Singleton {
     // Each app gets its own transient scope: a child left in the shell unit's cgroup dies
     // with it on restart, and app.slice is where desktops put apps.
     function spawn(command, workingDirectory) {
+        console.info("spawn", command.join(" "));
         const context = { command: ["systemd-run", "--user", "--quiet", "--collect", "--scope", "--slice=app", "--", ...command] };
         if (workingDirectory)
             context.workingDirectory = workingDirectory;

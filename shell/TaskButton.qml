@@ -10,6 +10,7 @@ Item {
     readonly property bool active: task.windows.some(w => w.states.includes("activated"))
 
     signal menuRequested
+    signal windowsRequested
 
     implicitWidth: Theme.barWidth - 8
     implicitHeight: Theme.barWidth - 8
@@ -30,25 +31,39 @@ Item {
         source: Quickshell.iconPath(Apps.iconFor(button.task.appId), "application-x-executable")
     }
 
+    // Running mark on the rail edge: short while running, long while focused.
     Rectangle {
         anchors {
-            bottom: parent.bottom
-            bottomMargin: 3
-            horizontalCenter: parent.horizontalCenter
+            left: parent.left
+            leftMargin: -3
+            verticalCenter: parent.verticalCenter
         }
-        width: button.active ? 16 : 6
-        height: 3
-        radius: height / 2
+        width: 3
+        height: button.active ? 18 : 8
+        radius: 1.5
         color: Theme.colors.accent
         visible: button.running
 
-        Behavior on width {
+        Behavior on height {
             Anim { fast: true }
         }
     }
 
     HoverHandler {
         id: hover
+        onHoveredChanged: {
+            if (hovered && button.running)
+                linger.restart();
+            else
+                linger.stop();
+        }
+    }
+
+    // Resting on a running app opens its window list, like a taskbar thumbnail strip.
+    Timer {
+        id: linger
+        interval: 300
+        onTriggered: button.windowsRequested()
     }
 
     MouseArea {

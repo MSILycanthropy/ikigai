@@ -1,5 +1,8 @@
 {
-  "pinned": ["com.mitchellh.ghostty", "zen", "dev.zed.Zed", "com.system76.CosmicSettings"],
+  "pinned": {
+    "top": ["com.mitchellh.ghostty", "zen", "dev.zed.Zed"],
+    "bottom": ["youtube-music", "discord"]
+  },
   "autohide": true,
   "scale": 1.0
 }

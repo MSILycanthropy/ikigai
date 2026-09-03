@@ -5,6 +5,7 @@ PopupCard {
     id: popup
 
     property bool active: false
+    property var task: null
 
     shown: active
     implicitWidth: 260

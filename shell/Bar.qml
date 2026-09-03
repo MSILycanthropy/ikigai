@@ -129,10 +129,23 @@ PanelWindow {
                 }
                 workspacesOpen: popouts.workspacesOpen
                 onMenuRequested: (task, at) => popouts.openMenu(task, at)
+                onWindowsRequested: (task, at) => popouts.openWindows(task, at)
                 onWorkspacesRequested: at => popouts.toggleWorkspaces(at)
             }
 
+            TaskGroup {
+                anchors {
+                    bottom: clock.top
+                    bottomMargin: 8
+                    horizontalCenter: parent.horizontalCenter
+                }
+                tasks: Tasks.bottom
+                onMenuRequested: (task, at) => popouts.openMenu(task, at)
+                onWindowsRequested: (task, at) => popouts.openWindows(task, at)
+            }
+
             Clock {
+                id: clock
                 anchors {
                     bottom: parent.bottom
                     bottomMargin: Theme.border + 4

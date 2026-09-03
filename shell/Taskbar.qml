@@ -7,6 +7,7 @@ Column {
     property bool workspacesOpen: false
 
     signal menuRequested(var task, Item at)
+    signal windowsRequested(var task, Item at)
     signal workspacesRequested(Item at)
 
     spacing: 4
@@ -29,31 +30,6 @@ Column {
                     color: Theme.colors.accent
                 }
             }
-        }
-    }
-
-    BarButton {
-        onClicked: Quickshell.execDetached(["vicinae", "toggle"])
-
-        Rectangle {
-            x: 1
-            y: 1
-            width: 11
-            height: 11
-            radius: 5.5
-            color: "transparent"
-            border.width: 2
-            border.color: Theme.colors.fg
-        }
-
-        Rectangle {
-            x: 10
-            y: 11
-            width: 7
-            height: 2
-            radius: 1
-            rotation: 45
-            color: Theme.colors.fg
         }
     }
 
@@ -85,14 +61,9 @@ Column {
         }
     }
 
-    Repeater {
-        model: ScriptModel {
-            values: Tasks.items
-            objectProp: "appId"
-        }
-
-        TaskButton {
-            onMenuRequested: taskbar.menuRequested(task, this)
-        }
+    TaskGroup {
+        tasks: Tasks.top
+        onMenuRequested: (task, at) => taskbar.menuRequested(task, at)
+        onWindowsRequested: (task, at) => taskbar.windowsRequested(task, at)
     }
 }

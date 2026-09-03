@@ -2,11 +2,13 @@ pragma Singleton
 import Quickshell
 import QtQuick
 
+// The two rail groups: pinned apps in order, with running unpinned apps appended to the top.
 Singleton {
     id: root
 
     property var running: []
-    readonly property var items: layout([...Config.pinned], running, Bridge.windows, DesktopEntries.applications.values)
+    readonly property var top: layout([...Config.pinned.top, ...running.filter(a => !pinnedAnywhere(a))])
+    readonly property var bottom: layout([...Config.pinned.bottom])
 
     Connections {
         target: Bridge
@@ -19,12 +21,17 @@ Singleton {
         }
     }
 
-    function layout(pinned, running, windows, apps) {
-        const ids = [...pinned, ...running.filter(a => !pinned.includes(a))];
+    function pinnedAnywhere(appId) {
+        return Config.pinned.top.includes(appId) || Config.pinned.bottom.includes(appId);
+    }
+
+    function layout(ids) {
+        const windows = Bridge.windows;
+        const apps = DesktopEntries.applications.values;
         return ids.map(appId => ({
             appId: appId,
             entry: Apps.entryFor(appId),
-            pinned: pinned.includes(appId),
+            pinned: pinnedAnywhere(appId),
             windows: windows.filter(w => w.appId === appId)
         }));
     }
