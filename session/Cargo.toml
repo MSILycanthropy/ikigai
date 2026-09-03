@@ -1,0 +1,19 @@
+[package]
+name = "ikigai-session"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+# Handshake shapes mirror cosmic-comp epoch-1.7.0 (src/session.rs).
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rustix = { version = "1", features = ["process"] }
+signal-hook = "0.4"
+# The cosmic-protocols rev cosmic-comp 1.7.0 resolves in its Cargo.lock.
+cosmic-client-toolkit = { git = "https://github.com/pop-os/cosmic-protocols", rev = "32283d76a8d0342da74c4cc022a533c52dcf378f" }
+wayland-client = "0.31"
+wayland-protocols = { version = "0.32", features = ["client", "staging"] }
+
+[profile.release]
+opt-level = 1

@@ -22,6 +22,14 @@ What Ikigai relies on, verified 2026-08-29/30 against COSMIC `epoch-1.7.0` (Arch
 - App themes: vendor folke/tokyonight.nvim `extras/` (ghostty, btop, lazygit, fzf, eza,
   yazi, delta, sublime→bat). Zed: extension `tokyo-night` via `auto_install_extensions`.
   starship: hand-written `[palettes.tokyo_night]`. nvim: native `pack/*/start` clone.
+- Session handshake (cosmic-comp `src/session.rs`): with `COSMIC_SESSION_SOCK=<fd>` set,
+  cosmic-comp writes one message — native-endian `u16` length, then JSON
+  `{"message":"set_env","variables":{"WAYLAND_DISPLAY":…,"DISPLAY":…}}` — and expects
+  nothing back. `session/src/bin/ikigai-session.rs` mirrors that enum verbatim.
+- Bridge pins cosmic-protocols `32283d7` (what cosmic-comp 1.7.0's Cargo.lock resolves).
+  Toplevel manager is v4 (`move_to_ext_workspace`; the legacy `move_to_workspace` is a
+  no-op in comp). ext-workspace `id` is only sent for pinned workspaces, so the bridge
+  keys unpinned ones by Wayland object id.
 - **The system layer is one directory, not a per-key merge.** cosmic-config resolves a
   config's system path with `find_data_file("<id>/v<N>")` and reads *every* key from that
   first hit. Shipping `com.system76.CosmicSettings.Shortcuts/v1/{custom,system_actions}`

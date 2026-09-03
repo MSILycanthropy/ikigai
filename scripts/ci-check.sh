@@ -17,6 +17,10 @@ for p in nvidia-open-dkms nvidia-utils linux-headers mesa vulkan-radeon vulkan-i
 done
 echo "gpu/vm packages resolve"
 
+[ "$(id -u)" -eq 0 ] && pacman -S --noconfirm --needed rust >/dev/null
+(cd session && cargo test --locked -q && cargo clippy --locked -q --all-targets -- -D warnings)
+echo "session crate ok"
+
 find themes config -type f \( -name '*.ron' -o -path '*/v[0-9]/*' \) | while read -r f; do
   grep -q . "$f" || { echo "empty config file: $f"; exit 1; }
 done

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PACMAN=(
-  base-devel git
+  base-devel git rust quickshell
   cosmic cosmic-greeter
   ghostty zsh zsh-autosuggestions zsh-syntax-highlighting zsh-completions starship
   zed neovim lazygit
