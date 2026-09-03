@@ -1,0 +1,15 @@
+{
+  "font": { "family": "Noto Sans", "size": 12, "icons": "JetBrainsMono Nerd Font" },
+  "radius": 8,
+  "colors": {
+    "bg": "#1a1b26",
+    "surface": "#24283b",
+    "border": "#414868",
+    "fg": "#c0caf5",
+    "muted": "#a9b1d6",
+    "accent": "#7aa2f7",
+    "red": "#f7768e",
+    "green": "#9ece6a",
+    "yellow": "#e0af68"
+  }
+}

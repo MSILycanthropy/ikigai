@@ -29,6 +29,7 @@ put lazygit/tokyonight_night.yml      "$HOME/.config/lazygit/config.yml"
 put btop/tokyonight_night.theme       "$HOME/.config/btop/themes/tokyonight_night.theme"
 put sublime/tokyonight_night.tmTheme  "$(bat --config-dir)/themes/tokyonight_night.tmTheme"
 bat cache --build >/dev/null
+put shell.json                        "${XDG_STATE_HOME:-$HOME/.local/state}/ikigai/shell-theme.json"
 
 NVIM_PACK="$HOME/.local/share/nvim/site/pack/ikigai/start/tokyonight.nvim"
 [ -d "$NVIM_PACK" ] || git clone -q --depth 1 https://github.com/folke/tokyonight.nvim "$NVIM_PACK"

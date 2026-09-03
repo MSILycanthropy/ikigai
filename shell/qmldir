@@ -1,0 +1,18 @@
+singleton Theme 1.0 Theme.qml
+singleton Config 1.0 Config.qml
+singleton Motion 1.0 Motion.qml
+singleton Bridge 1.0 Bridge.qml
+singleton Tasks 1.0 Tasks.qml
+Bar 1.0 Bar.qml
+Clock 1.0 Clock.qml
+Slide 1.0 Slide.qml
+Taskbar 1.0 Taskbar.qml
+TaskButton 1.0 TaskButton.qml
+TaskMenu 1.0 TaskMenu.qml
+Workspaces 1.0 Workspaces.qml
+AppIcon 1.0 AppIcon.qml
+PopupCard 1.0 PopupCard.qml
+singleton Apps 1.0 Apps.qml
+Launcher 1.0 Launcher.qml
+BarButton 1.0 BarButton.qml
+Glyph 1.0 Glyph.qml

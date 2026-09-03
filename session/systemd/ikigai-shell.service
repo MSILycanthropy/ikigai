@@ -1,0 +1,10 @@
+[Unit]
+Description=Ikigai shell (Quickshell)
+PartOf=ikigai-session.target
+After=graphical-session-pre.target
+
+[Service]
+Environment=QT_QPA_PLATFORM=wayland QS_DISABLE_FILE_WATCHER=1
+ExecStart=/usr/bin/qs -p /usr/local/share/ikigai/shell/shell.qml
+Restart=on-failure
+RestartSec=1

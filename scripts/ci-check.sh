@@ -35,3 +35,9 @@ assert d["network_config"]["type"] == "nm"
 assert any("boot.sh" in c for c in d["custom_commands"])
 '
 echo "archinstall.json ok"
+
+python -c '
+import json, glob
+for f in ["config/ikigai/shell.json", *glob.glob("themes/*/shell.json")]: json.load(open(f))
+'
+echo "shell json ok"
