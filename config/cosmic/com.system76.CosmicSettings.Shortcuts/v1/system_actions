@@ -18,7 +18,7 @@
     /// Increases keyboard brightness
     // KeyboardBrightnessUp,
     /// Opens the launcher
-    Launcher: "ikigai-launcher",
+    Launcher: "vicinae toggle",
     /// Locks the screen
     LockScreen: "loginctl lock-session",
     /// Mutes the active output device
