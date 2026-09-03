@@ -147,6 +147,47 @@ cmd_screenshot() {
   " | sed "s|^|screenshot: $out (|; s|\$|)|"
 }
 
+# Hyper-V thumbnails at 768x576 come at ~20 fps when kept in memory (writing each
+# frame across the WSL bridge drops that to ~6), so capture first, save after.
+cmd_record() {
+  local secs="${1:?seconds}" out="${2:-$VM_DIR/$VM.gif}" w=768 h=576 tmp raws
+  vm_exists || die "no VM"
+  tmp="$(mktemp -d)"; raws="$(ps 'Join-Path $env:TEMP ikigai-record')"
+  ps "
+    \$vm  = Get-CimInstance -Namespace root\virtualization\v2 -ClassName Msvm_ComputerSystem -Filter \"ElementName='$VM'\"
+    \$svc = Get-CimInstance -Namespace root\virtualization\v2 -ClassName Msvm_VirtualSystemManagementService
+    \$vsd = Get-CimAssociatedInstance -InputObject \$vm -ResultClassName Msvm_VirtualSystemSettingData | Where-Object { \$_.VirtualSystemType -eq 'Microsoft:Hyper-V:System:Realized' }
+    \$frames = New-Object System.Collections.Generic.List[byte[]]; \$times = New-Object System.Collections.Generic.List[double]
+    \$sw = [Diagnostics.Stopwatch]::StartNew()
+    while (\$sw.Elapsed.TotalSeconds -lt $secs) {
+      \$r = Invoke-CimMethod -InputObject \$svc -MethodName GetVirtualSystemThumbnailImage -Arguments @{ TargetSystem = \$vsd; WidthPixels = $w; HeightPixels = $h }
+      \$frames.Add([byte[]]\$r.ImageData); \$times.Add(\$sw.Elapsed.TotalSeconds)
+    }
+    Remove-Item -Recurse -Force '$raws' -ErrorAction SilentlyContinue; New-Item -ItemType Directory -Force '$raws' | Out-Null
+    for (\$i = 0; \$i -lt \$frames.Count; \$i++) { [IO.File]::WriteAllBytes((Join-Path '$raws' ('f{0:d5}.raw' -f \$i)), \$frames[\$i]) }
+    [IO.File]::WriteAllLines((Join-Path '$raws' 'times.txt'), (\$times | ForEach-Object { \$_.ToString([Globalization.CultureInfo]::InvariantCulture) }))
+    \"captured \$(\$frames.Count) frames\"
+  "
+  python3 - "$(wslpath -u "$raws")" "$tmp" "$w" "$h" <<'PY'
+import bisect, sys
+from PIL import Image
+src, dst, w, h = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
+times = [float(t) for t in open(f"{src}/times.txt")]
+fps, last = 20, None
+for k in range(int(times[-1] * fps)):
+    i = min(bisect.bisect_left(times, k / fps), len(times) - 1)
+    if i != last:
+        im = Image.frombuffer("RGB", (w, h), open(f"{src}/f{i:05d}.raw", "rb").read(), "raw", "BGR;16", 0, 1)
+        last = i
+    im.save(f"{dst}/f{k:05d}.png")
+PY
+  ffmpeg -v error -y -framerate 20 -i "$tmp/f%05d.png" \
+    -vf "split[a][b];[a]palettegen=max_colors=192:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle" \
+    -loop 0 "$out"
+  rm -rf "$tmp" "$(wslpath -u "$raws")"
+  echo "record: $out ($(du -h "$out" | cut -f1), ${secs}s at 20 fps)"
+}
+
 cmd_snapshot()  { ps "Checkpoint-VM -Name '$VM' -SnapshotName '${1:?name}'"; }
 cmd_snapshots() { ps "Get-VMCheckpoint -VMName '$VM' | Format-Table Name, CreationTime -AutoSize"; }
 
@@ -175,6 +216,7 @@ usage: vm.sh <command>
   ssh [user]         ssh into the VM
   sync <user>        copy this working tree into the VM at ~/.local/share/ikigai
   screenshot [file]  save the guest display as PNG (default: VM dir)
+  record <s> [file]  capture the guest display for <s> seconds as a 20 fps GIF (default: VM dir)
   snapshot <name>    take a checkpoint (e.g. phase1)
   snapshots          list checkpoints
   destroy            remove VM and disk
@@ -186,5 +228,6 @@ USAGE
 case "${1:-}" in
   fetch|create|install|run|stop|kill|console|status|ip|snapshots|destroy) "cmd_$1" ;;
   reset|ssh|sync|snapshot|seal|key|screenshot) "cmd_$1" "${2:-}" ;;
+  record) cmd_record "${2:-}" "${3:-}" ;;
   *) usage; exit 1 ;;
 esac
