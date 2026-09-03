@@ -9,6 +9,7 @@ Column {
 
     signal menuRequested(var task, Item at)
     signal windowsRequested(var task, Item at)
+    signal dismissRequested
 
     spacing: 4
 
@@ -21,6 +22,7 @@ Column {
         TaskButton {
             onMenuRequested: group.menuRequested(task, this)
             onWindowsRequested: group.windowsRequested(task, this)
+            onDismissRequested: group.dismissRequested()
         }
     }
 }

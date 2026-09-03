@@ -11,6 +11,7 @@ Item {
 
     signal menuRequested
     signal windowsRequested
+    signal dismissRequested
 
     implicitWidth: Theme.barWidth - 8
     implicitHeight: Theme.barWidth - 8
@@ -77,13 +78,17 @@ Item {
         id: press
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+        onPressed: linger.stop()
         onClicked: mouse => {
+            if (mouse.button === Qt.RightButton) {
+                button.menuRequested();
+                return;
+            }
+            button.dismissRequested();
             if (mouse.button === Qt.LeftButton)
                 button.primary();
-            else if (mouse.button === Qt.MiddleButton)
-                button.closeWindow();
             else
-                button.menuRequested();
+                button.closeWindow();
         }
     }
 

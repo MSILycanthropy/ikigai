@@ -131,6 +131,7 @@ PanelWindow {
                 onMenuRequested: (task, at) => popouts.openMenu(task, at)
                 onWindowsRequested: (task, at) => popouts.openWindows(task, at)
                 onWorkspacesRequested: at => popouts.toggleWorkspaces(at)
+                onDismissRequested: popouts.close()
             }
 
             TaskGroup {
@@ -142,6 +143,7 @@ PanelWindow {
                 tasks: Tasks.bottom
                 onMenuRequested: (task, at) => popouts.openMenu(task, at)
                 onWindowsRequested: (task, at) => popouts.openWindows(task, at)
+                onDismissRequested: popouts.close()
             }
 
             Clock {

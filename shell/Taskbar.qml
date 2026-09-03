@@ -9,11 +9,15 @@ Column {
     signal menuRequested(var task, Item at)
     signal windowsRequested(var task, Item at)
     signal workspacesRequested(Item at)
+    signal dismissRequested
 
     spacing: 4
 
     BarButton {
-        onClicked: Quickshell.execDetached(["vicinae", "toggle"])
+        onClicked: {
+            taskbar.dismissRequested();
+            Quickshell.execDetached(["vicinae", "toggle"]);
+        }
 
         Glyph {
             anchors.centerIn: parent
@@ -39,5 +43,6 @@ Column {
         tasks: Tasks.top
         onMenuRequested: (task, at) => taskbar.menuRequested(task, at)
         onWindowsRequested: (task, at) => taskbar.windowsRequested(task, at)
+        onDismissRequested: taskbar.dismissRequested()
     }
 }

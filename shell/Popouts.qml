@@ -14,8 +14,12 @@ Item {
 
     width: 280
 
+    // Right-clicking the app whose menu is open closes it, like a toggle.
     function openMenu(task, at) {
-        show(menu, at, task);
+        if (current === menu && menu.task.appId === task.appId)
+            close();
+        else
+            show(menu, at, task);
     }
 
     function openWindows(task, at) {
