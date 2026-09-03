@@ -31,11 +31,27 @@ seed bat/config              "$HOME/.config/bat/config"
 seed btop/btop.conf          "$HOME/.config/btop/btop.conf"
 seed ikigai/shell.json       "$HOME/.config/ikigai/shell.json"
 seed vicinae/settings.json   "$HOME/.config/vicinae/settings.json"
+seed gtk-3.0/settings.ini    "$HOME/.config/gtk-3.0/settings.ini"
+seed gtk-4.0/settings.ini    "$HOME/.config/gtk-4.0/settings.ini"
 
 if [ ${#skipped[@]} -gt 0 ]; then
   echo "kept existing (IKIGAI_FORCE=1 to overwrite):"
   printf '  %s\n' "${skipped[@]}"
 fi
+
+# The Ikigai icon theme (Phosphor, see scripts/vendor-icon-theme.sh). COSMIC and Qt read
+# it from CosmicTk's icon_theme; GTK apps read it through the settings portal, which
+# serves gsettings, so it is also a system dconf default. The session runs with
+# DCONF_PROFILE=cosmic, whose stock profile has no system db, so ship our own profile
+# under that name too: cosmic-settings-daemon's db first, the user's, then our defaults.
+(cd "$IKIGAI_PATH/icons/Ikigai" && find . -type f) | while read -r f; do
+  sudo install -Dm644 "$IKIGAI_PATH/icons/Ikigai/$f" "/usr/local/share/icons/Ikigai/$f"
+done
+sudo install -Dm644 "$SRC/dconf/00-ikigai" /etc/dconf/db/local.d/00-ikigai
+for profile in cosmic user; do
+  printf 'user-db:cosmic\nuser-db:user\nsystem-db:local\n' | sudo install -Dm644 /dev/stdin "/etc/dconf/profile/$profile"
+done
+sudo dconf update
 
 # COSMIC defaults go in cosmic-config's system layer, not ~/.config:
 # user edits in Settings override per key and never conflict with ours.

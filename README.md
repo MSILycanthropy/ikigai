@@ -43,6 +43,7 @@ won't touch your dotfiles, but two greeters will be enabled and yours may win.
 |---|---|
 | Desktop | [COSMIC](https://system76.com/cosmic) from Arch `extra`, Tokyo Night everywhere, NASA black-hole wallpaper |
 | Rail | Ikigai's own [Quickshell](https://quickshell.org) shell (the experimental "Ikigai" session): a thin autohiding rail inside a rounded frame, popouts that melt out of it. The look, and the blob renderer that draws it, are [soramanew's caelestia-shell](https://github.com/caelestia-dots/shell) — see [Credits](#credits) |
+| Icons | [Phosphor](https://phosphoricons.com) everywhere: the rail's glyphs, and an `Ikigai` symbolic icon theme built from Phosphor that COSMIC's window buttons, cosmic-settings, GTK header bars and Qt apps all pick up. App icons stay their own |
 | Terminal | [Ghostty](https://ghostty.org) + [zellij](https://zellij.dev) (unlock-first keybinds, `zj` to attach) |
 | Shell | zsh (no framework) + [starship](https://starship.rs), autosuggestions, syntax highlighting, oh-my-zsh's git aliases |
 | Editor | [Zed](https://zed.dev) (fetches the Tokyo Night extension from Zed's registry on first launch); Neovim with a minimal themed config |
