@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-# The Launcher system action (Super): Ikigai's launcher inside the Ikigai session, COSMIC's otherwise.
-set -euo pipefail
-
-if systemctl --user is-active -q ikigai-launcher.service; then
-  exec qs -p /usr/local/share/ikigai/shell/launcher.qml ipc call launcher toggle
-fi
-exec cosmic-launcher "$@"

@@ -13,6 +13,5 @@ Workspaces 1.0 Workspaces.qml
 AppIcon 1.0 AppIcon.qml
 PopupCard 1.0 PopupCard.qml
 singleton Apps 1.0 Apps.qml
-Launcher 1.0 Launcher.qml
 BarButton 1.0 BarButton.qml
 Glyph 1.0 Glyph.qml

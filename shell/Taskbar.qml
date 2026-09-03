@@ -7,7 +7,7 @@ Row {
     spacing: 4
 
     BarButton {
-        onClicked: Apps.spawn(["ikigai-launcher"])
+        onClicked: Quickshell.execDetached(["vicinae", "toggle"])
 
         Grid {
             anchors.centerIn: parent
@@ -28,7 +28,7 @@ Row {
     }
 
     BarButton {
-        onClicked: Apps.spawn(["ikigai-launcher"])
+        onClicked: Quickshell.execDetached(["vicinae", "toggle"])
 
         Rectangle {
             x: 1
