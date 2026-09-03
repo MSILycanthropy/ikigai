@@ -4,7 +4,7 @@
 [actions]
 window-close x
 tab-new plus
-view-grid squares-four
+view-grid grid-four
 view-list list
 view-dual columns
 view-continuous rows
