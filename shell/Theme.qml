@@ -9,6 +9,7 @@ Singleton {
     readonly property int barWidth: Math.round(40 * Config.scale)
     readonly property int iconSize: Math.round(20 * Config.scale)
     readonly property real fontSize: theme.font.size * Config.scale
+    readonly property int goo: Math.round(14 * Config.scale)
     readonly property string fontFamily: theme.font.family
     readonly property string iconFont: theme.font.icons
 

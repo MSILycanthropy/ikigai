@@ -9,7 +9,8 @@ Item {
     property Item anchorItem: null
     property bool hovered: false
     readonly property bool workspacesOpen: workspaces.active
-    readonly property Item card: menu.active ? menu : workspaces.active ? workspaces : null
+    // The open card, or the one still sliding back in, so the goo can absorb it.
+    readonly property Item card: menu.active ? menu : workspaces.active ? workspaces : menu.visible ? menu : workspaces.visible ? workspaces : null
 
     width: 260 + 2 * Motion.slack
 

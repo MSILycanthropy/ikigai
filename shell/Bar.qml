@@ -74,21 +74,16 @@ PanelWindow {
                 }
             }
 
-            Rectangle {
+            Goo {
+                anchors.fill: parent
+                card: popouts.card
+                cardOffset: popouts.x
+            }
+
+            Item {
                 id: rail
                 width: Theme.barWidth
                 height: parent.height
-                color: Theme.colors.bg
-
-                Rectangle {
-                    anchors {
-                        top: parent.top
-                        bottom: parent.bottom
-                        right: parent.right
-                    }
-                    width: 1
-                    color: Theme.colors.border
-                }
             }
 
             Taskbar {

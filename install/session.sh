@@ -20,4 +20,10 @@ sudo systemctl --global enable -q vicinae.service
 (cd "$IKIGAI_PATH/shell" && find . -type f) | while read -r f; do
   sudo install -Dm644 "$IKIGAI_PATH/shell/$f" "/usr/local/share/ikigai/shell/$f"
 done
+# Qt Quick only loads precompiled shaders; qsb bundles GLSL for desktop and GLES.
+for f in "$IKIGAI_PATH"/shell/shaders/*.frag; do
+  /usr/lib/qt6/bin/qsb --glsl "300es,150" -o "$f.qsb.tmp" "$f"
+  sudo install -Dm644 "$f.qsb.tmp" "/usr/local/share/ikigai/shell/shaders/$(basename "$f").qsb"
+  rm -f "$f.qsb.tmp"
+done
 echo "installed ikigai-session + ikigai-bridge + shell; 'Ikigai' session entry in the greeter"
