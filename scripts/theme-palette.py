@@ -25,6 +25,8 @@ SEEDS = {"neutral": "#f04501", "accent": "#036ce7"}
 ACCENT_WORDS = ("primary", "secondary", "tertiary", "error", "surfaceTint")
 ANSI_HUES = {"red": 25, "green": 145, "yellow": 85, "blue": 255, "magenta": 335, "cyan": 205}
 ANSI_ROWS = {"normal": (0.76, 0.12), "bright": (0.84, 0.13)}
+EXTRA_HUES = {"orange": 55, "indigo": 275, "purple": 305, "pink": 355}
+TONES = range(0, 101, 10)
 
 
 def scheme_tokens(scheme):
@@ -40,10 +42,13 @@ def hct(hex_colour):
 
 
 def m3_tokens():
-    neutral = scheme_tokens(SchemeNeutral(hct(SEEDS["neutral"]), True, 0.0))
+    neutral_scheme = SchemeNeutral(hct(SEEDS["neutral"]), True, 0.0)
+    neutral = scheme_tokens(neutral_scheme)
     accent = scheme_tokens(SchemeVibrant(hct(SEEDS["accent"]), True, 0.0))
     is_accent = lambda name: any(w.lower() in name.lower() for w in ACCENT_WORDS)
-    return {name: (accent if is_accent(name) else neutral)[name] for name in sorted(neutral)}
+    tokens = {name: (accent if is_accent(name) else neutral)[name] for name in sorted(neutral)}
+    tones = ["#%06x" % (neutral_scheme.neutral_palette.tone(t) & 0xFFFFFF) for t in TONES]
+    return tokens, tones
 
 
 def oklch_to_hex(L, C, h):
@@ -71,24 +76,28 @@ def ansi_tokens(m3):
         for name, hue in ANSI_HUES.items():
             key = name if row == "normal" else "bright" + name.capitalize()
             ansi[key] = oklch_to_hex(L, C, hue)
-    return ansi
+    extra = {name: oklch_to_hex(*ANSI_ROWS["normal"], hue) for name, hue in EXTRA_HUES.items()}
+    return ansi, extra
 
 
 def main():
     if len(sys.argv) != 2:
         sys.exit("usage: theme-palette.py themes/<name>")
     theme = Path(sys.argv[1])
-    m3 = m3_tokens()
+    m3, tones = m3_tokens()
+    ansi, extra = ansi_tokens(m3)
     palette = {
         "name": theme.name,
         "seed": {**SEEDS, "schemes": {"neutral": "SchemeNeutral", "accent": "SchemeVibrant"},
-                 "ansi": {"hues": ANSI_HUES, "rows": {k: list(v) for k, v in ANSI_ROWS.items()}}},
+                 "ansi": {"hues": {**ANSI_HUES, **EXTRA_HUES}, "rows": {k: list(v) for k, v in ANSI_ROWS.items()}}},
         "m3": m3,
-        "ansi": ansi_tokens(m3),
+        "neutralTones": tones,
+        "ansi": ansi,
+        "extra": extra,
     }
     out = theme / "palette.json"
     out.write_text(json.dumps(palette, indent=2) + "\n")
-    print(f"wrote {out}: {len(m3)} m3 tokens, {len(palette['ansi'])} ansi")
+    print(f"wrote {out}: {len(m3)} m3 tokens, {len(tones)} neutral tones, {len(ansi)} ansi, {len(extra)} extra")
 
 
 if __name__ == "__main__":

@@ -28,8 +28,58 @@ def shell_json(palette):
     return json.dumps({"font": FONT, "radius": RADIUS, "colors": colors}, indent=2) + "\n"
 
 
+def ron(colour):
+    return f'"{colour}ff"'
+
+
+def builder_ron(palette):
+    m3, ansi, extra, tones = palette["m3"], palette["ansi"], palette["extra"], palette["neutralTones"]
+    neutrals = "".join(f"        neutral_{i}: {ron(t)},\n" for i, t in enumerate(tones))
+    accents = {
+        "blue": m3["primary"], "indigo": extra["indigo"], "purple": extra["purple"], "pink": extra["pink"],
+        "red": ansi["red"], "orange": extra["orange"], "yellow": ansi["yellow"], "green": ansi["green"],
+        "warm_grey": m3["onSurfaceVariant"],
+    }
+    accent_lines = "".join(f"        accent_{k}: {ron(v)},\n" for k, v in accents.items())
+    ext = {"warm_grey": m3["outline"], "orange": extra["orange"], "yellow": ansi["yellow"],
+           "blue": ansi["cyan"], "purple": extra["purple"], "pink": extra["pink"], "indigo": extra["indigo"]}
+    ext_lines = "".join(f"        ext_{k}: {ron(v)},\n" for k, v in ext.items())
+    return f"""(
+    palette: Dark((
+        name: "{palette["name"]}",
+        bright_red: {ron(ansi["brightRed"])},
+        bright_green: {ron(ansi["brightGreen"])},
+        bright_orange: {ron(extra["orange"])},
+        gray_1: {ron(m3["surface"])},
+        gray_2: {ron(m3["surfaceContainer"])},
+{neutrals}{accent_lines}{ext_lines}    )),
+    spacing: (space_none: 0, space_xxxs: 4, space_xxs: 8, space_xs: 12, space_s: 16, space_m: 24, space_l: 32, space_xl: 48, space_xxl: 64, space_xxxl: 128),
+    corner_radii: (radius_0: (0.0, 0.0, 0.0, 0.0), radius_xs: (4.0, 4.0, 4.0, 4.0), radius_s: (8.0, 8.0, 8.0, 8.0), radius_m: (16.0, 16.0, 16.0, 16.0), radius_l: (32.0, 32.0, 32.0, 32.0), radius_xl: (160.0, 160.0, 160.0, 160.0)),
+    neutral_tint: Some({ron(m3["onSurface"])}),
+    bg_color: Some({ron(m3["surface"])}),
+    primary_container_bg: Some({ron(m3["surfaceContainerLow"])}),
+    secondary_container_bg: Some({ron(m3["surfaceContainer"])}),
+    text_tint: Some({ron(m3["onSurface"])}),
+    accent: Some({ron(m3["primary"])}),
+    success: Some({ron(ansi["green"])}),
+    warning: Some({ron(ansi["yellow"])}),
+    destructive: Some({ron(m3["error"])}),
+    frosted: Medium,
+    gaps: (0, 8),
+    active_hint: 1,
+    window_hint: Some({ron(m3["primary"])}),
+    frosted_windows: false,
+    frosted_system_interface: false,
+    frosted_panel: false,
+    frosted_applets: false,
+    frosted_maximized_apps: false,
+)
+"""
+
+
 OUTPUTS = {
     "shell.json": shell_json,
+    "cosmic/builder.ron": builder_ron,
 }
 
 

@@ -14,7 +14,11 @@
         "yellow": 85,
         "blue": 255,
         "magenta": 335,
-        "cyan": 205
+        "cyan": 205,
+        "orange": 55,
+        "indigo": 275,
+        "purple": 305,
+        "pink": 355
       },
       "rows": {
         "normal": [
@@ -89,6 +93,19 @@
     "tertiaryFixedDim": "#e28ce8",
     "tertiaryPaletteKeyColor": "#a858b0"
   },
+  "neutralTones": [
+    "#000000",
+    "#1d1b1a",
+    "#33302f",
+    "#494645",
+    "#615d5c",
+    "#7b7675",
+    "#95908e",
+    "#b0aaa9",
+    "#cbc5c4",
+    "#e8e1df",
+    "#ffffff"
+  ],
   "ansi": {
     "black": "#2a2523",
     "white": "#b2a9a7",
@@ -106,5 +123,11 @@
     "brightBlue": "#8fceff",
     "brightMagenta": "#ffaaec",
     "brightCyan": "#40e2f3"
+  },
+  "extra": {
+    "orange": "#ec9c63",
+    "indigo": "#9babfd",
+    "purple": "#c39dee",
+    "pink": "#ed90b5"
   }
 }
