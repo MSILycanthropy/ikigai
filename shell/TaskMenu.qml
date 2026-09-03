@@ -3,8 +3,6 @@ import QtQuick
 PopupCard {
     id: menu
 
-    property var task: null
-    property bool active: false
     readonly property var entries: task ? build(task, Bridge.workspaces) : []
 
     function build(task, workspaces) {
@@ -22,7 +20,6 @@ PopupCard {
         return list;
     }
 
-    shown: active
     implicitWidth: 220
     implicitHeight: rows.implicitHeight + 12
 
@@ -72,7 +69,7 @@ PopupCard {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        menu.active = false;
+                        menu.done();
                         row.modelData.run();
                     }
                 }

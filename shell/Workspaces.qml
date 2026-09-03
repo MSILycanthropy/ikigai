@@ -4,10 +4,7 @@ import QtQuick
 PopupCard {
     id: popup
 
-    property bool active: false
-    property var task: null
 
-    shown: active
     implicitWidth: 260
     implicitHeight: list.implicitHeight + 12
 
@@ -62,7 +59,7 @@ PopupCard {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        popup.active = false;
+                        popup.done();
                         Bridge.activateWorkspace(row.modelData.id);
                     }
                 }
@@ -87,7 +84,7 @@ PopupCard {
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: {
-                                    popup.active = false;
+                                    popup.done();
                                     Bridge.activate(icon.modelData.id);
                                 }
                             }

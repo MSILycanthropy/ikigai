@@ -6,11 +6,10 @@ import QtQuick
 PopupCard {
     id: card
 
-    property var task: null
-    property bool active: false
     readonly property var windows: task ? Bridge.windows.filter(w => w.appId === task.appId) : []
 
-    shown: active && windows.length > 0
+    onWindowsChanged: if (shown && windows.length === 0) done()
+
     implicitWidth: 280
     implicitHeight: rows.implicitHeight + 12
 
@@ -104,7 +103,7 @@ PopupCard {
                             Bridge.close(row.modelData.id);
                             return;
                         }
-                        card.active = false;
+                        card.done();
                         Bridge.activate(row.modelData.id);
                     }
                 }

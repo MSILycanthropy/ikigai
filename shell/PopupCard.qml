@@ -1,35 +1,28 @@
 import QtQuick
 
-// Card beside the rail: grows out of the rail edge while its content fades in, and
-// shrinks back into it. Subclasses set implicitWidth/Height; the body is drawn by the
-// blob layer in Bar from this item's geometry.
+// Content of a popout. Sized by implicitWidth/Height; Popouts fits its frame to whichever
+// content is current and cross-fades between them. `done` asks the host to close.
 Item {
+    property var task: null
     property bool shown: false
     default property alias content: body.data
 
-    width: shown ? implicitWidth : 0
-    height: shown ? implicitHeight : 0
-    visible: width > 0
-    clip: true
+    signal done
+
+    width: implicitWidth
+    height: implicitHeight
+    opacity: shown ? 1 : 0
+    visible: opacity > 0
 
     Item {
         id: body
-        x: 6
-        y: 6
-        width: parent.implicitWidth - 12
-        height: parent.implicitHeight - 12
-        opacity: shown ? 1 : 0
-
-        Behavior on opacity {
-            Anim { effects: true }
+        anchors {
+            fill: parent
+            margins: 6
         }
     }
 
-    Behavior on width {
-        Anim {}
-    }
-
-    Behavior on height {
-        Anim {}
+    Behavior on opacity {
+        Anim { effects: true; fast: true }
     }
 }

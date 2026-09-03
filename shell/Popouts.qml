@@ -1,54 +1,47 @@
 import QtQuick
 
-// Cards live in the rail's own window rather than in popup windows, so a shader can
-// later draw rail and card as one surface. Bar masks input to the open card; leaving
-// it closes the card after the same grace the rail uses.
+// One card beside the rail that slides to whichever button asked for it and resizes to its
+// content, so switching between menus is a morph rather than a close and a reopen. Bar
+// masks input to the frame and draws it as a blob; leaving closes it after a grace period.
 Item {
     id: popouts
 
     property Item anchorItem: null
     property bool hovered: false
-    readonly property bool workspacesOpen: workspaces.active
-    readonly property list<Item> cards: [menu, windows, workspaces]
-    // The open card, or the one still shrinking back, so the goo can absorb it.
-    readonly property Item card: cards.find(c => c.active) || cards.find(c => c.visible) || null
+    property Item current: null
+    readonly property bool workspacesOpen: current === workspaces
+    readonly property Item card: frame.height > 0 ? frame : null
 
-    width: 260
+    width: 280
 
     function openMenu(task, at) {
         show(menu, at, task);
     }
 
     function openWindows(task, at) {
-        if (!menu.active)
+        if (current === menu)
+            return;
+        if (task.windows.length > 0)
             show(windows, at, task);
+        else if (current === windows)
+            close();
     }
 
     function toggleWorkspaces(at) {
-        if (workspaces.active)
+        if (current === workspaces)
             close();
         else
             show(workspaces, at, null);
     }
 
-    function show(card, at, task) {
-        for (const c of cards)
-            c.active = c === card;
-        card.task = task;
+    function show(content, at, task) {
+        content.task = task;
         anchorItem = at;
+        current = content;
     }
 
     function close() {
-        for (const c of cards)
-            c.active = false;
-    }
-
-    // Centre the card on its button, kept inside the screen.
-    function alignedY(card) {
-        if (!anchorItem)
-            return 0;
-        const centre = anchorItem.mapToItem(popouts, 0, anchorItem.height / 2).y;
-        return Math.max(0, Math.min(height - card.height, centre - card.height / 2));
+        current = null;
     }
 
     onHoveredChanged: hovered ? leave.stop() : leave.restart()
@@ -59,18 +52,50 @@ Item {
         onTriggered: popouts.close()
     }
 
-    TaskMenu {
-        id: menu
-        y: popouts.alignedY(menu)
+    Item {
+        id: frame
+
+        // The content being shown, or the last one while the frame shrinks away.
+        property Item content: menu
+        property real centre: popouts.anchorItem ? popouts.anchorItem.mapToItem(popouts, 0, popouts.anchorItem.height / 2).y : 0
+
+        width: popouts.current ? content.implicitWidth : 0
+        height: popouts.current ? content.implicitHeight : 0
+        y: Math.max(0, Math.min(popouts.height - height, centre - height / 2))
+        clip: true
+
+        Behavior on width {
+            Anim {}
+        }
+
+        Behavior on height {
+            Anim {}
+        }
+
+        // A fresh card grows in place; only an open one slides to the next button.
+        Behavior on centre {
+            enabled: frame.height > 0
+            Anim {}
+        }
+
+        TaskMenu {
+            id: menu
+            shown: popouts.current === menu
+            onDone: popouts.close()
+        }
+
+        TaskWindows {
+            id: windows
+            shown: popouts.current === windows
+            onDone: popouts.close()
+        }
+
+        Workspaces {
+            id: workspaces
+            shown: popouts.current === workspaces
+            onDone: popouts.close()
+        }
     }
 
-    TaskWindows {
-        id: windows
-        y: popouts.alignedY(windows)
-    }
-
-    Workspaces {
-        id: workspaces
-        y: popouts.alignedY(workspaces)
-    }
+    onCurrentChanged: if (current) frame.content = current
 }
