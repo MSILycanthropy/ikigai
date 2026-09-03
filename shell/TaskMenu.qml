@@ -41,15 +41,8 @@ PopupCard {
                 width: rows.width
                 height: 32
 
-                Rectangle {
-                    anchors.fill: parent
-                    radius: Theme.radius - 2
-                    color: Theme.colors.surface
-                    opacity: rowHover.hovered ? 1 : 0
-
-                    Behavior on opacity {
-                        Anim { effects: true; fast: true }
-                    }
+                StateLayer {
+                    hovered: rowHover.hovered
                 }
 
                 Text {

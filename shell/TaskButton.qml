@@ -15,15 +15,15 @@ Item {
     implicitWidth: Theme.barWidth - 8
     implicitHeight: Theme.barWidth - 8
 
-    Rectangle {
-        anchors.fill: parent
-        radius: Theme.radius
-        color: Theme.colors.surface
-        opacity: hover.hovered ? 1 : 0
+    scale: press.pressed ? 0.88 : 1
 
-        Behavior on opacity {
-            Anim { effects: true; fast: true }
-        }
+    Behavior on scale {
+        Anim { fast: true }
+    }
+
+    StateLayer {
+        hovered: hover.hovered
+        pressed: press.pressed
     }
 
     AppIcon {
@@ -67,6 +67,7 @@ Item {
     }
 
     MouseArea {
+        id: press
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
         onClicked: mouse => {

@@ -19,3 +19,4 @@ Anim 1.0 Anim.qml
 Exclusions 1.0 Exclusions.qml
 TaskGroup 1.0 TaskGroup.qml
 TaskWindows 1.0 TaskWindows.qml
+StateLayer 1.0 StateLayer.qml

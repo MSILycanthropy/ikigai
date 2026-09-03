@@ -12,15 +12,17 @@ Item {
     implicitWidth: Theme.barWidth - 8
     implicitHeight: Theme.barWidth - 8
 
-    Rectangle {
-        anchors.fill: parent
-        radius: Theme.radius
-        color: Theme.colors.surface
-        opacity: hover.hovered || button.checked ? 1 : 0
+    // Springs down on press and back with overshoot.
+    scale: press.pressed ? 0.88 : 1
 
-        Behavior on opacity {
-            Anim { effects: true; fast: true }
-        }
+    Behavior on scale {
+        Anim { fast: true }
+    }
+
+    StateLayer {
+        hovered: hover.hovered
+        pressed: press.pressed
+        active: button.checked
     }
 
     Item {
@@ -35,6 +37,7 @@ Item {
     }
 
     MouseArea {
+        id: press
         anchors.fill: parent
         onClicked: button.clicked()
     }

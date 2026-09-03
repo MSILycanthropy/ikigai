@@ -35,15 +35,9 @@ PopupCard {
                 width: rows.width
                 height: 36
 
-                Rectangle {
-                    anchors.fill: parent
-                    radius: Theme.radius
-                    color: Theme.colors.surface
-                    opacity: rowHover.hovered ? 1 : row.focused ? 0.5 : 0
-
-                    Behavior on opacity {
-                        Anim { effects: true; fast: true }
-                    }
+                StateLayer {
+                    active: row.focused
+                    hovered: rowHover.hovered
                 }
 
                 AppIcon {
