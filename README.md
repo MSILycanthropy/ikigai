@@ -4,7 +4,7 @@ An opinionated developer workstation on **Arch Linux + COSMIC**.
 
 No questions. No bullshit.
 
-![Ikigai desktop](docs/desktop.png)
+![Ikigai desktop](docs/desktop.gif)
 
 ## Install
 
