@@ -20,7 +20,7 @@ is an experimental greeter entry next to stock COSMIC.
 | First swap milestone | Shell v0 = taskbar + launcher + notifications + tray/volume/clock. OSD included (small once volume exists). Idle/lock and greeter after. |
 | Shell files | Ikigai-owned: `shell/` in the repo → `/usr/local/share/ikigai/shell/`, run by `ikigai-shell.service` (`qs -p …/shell.qml`). Users don't edit QML. |
 | Bar | Windows 11 style: bottom, centered, icon-only pinned + running apps with a running indicator, autohiding. Autohide shrinks the layer surface to a strip; it never unmaps (cosmic-comp#1590). |
-| Launcher | One search-first Quickshell panel (DesktopEntries fuzzy search + power/logout actions) from the start button, the search icon and Super. Replaces cosmic-launcher and app-library. |
+| Launcher | Vicinae (`vicinae-bin`), upstream's `vicinae.service` enabled into `graphical-session.target` plus a drop-in that sets `XDG_CURRENT_DESKTOP=Ikigai` (Vicinae refuses layer-shell on "cosmic"; the patched Qt makes it safe). Super, the start button and the search icon run `vicinae toggle`. Palette-only theming via its bundled Tokyo Night, telemetry off, welcome tour kept. Replaces cosmic-launcher and app-library. |
 | Notifications | Quickshell NotificationServer: toasts top-right with actions, history panel from the clock, do-not-disturb. Replaces cosmic-notifications. |
 | Status items v0 | Clock + notification badge, system tray (StatusNotifier), volume (PipeWire). Network and battery after the swap. |
 | Theme | `themes/<name>/shell.json` (palette, font, radius). `ikigai-theme-set` copies it to `~/.local/state/ikigai/shell-theme.json`; the QML watches it. Greeter and lock reuse it. |
@@ -49,9 +49,8 @@ indicator, click activates / click-again minimizes / middle-click closes, contex
 pin/unpin and close. Task-view button: a workspace switcher popup fed by the bridge's
 `workspaces` events (activate, move window).
 
-**C. Launcher.** Search panel with fuzzy app results and actions (lock, log out = SIGTERM to
-`ikigai-session`, restart, shut down). Super and the shortcuts `Launcher` system action call
-`qs ipc`. Verify the Super-alone binding in cosmic-comp's shortcuts config.
+**C. Launcher.** Built as a Quickshell panel, then replaced by Vicinae (2026-09-03, see the
+Launcher row) once the patched Qt made layer-shell teardown safe on cosmic-comp.
 
 **D. Notifications.** NotificationServer, toasts with actions and timeouts, history panel
 from the clock, unread badge, DND toggle.
@@ -73,5 +72,6 @@ shell, drop cosmic-greeter/daemon from the package list.
 ## After v2
 
 Network + battery items, the update command (reconcile seeds; rebuild `session/`; re-copy
-`shell/`), custom pacman repo with a PKGBUILD for `session/` and the patched qt6-base
-(which would lift the never-unmap rule), second theme, ISO.
+`shell/`), custom pacman repo with a PKGBUILD for `session/`, upstreaming the Qt patch
+(`packages/qt6-base/`, built at install and on every qt6-base upgrade until a fixed Qt or
+cosmic-comp lands; then the shell's never-unmap rule can go), second theme, ISO.

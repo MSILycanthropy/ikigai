@@ -57,7 +57,7 @@ Stock COSMIC bindings, plus:
 
 | Key | |
 |---|---|
-| `Super` | Launcher (Ikigai's in the Ikigai session, COSMIC's otherwise) |
+| `Super` | Vicinae |
 | `Super+Return` / `Super+T` | Ghostty |
 | `Super+E` | Zed |
 | `Super+B` | Zen |
@@ -82,9 +82,10 @@ Stock COSMIC bindings, plus:
   runs the Quickshell shell from `/usr/local/share/ikigai/shell`: an autohiding bottom bar
   with a Windows-style taskbar (pinned + running apps, click to focus or minimize,
   middle-click to close, right-click for pin/unpin, move to workspace, close), a task-view
-  button that switches workspaces, and a clock; `ikigai-launcher` is the search-first
-  launcher (Super, or the start and search buttons): fuzzy app search, pinned apps as
-  quick launch, lock / log out / restart / shut down. The shell reads its theme from
+  button that switches workspaces, and a clock. [Vicinae](https://vicinae.com) is the
+  launcher (Super, or the start and search buttons), running as a layer-shell overlay on
+  the patched Qt below; its config is seeded once with Tokyo Night and telemetry off, and
+  its welcome tour runs on first login. The shell reads its theme from
   `~/.local/state/ikigai/shell-theme.json` (written by `ikigai-theme-set`) and your settings
   from `~/.config/ikigai/shell.json` (seeded once: pinned apps, alignment, autohide, scale); both reload
   live. Not yet: per-monitor window lists, drag to reorder pins. Stock COSMIC stays the
