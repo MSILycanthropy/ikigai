@@ -10,4 +10,6 @@ ShellRoot {
             screen: modelData
         }
     }
+
+    Switcher {}
 }

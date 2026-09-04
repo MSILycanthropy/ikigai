@@ -50,9 +50,9 @@
     /// Opens the system default web browser
     WebBrowser: "zen-browser",
     /// Opens the (alt+tab) window switcher
-    WindowSwitcher: "cosmic-launcher alt-tab",
+    WindowSwitcher: "ikigai-shell switcher next",
     /// Opens the (alt+shift+tab) window switcher
-    WindowSwitcherPrevious: "cosmic-launcher shift-alt-tab",
+    WindowSwitcherPrevious: "ikigai-shell switcher prev",
     /// Opens the workspace overview
     WorkspaceOverview: "cosmic-workspaces",
 }

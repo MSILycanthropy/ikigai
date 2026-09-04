@@ -1,0 +1,4 @@
+#!/bin/sh
+# Calls into the running shell, e.g. `ikigai-shell switcher next`; the target for
+# cosmic-comp's shortcut commands (system_actions).
+exec qs ipc -p /usr/local/share/ikigai/shell/shell.qml call "$@"
