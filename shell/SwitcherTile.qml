@@ -25,7 +25,11 @@ Item {
         border.color: tile.selected ? Theme.colors.primary : "transparent"
 
         Behavior on color {
-            ColorAnimation { duration: Motion.fastEffects }
+            ColorAnim {}
+        }
+
+        Behavior on border.color {
+            ColorAnim {}
         }
 
         StateLayer {
