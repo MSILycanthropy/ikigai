@@ -34,28 +34,51 @@ Scope {
         index = (index + by + order.length) % order.length;
     }
 
-    // cosmic-comp hands focus back to the previously focused window when the overlay unmaps,
-    // which would undo an activate sent before that; so unmap first, activate once it is gone.
+    // While the overlay holds exclusive keyboard focus cosmic-comp re-validates any other
+    // focus against it, so the claim is dropped first and the window activated once the
+    // compositor has seen that; the card fades out over the same gap.
     property string pending: ""
+    property bool closing: false
 
     function commit(i) {
+        if (closing)
+            return;
         pending = open && order[i] ? order[i].id : "";
-        open = false;
-        if (pending)
-            settle.restart();
+        dismiss();
+    }
+
+    function cancel() {
+        if (closing)
+            return;
+        pending = "";
+        dismiss();
+    }
+
+    function dismiss() {
+        if (!open)
+            return;
+        closing = true;
+        handoff.restart();
+        fade.restart();
     }
 
     Timer {
-        id: settle
-        interval: 80
+        id: handoff
+        interval: 50
         onTriggered: {
-            Bridge.activate(switcher.pending);
+            if (switcher.pending)
+                Bridge.activate(switcher.pending);
             switcher.pending = "";
         }
     }
 
-    function cancel() {
-        open = false;
+    Timer {
+        id: fade
+        interval: Motion.fastEffects
+        onTriggered: {
+            switcher.open = false;
+            switcher.closing = false;
+        }
     }
 
     // Windows closed while the switcher is open drop out of the list.
@@ -87,7 +110,7 @@ Scope {
             readonly property int pad: Math.round(16 * Config.scale)
 
             WlrLayershell.layer: WlrLayer.Overlay
-            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            WlrLayershell.keyboardFocus: switcher.closing ? WlrKeyboardFocus.None : WlrKeyboardFocus.Exclusive
             WlrLayershell.namespace: "ikigai:switcher"
             exclusionMode: ExclusionMode.Ignore
             color: "transparent"
@@ -142,10 +165,12 @@ Scope {
                 anchors.centerIn: parent
                 width: grid.width + 2 * window.pad
                 height: grid.height + 2 * window.pad
+                property bool shown: false
+
                 radius: Theme.cardRadius
                 color: Theme.colors.surface
-                opacity: 0
-                scale: 0.96
+                opacity: shown && !switcher.closing ? 1 : 0
+                scale: shown && !switcher.closing ? 1 : 0.96
                 layer.enabled: true
                 layer.effect: MultiEffect {
                     shadowEnabled: true
@@ -153,10 +178,7 @@ Scope {
                     shadowColor: Qt.alpha("black", 0.6)
                 }
 
-                Component.onCompleted: {
-                    opacity = 1;
-                    scale = 1;
-                }
+                Component.onCompleted: shown = true
 
                 Behavior on opacity {
                     Anim { effects: true }
