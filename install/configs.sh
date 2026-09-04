@@ -33,6 +33,7 @@ seed lazygit/config.yml      "$HOME/.config/lazygit/config.yml"
 seed ikigai/shell.json       "$HOME/.config/ikigai/shell.json"
 seed vicinae/settings.json   "$HOME/.config/vicinae/settings.json"
 seed satty/config.toml       "$HOME/.config/satty/config.toml"
+seed mpv/mpv.conf            "$HOME/.config/mpv/mpv.conf"
 seed gtk-3.0/settings.ini    "$HOME/.config/gtk-3.0/settings.ini"
 seed gtk-4.0/settings.ini    "$HOME/.config/gtk-4.0/settings.ini"
 
