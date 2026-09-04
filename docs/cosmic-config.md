@@ -19,7 +19,7 @@ What Ikigai relies on, verified 2026-08-29/30 against COSMIC `epoch-1.7.0` (Arch
   `system_actions` maps `Terminal`/`WebBrowser` to commands and `WindowSwitcher`/
   `WindowSwitcherPrevious` (Alt+Tab, Alt+Shift+Tab) to `ikigai-shell switcher next|prev`
   instead of cosmic-launcher, and `Screenshot` (Print) to `ikigai-shot region` instead of
-  cosmic-screenshot; `Shift+Print` → `ikigai-shot output` is in `custom`. Super+E/Return
+  cosmic-screenshot; `Shift+Print` → `ikigai-shot screen` is in `custom`. Super+E/Return
   unbound upstream.
 - Greeter reads the same system theme layer; its wallpaper comes only from a user's
   cosmic-bg *state* (1.7.0 limitation) → matches after first login.
