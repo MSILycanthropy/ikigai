@@ -14,6 +14,7 @@ ShellRoot {
 
     Switcher {}
     Shot {}
+    Lock {}
 
     IpcHandler {
         target: "osd"
