@@ -205,8 +205,14 @@ impl Bridge {
 
     fn handle_request(&mut self, id: ClientId, request: Request) {
         let result = match &request {
-            Request::Capture { ids } => Ok(ids.iter().for_each(|t| self.capture(t))),
-            Request::Geometry => Ok(self.send_geometry(id)),
+            Request::Capture { ids } => {
+                let _: () = ids.iter().for_each(|t| self.capture(t));
+                Ok(())
+            },
+            Request::Geometry => {
+                self.send_geometry(id);
+                Ok(())
+            },
             _ => self.apply(&request),
         };
         if let Err(message) = result {
