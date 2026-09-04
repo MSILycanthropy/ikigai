@@ -35,7 +35,7 @@ Item {
         color: button.active ? Theme.colors.primary : button.running ? Theme.colors.fg : Theme.colors.fgVariant
 
         Behavior on color {
-            ColorAnimation { duration: Motion.fastEffects }
+            ColorAnim { fast: true }
         }
     }
 
