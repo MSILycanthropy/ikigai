@@ -13,11 +13,19 @@ Singleton {
     readonly property real volume: ready ? sink.audio.volume : 0
     readonly property bool muted: ready ? sink.audio.muted : true
     readonly property bool micMuted: source && source.audio ? source.audio.muted : false
-    readonly property string sinkName: sink ? (sink.nickname || sink.description || sink.name) : "No output"
+    readonly property var sinks: Pipewire.nodes.values.filter(n => n.isSink && !n.isStream && n.audio !== null)
     readonly property string icon: !ready || muted || volume === 0 ? "speaker-slash" : volume < 0.34 ? "speaker-none" : volume < 0.67 ? "speaker-low" : "speaker-high"
 
     PwObjectTracker {
         objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource]
+    }
+
+    function nameOf(node) {
+        return node.nickname || node.description || node.name;
+    }
+
+    function select(node) {
+        Pipewire.preferredDefaultAudioSink = node;
     }
 
     function setVolume(v) {
