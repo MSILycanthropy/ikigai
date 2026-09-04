@@ -20,6 +20,8 @@ pub struct Toplevel {
     pub states: Vec<State>,
     pub outputs: Vec<String>,
     pub workspaces: Vec<String>,
+    /// Bumped each time the window becomes activated, so the highest is the most recent; 0 is never.
+    pub last_active: u64,
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
@@ -83,11 +85,12 @@ mod tests {
                 states: vec![State::Activated],
                 outputs: vec!["Virtual-1".into()],
                 workspaces: vec!["ws1".into()],
+                last_active: 3,
             },
         };
         assert_eq!(
             serde_json::to_string(&event).unwrap(),
-            r#"{"event":"toplevel","toplevel":{"id":"abc","app_id":"ghostty","title":"~","states":["activated"],"outputs":["Virtual-1"],"workspaces":["ws1"]}}"#
+            r#"{"event":"toplevel","toplevel":{"id":"abc","app_id":"ghostty","title":"~","states":["activated"],"outputs":["Virtual-1"],"workspaces":["ws1"],"last_active":3}}"#
         );
         assert_eq!(
             serde_json::to_string(&Event::Closed { id: "abc".into() }).unwrap(),

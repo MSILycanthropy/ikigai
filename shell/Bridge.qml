@@ -48,7 +48,7 @@ Singleton {
     }
 
     function fromWire(t) {
-        return { id: t.id, appId: t.app_id, title: t.title, states: t.states, outputs: t.outputs, workspaces: t.workspaces };
+        return { id: t.id, appId: t.app_id, title: t.title, states: t.states, outputs: t.outputs, workspaces: t.workspaces, lastActive: t.last_active };
     }
 
     // A Socket can't reconnect once it has failed or dropped, so each retry gets a fresh one.

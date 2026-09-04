@@ -36,6 +36,7 @@ struct Bridge {
     seat: wl_seat::WlSeat,
     published: HashMap<String, Toplevel>,
     published_workspaces: Vec<Workspace>,
+    focus_seq: u64,
     clients: HashMap<ClientId, Client>,
     next_client: ClientId,
 }
@@ -58,6 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         seat,
         published: HashMap::new(),
         published_workspaces: Vec::new(),
+        focus_seq: 0,
         clients: HashMap::new(),
         next_client: 0,
     };
@@ -234,8 +236,18 @@ impl Bridge {
     }
 
     fn publish(&mut self, handle: &ExtForeignToplevelHandleV1) {
-        let Some(toplevel) = self.describe(handle) else { return };
-        if self.published.get(&toplevel.id) == Some(&toplevel) {
+        let Some(mut toplevel) = self.describe(handle) else { return };
+        let previous = self.published.get(&toplevel.id);
+        let activated = |t: &Toplevel| t.states.contains(&State::Activated);
+        toplevel.last_active = match previous {
+            Some(p) if activated(p) || !activated(&toplevel) => p.last_active,
+            None if !activated(&toplevel) => 0,
+            _ => {
+                self.focus_seq += 1;
+                self.focus_seq
+            }
+        };
+        if previous == Some(&toplevel) {
             return;
         }
         self.published.insert(toplevel.id.clone(), toplevel.clone());
@@ -259,6 +271,7 @@ impl Bridge {
             states,
             outputs: self.output_names(info.output.iter().cloned()),
             workspaces,
+            last_active: 0,
         })
     }
 }
