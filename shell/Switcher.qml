@@ -45,6 +45,7 @@ Scope {
         if (closing)
             return;
         pending = open && order[i] ? order[i].id : "";
+        console.info("switcher commit", i, order[i] ? order[i].title : "-");
         dismiss();
     }
 
@@ -52,6 +53,7 @@ Scope {
         if (closing)
             return;
         pending = "";
+        console.info("switcher cancel");
         dismiss();
     }
 
