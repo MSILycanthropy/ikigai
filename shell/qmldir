@@ -25,3 +25,5 @@ Switcher 1.0 Switcher.qml
 WindowTile 1.0 WindowTile.qml
 ColorAnim 1.0 ColorAnim.qml
 Shot 1.0 Shot.qml
+singleton Recorder 1.0 Recorder.qml
+RecordingBadge 1.0 RecordingBadge.qml

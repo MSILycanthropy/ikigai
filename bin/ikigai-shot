@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Screenshots: `ikigai-shot region` (Print) and `ikigai-shot screen` (Shift+Print), to the
-# clipboard and ~/Pictures/Screenshots. The shell's picker when the Ikigai shell offers
-# one (with satty as its Edit action), else grim + slurp in the shell's colours.
+# clipboard and ~/Pictures/Screenshots; `ikigai-shot record` (Super+Shift+R) starts a
+# recording and stops it. The shell's picker when the Ikigai shell offers one (with
+# satty as its Edit action), else grim, slurp and gpu-screen-recorder directly.
 set -euo pipefail
 
 SHELL_QML=/usr/local/share/ikigai/shell/shell.qml
@@ -37,8 +38,17 @@ case "${1:-region}" in
     fi
     grim - | keep
     ;;
+  record)
+    if shell_has shot; then
+      exec qs ipc -p "$SHELL_QML" call shot record
+    fi
+    if pkill -INT -x gpu-screen-recorder; then exit 0; fi
+    geometry=$(slurp -w 2 -b "#$(color surface 100e0d)b3" -c "#$(color error ff716c)ff" -s "#00000000" -f '%wx%h+%x+%y') || exit 0
+    dir="$(xdg-user-dir VIDEOS)/Recordings"; mkdir -p "$dir"
+    exec gpu-screen-recorder -w region -region "$geometry" -f 60 -a default_output -c mp4 -cursor yes -o "$dir/$(date +%Y-%m-%d_%H-%M-%S).mp4"
+    ;;
   *)
-    echo "usage: ikigai-shot [region|screen]" >&2
+    echo "usage: ikigai-shot [region|screen|record]" >&2
     exit 2
     ;;
 esac

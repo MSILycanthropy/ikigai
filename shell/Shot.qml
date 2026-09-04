@@ -28,7 +28,8 @@ Scope {
     ]
     readonly property var actions: [
         { id: "snip", icon: "copy", label: "Snip" },
-        { id: "edit", icon: "pencil-simple", label: "Edit" }
+        { id: "edit", icon: "pencil-simple", label: "Edit" },
+        { id: "record", icon: "record", label: "Record" }
     ]
 
     IpcHandler {
@@ -37,6 +38,12 @@ Scope {
         function region(): void { shot.begin("region", "snip"); }
         function window(): void { shot.begin("window", "snip"); }
         function screen(): void { shot.begin("screen", "snip"); }
+        function record(): void {
+            if (Recorder.recording)
+                Recorder.stop();
+            else
+                shot.begin("region", "record");
+        }
     }
 
     function begin(mode, action) {
@@ -79,9 +86,19 @@ Scope {
         return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "_" + pad(d.getHours()) + "-" + pad(d.getMinutes()) + "-" + pad(d.getSeconds()) + ".png";
     }
 
+    // The overlay must be gone before the recorder starts, or it is in the recording.
+    property var pendingRecord: null
+
     function commit(window, rect) {
         if (!frozen || closing || flashing)
             return;
+        if (shot.action === "record") {
+            console.info("shot record", window.screen.name, window.wholeScreen ? "whole" : rect.width + "x" + rect.height);
+            // Plain numbers: a rect read off the window is a reference that dies with it.
+            pendingRecord = { screen: window.screen, rect: window.wholeScreen ? null : { x: rect.x, y: rect.y, width: rect.width, height: rect.height } };
+            dismiss();
+            return;
+        }
         const path = dir + "/shot-" + stamp + ".png";
         const dpr = window.screen.devicePixelRatio;
         const action = shot.action;
@@ -136,6 +153,17 @@ Scope {
         onTriggered: {
             shot.open = false;
             shot.closing = false;
+            if (shot.pendingRecord)
+                arm.restart();
+        }
+    }
+
+    Timer {
+        id: arm
+        interval: 100
+        onTriggered: {
+            Recorder.start(shot.pendingRecord.screen, shot.pendingRecord.rect);
+            shot.pendingRecord = null;
         }
     }
 
@@ -332,7 +360,7 @@ Scope {
                     visible: window.selecting
                     color: "transparent"
                     border.width: weight
-                    border.color: shot.flashing ? Theme.colors.fg : Theme.colors.primary
+                    border.color: shot.flashing ? Theme.colors.fg : shot.action === "record" ? Theme.colors.error : Theme.colors.primary
                     radius: weight
 
                     Behavior on border.color {

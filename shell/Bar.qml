@@ -136,7 +136,7 @@ PanelWindow {
 
             TaskGroup {
                 anchors {
-                    bottom: clock.top
+                    bottom: recording.top
                     bottomMargin: 8
                     horizontalCenter: parent.horizontalCenter
                 }
@@ -144,6 +144,15 @@ PanelWindow {
                 onMenuRequested: (task, at) => popouts.openMenu(task, at)
                 onWindowsRequested: (task, at) => popouts.openWindows(task, at)
                 onDismissRequested: popouts.close()
+            }
+
+            RecordingBadge {
+                id: recording
+                anchors {
+                    bottom: clock.top
+                    bottomMargin: Recorder.recording ? 8 : 0
+                    horizontalCenter: parent.horizontalCenter
+                }
             }
 
             Clock {
