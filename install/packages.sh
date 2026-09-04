@@ -3,7 +3,8 @@ set -euo pipefail
 
 PACMAN=(
   base-devel git rust quickshell qt6-shadertools cmake ninja ccache vulkan-headers
-  cosmic cosmic-greeter greetd
+  cosmic-comp cosmic-bg cosmic-settings cosmic-settings-daemon cosmic-idle cosmic-randr
+  cosmic-icon-theme cosmic-sound-theme cosmic-files xdg-desktop-portal-cosmic greetd
   ghostty zsh zsh-autosuggestions zsh-syntax-highlighting zsh-completions starship
   zed neovim lazygit github-cli just discord
   docker docker-compose lazydocker mise

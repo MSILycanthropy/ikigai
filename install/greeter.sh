@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The Ikigai greeter (greeter/): greetd runs `ikigai-greeter` as its own user. Takes over
-# display-manager.service from cosmic-greeter, which stays installed for its locker.
+# display-manager.service from cosmic-greeter on a box that already had stock COSMIC.
 set -euo pipefail
 
 G="$IKIGAI_PATH/greeter"
@@ -15,4 +15,4 @@ sudo systemctl daemon-reload
 # Both units alias display-manager.service; only one can hold it.
 sudo systemctl disable -q cosmic-greeter 2>/dev/null || true
 sudo systemctl enable -q ikigai-greeter
-echo "greeter: ikigai-greeter enabled (cosmic-greeter disabled)"
+echo "greeter: ikigai-greeter enabled"

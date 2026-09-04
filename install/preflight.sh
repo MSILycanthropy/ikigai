@@ -7,7 +7,7 @@ die() { echo "preflight: $*" >&2; exit 1; }
 [ "$(id -u)" -ne 0 ] || die "run as a regular user with sudo, not root"
 command -v sudo >/dev/null || die "sudo is not installed"
 sudo -n true 2>/dev/null || die "user $(id -un) cannot sudo"
-[ -d /sys/firmware/efi ] || die "UEFI boot required (cosmic-greeter/systemd-boot assumptions)"
+[ -d /sys/firmware/efi ] || die "UEFI boot required (systemd-boot assumptions)"
 curl -fsS --max-time 10 https://archlinux.org >/dev/null || die "no network"
 
 # archinstall path grants temporary NOPASSWD sudo; if a previous run was interrupted, drop it.
