@@ -44,6 +44,7 @@ won't touch your dotfiles, but two greeters will be enabled and yours may win.
 | Desktop | [COSMIC](https://system76.com/cosmic) from Arch `extra`, NASA black-hole wallpaper |
 | Theme | One palette, `themes/ikigai/palette.json`: Material 3 neutrals seeded from the wallpaper's orange (near-black warm greys), the accent from its blue, and an ANSI 16 built in OKLCH. `scripts/theme-build.py` renders it into the rail, COSMIC (window chrome, libcosmic apps), Ghostty, btop, Vicinae and a libadwaita `gtk.css` that adw-gtk3 and Qt's gtk3 platform theme carry to GTK 3 and Qt apps. Every other terminal tool follows the terminal's ANSI colours |
 | Rail | Ikigai's own [Quickshell](https://quickshell.org) shell (the experimental "Ikigai" session): a thin autohiding rail inside a rounded frame, popouts that melt out of it. The look, and the blob renderer that draws it, are [soramanew's caelestia-shell](https://github.com/caelestia-dots/shell) — see [Credits](#credits) |
+| Screenshots | `Print` freezes the screen and you drag a region (the shell's own picker; slurp in the same colours under stock COSMIC), `Shift+Print` takes the whole screen. Both open [satty](https://github.com/gabm/Satty) to annotate: Enter copies, Ctrl+S saves under `~/Pictures/Screenshots`. Captured by [grim](https://sr.ht/~emersion/grim/) over ext-image-copy-capture. Recording: [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/) works through the COSMIC portal |
 | Switcher | Windows-style Alt+Tab in the rail's language: hold Alt, Tab cycles live previews most-recent-first across workspaces (minimized included), release to switch, Shift+Tab backwards, Escape cancels, click a tile. Previews come from the bridge over ext-image-copy-capture |
 | Icons | [Phosphor](https://phosphoricons.com) everywhere: the rail's glyphs, and an `Ikigai` symbolic icon theme built from Phosphor that COSMIC's window buttons, cosmic-settings, GTK header bars and Qt apps all pick up. Ghostty, Zen and Zed get hand-drawn marks in Phosphor's grammar on the rail (`shell/icons/brand`); app icons elsewhere stay their own |
 | Terminal | [Ghostty](https://ghostty.org) + [zellij](https://zellij.dev) (unlock-first keybinds, `zj` to attach) |
@@ -67,6 +68,7 @@ Stock COSMIC bindings, plus:
 | `Super+Return` / `Super+T` | Ghostty |
 | `Super+E` | Zed |
 | `Super+B` | Zen |
+| `Print` / `Shift+Print` | screenshot of a region / the whole screen, into satty |
 | `Super+Shift+/` | searchable cheatsheet of every binding (`ikigai-keys` in a terminal) |
 
 ## How it's put together
