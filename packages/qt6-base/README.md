@@ -18,4 +18,5 @@ hook so every qt6-base upgrade rebuilds it. State in `/var/lib/ikigai/qt-wayland
 cache in `/var/cache/ikigai/qt`. `pacman -Qkk qt6-base` reports the one altered file.
 
 If the patch ever stops applying, the hook fails loudly and the stock library stays: the
-shell survives (it never unmaps), Vicinae crashes on close until the patch is updated.
+rail survives (it never unmaps) but the shell's overlays (Alt+Tab, the screenshot picker)
+and Vicinae crash on close until the patch is updated; systemd restarts the shell.

@@ -19,7 +19,7 @@ is an experimental greeter entry next to stock COSMIC.
 |---|---|
 | First swap milestone | Shell v0 = taskbar + launcher + notifications + tray/volume/clock. OSD included (small once volume exists). Idle/lock and greeter after. |
 | Shell files | Ikigai-owned: `shell/` in the repo → `/usr/local/share/ikigai/shell/`, run by `ikigai-shell.service` (`qs -p …/shell.qml`). Users don't edit QML. |
-| Bar | caelestia-shell's look, on its vendored blob renderer (`shell/plugin`, GPL-3): a rounded 10 px frame around the desktop, a thin (40 px) autohiding rail that grows out of the frame's left border, cards that melt out of the rail. One full-screen layer per screen plus four 1 px exclusion windows; nothing ever unmaps (cosmic-comp#1590). Pinned + running apps at the top, clock stacked at the bottom. |
+| Bar | caelestia-shell's look, on its vendored blob renderer (`shell/plugin`, GPL-3): a rounded 10 px frame around the desktop, a thin (40 px) autohiding rail that grows out of the frame's left border, cards that melt out of the rail. One full-screen layer per screen plus four 1 px exclusion windows, always mapped (autohide is a resize). Overlays (switcher, screenshot picker) are `LazyLoader`s: map on demand, unmap on close; safe since the Qt patch (cosmic-comp#1590), and how an Overlay layer gets keyboard focus at all (granted at map only). Pinned + running apps at the top, clock stacked at the bottom. |
 | Launcher | Vicinae (`vicinae-bin`), upstream's `vicinae.service` enabled into `graphical-session.target` plus a drop-in that sets `XDG_CURRENT_DESKTOP=Ikigai` (Vicinae refuses layer-shell on "cosmic"; the patched Qt makes it safe). Super, the start button and the search icon run `vicinae toggle`. Palette-only theming via a generated `ikigai.toml`, telemetry off, welcome tour kept. Replaces cosmic-launcher and app-library. |
 | Notifications | Quickshell NotificationServer: toasts top-right with actions, history panel from the clock, do-not-disturb. Replaces cosmic-notifications. |
 | Status items v0 | Clock + notification badge, system tray (StatusNotifier), volume (PipeWire). Network and battery after the swap. |
@@ -70,9 +70,30 @@ archinstall paths, checkpoint `v2`.
 `cosmic-greeter.service`, greeter user setup (theme + wallpaper readable), lock screen in the
 shell, drop cosmic-greeter/daemon from the package list.
 
+## Apps (decided 2026-09-03)
+
+Independent of the v2 steps: everything lands in the installer and README and works in
+both sessions. Small commits, one concern each; a `vm.sh reset vanilla` + full install
+first, since none has run since the Alt+Tab commits, and again at the end.
+
+| Area | Decision |
+|---|---|
+| Dev | `github-cli`, `just` into `PACMAN`. uv/bun via mise, VS Code and Chromium out. `base-devel` already covers build-essential. |
+| Claude Code | The native installer (`~/.local/bin/claude`, self-updating, matches upstream's release cadence), as a per-user step in the installer, skipped when `claude` already resolves. Not the AUR package: it wraps the same binary with `DISABLE_UPDATES=1` and pacman as the only updater, and Ikigai has no update command yet. |
+| Firewall | `ufw` + `ufw-docker`, `install/firewall.sh`: deny incoming, allow outgoing, allow ssh only when `sshd.service` is enabled (the VM harness needs it), Docker containers → host DNS, `ufw-docker install`, `ENABLED=yes` + `systemctl enable ufw`. Arch ships no firewall at all; Docker's published ports bypass ufw without ufw-docker. |
+| Video | `mpv` (hwdec, external subs, chapters, yt-dlp, scripting), `config/mpv/mpv.conf` seeded with `hwdec=auto-safe`; OSC colours from the palette via theme-build later. cosmic-player stays while the `cosmic` meta is installed and does not come back at the swap. |
+| Screenshots | `grim` + `slurp` + `satty` (cosmic-comp serves ext-image-copy-capture, never wlr-screencopy: grim ≥ 1.5 works, wf-recorder and flameshot don't; satty is libadwaita, so it wears `gtk.css`). Step 1: `bin/ikigai-shot region\|output`, `grim … \| satty -f -`, slurp coloured from `shell-theme.json`, `Print` / `Shift+Print` in the shortcuts overlay. Step 2 (polish, decided now): `shell/Shot.qml` replaces slurp: LazyLoader Overlay like the switcher, freeze-first (capture the output before mapping, draw the selection over the frozen image, crop in QML, pipe to satty) so the overlay is never in the shot and the screen can't change under the drag. Bridge output capture instead of grim is optional after that. Recording: README pointer at gpu-screen-recorder (portal path), not a default. |
+| Gaming | Not installed by default. `[multilib]` enabled in `pacman.conf` at install (before the first `-Syu`, like Omarchy). `bin/ikigai-steam`: `steam ttf-liberation gamemode gamescope mangohud` + the lib32 driver for `~/.local/state/ikigai/gpu` (`lib32-vulkan-radeon` / `lib32-vulkan-intel` / `lib32-nvidia-utils`), then launches Steam. Proton ships with Steam; README points at `protonup-qt` for Proton-GE. VM has no GPU: verify the packages and the client reaching login only. |
+| Out | zoxide, localsend, chromium, VS Code, flameshot, Proton-GE as a package. |
+| Qt rebuild | `ccache` into `PACMAN`; `ikigai-qt-wayland` sets `CMAKE_C[XX]_COMPILER_LAUNCHER=ccache` with `CCACHE_DIR=/var/cache/ikigai/ccache`. qt6-base moves 1–2× a month; pkgrel bumps then rebuild from cache in well under a minute. Ignoring qt6-base is out: the qt6 family is lockstep, a held qt6-base is a partial upgrade. |
+| Docs | README rows: Dev (gh, just, Claude Code), Firewall, Video, Screenshots, Gaming (the command); Runtimes row notes that Arch builds mise without `self_update` (pacman owns it). Swap step: cosmic-player off the explicit list; decide cosmic-files / cosmic-screenshot / cosmic-text-editor there. |
+
+Order: install test → dev + Claude Code → multilib + firewall → mpv → screenshots step 1 →
+Steam command → docs → install test → `Shot.qml`.
+
 ## After v2
 
 Network + battery items, the update command (reconcile seeds; rebuild `session/`; re-copy
 `shell/`), custom pacman repo with a PKGBUILD for `session/`, upstreaming the Qt patch
 (`packages/qt6-base/`, built at install and on every qt6-base upgrade until a fixed Qt or
-cosmic-comp lands; then the shell's never-unmap rule can go), second theme, ISO.
+cosmic-comp lands; then the rebuild hook can go), second theme, ISO.
