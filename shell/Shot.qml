@@ -23,6 +23,7 @@ Scope {
 
     readonly property var modes: [
         { id: "region", icon: "selection", label: "Region", key: Qt.Key_1 },
+        { id: "window", icon: "app-window", label: "Window", key: Qt.Key_2 },
         { id: "screen", icon: "monitor", label: "Screen", key: Qt.Key_3 }
     ]
     readonly property var actions: [
@@ -34,6 +35,7 @@ Scope {
         target: "shot"
 
         function region(): void { shot.begin("region", "snip"); }
+        function window(): void { shot.begin("window", "snip"); }
         function screen(): void { shot.begin("screen", "snip"); }
     }
 
@@ -45,6 +47,7 @@ Scope {
         stamp = Date.now().toString();
         frozen = false;
         open = true;
+        Bridge.requestGeometry();
         settle.restart();
     }
 
@@ -210,8 +213,28 @@ Scope {
 
             readonly property string frozen: shot.frozen ? "file://" + shot.dir + "/" + modelData.name + ".png" : ""
             readonly property bool wholeScreen: shot.mode === "screen" && hover.hovered
-            readonly property rect shown: wholeScreen ? Qt.rect(0, 0, content.width, content.height) : selection
+            readonly property var target: shot.mode === "window" && hover.hovered ? windowUnder(hover.point.position) : null
+            readonly property rect shown: wholeScreen ? Qt.rect(0, 0, content.width, content.height) : target ? target.rect : selection
             readonly property bool selecting: shown.width > 0 && shown.height > 0
+
+            // Windows on this output's active workspace, most recently active first: the
+            // best stand-in for stacking order, which nothing on the wire carries.
+            readonly property var candidates: {
+                const active = Bridge.workspaces.filter(w => w.active && w.outputs.includes(modelData.name)).map(w => w.id);
+                return Bridge.geometry
+                    .filter(g => g.output === modelData.name)
+                    .map(g => ({ g: g, w: Bridge.windows.find(w => w.id === g.id) }))
+                    .filter(x => x.w && !x.w.states.includes("minimized") && x.w.workspaces.some(id => active.includes(id)))
+                    .sort((a, b) => b.w.lastActive - a.w.lastActive)
+                    .map(x => ({ id: x.g.id, title: x.w.title, rect: Qt.rect(
+                        Math.max(0, x.g.x), Math.max(0, x.g.y),
+                        Math.min(x.g.x + x.g.width, content.width) - Math.max(0, x.g.x),
+                        Math.min(x.g.y + x.g.height, content.height) - Math.max(0, x.g.y)) }));
+            }
+
+            function windowUnder(p) {
+                return candidates.find(c => p.x >= c.rect.x && p.x < c.rect.x + c.rect.width && p.y >= c.rect.y && p.y < c.rect.y + c.rect.height) || null;
+            }
 
             function setMode(mode) {
                 shot.mode = mode;
@@ -329,7 +352,7 @@ Scope {
                     Text {
                         id: size
                         anchors.centerIn: parent
-                        text: Math.round(window.shown.width * window.screen.devicePixelRatio) + " × " + Math.round(window.shown.height * window.screen.devicePixelRatio)
+                        text: window.target ? window.target.title : Math.round(window.shown.width * window.screen.devicePixelRatio) + " × " + Math.round(window.shown.height * window.screen.devicePixelRatio)
                         color: Theme.colors.fg
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSize
@@ -338,7 +361,7 @@ Scope {
 
                 MouseArea {
                     anchors.fill: parent
-                    cursorShape: !shot.frozen ? Qt.BlankCursor : shot.mode === "screen" ? Qt.PointingHandCursor : Qt.CrossCursor
+                    cursorShape: !shot.frozen ? Qt.BlankCursor : shot.mode === "region" ? Qt.CrossCursor : Qt.PointingHandCursor
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
 
                     onPressed: mouse => {
@@ -346,7 +369,7 @@ Scope {
                             shot.cancel();
                             return;
                         }
-                        if (shot.mode === "screen" || !shot.frozen)
+                        if (shot.mode !== "region" || !shot.frozen)
                             return;
                         window.dragging = true;
                         window.anchor = Qt.point(mouse.x, mouse.y);

@@ -32,6 +32,17 @@ pub struct Workspace {
     pub outputs: Vec<String>,
 }
 
+/// Where a window sits on one output, in that output's logical coordinates.
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
+pub struct Geometry {
+    pub id: String,
+    pub output: String,
+    pub x: i32,
+    pub y: i32,
+    pub width: i32,
+    pub height: i32,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "snake_case", tag = "event")]
 pub enum Event {
@@ -41,6 +52,8 @@ pub enum Event {
     Closed { id: String },
     /// A fresh preview of a window, replacing any earlier file for it.
     Thumbnail { id: String, path: String, width: u32, height: u32 },
+    /// Every window's place on every output it touches, answering a `geometry` request.
+    Geometry { windows: Vec<Geometry> },
     Error { message: String },
 }
 
@@ -57,6 +70,8 @@ pub enum Request {
     ActivateWorkspace { workspace: String },
     /// Capture these windows; each answers with a `thumbnail` event, or nothing if it can't be drawn.
     Capture { ids: Vec<String> },
+    /// Ask once where the windows are; geometry is not streamed (it changes on every move).
+    Geometry,
 }
 
 impl Request {
@@ -70,7 +85,7 @@ impl Request {
             | Request::Maximize { id }
             | Request::Unmaximize { id }
             | Request::MoveToWorkspace { id, .. } => Some(id),
-            Request::ActivateWorkspace { .. } | Request::Capture { .. } => None,
+            Request::ActivateWorkspace { .. } | Request::Capture { .. } | Request::Geometry => None,
         }
     }
 }

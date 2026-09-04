@@ -11,6 +11,8 @@ Singleton {
     property var workspaces: []
     // Latest preview per window id: { path, width, height }.
     property var thumbs: ({})
+    // Answer to the last geometry request: [{ id, output, x, y, width, height }].
+    property var geometry: []
 
     function activate(id) { send({ request: "activate", id: id }); }
     function close(id) { send({ request: "close", id: id }); }
@@ -18,6 +20,7 @@ Singleton {
     function moveToWorkspace(id, workspace) { send({ request: "move_to_workspace", id: id, workspace: workspace }); }
     function activateWorkspace(workspace) { send({ request: "activate_workspace", workspace: workspace }); }
     function capture(ids) { send({ request: "capture", ids: ids }); }
+    function requestGeometry() { send({ request: "geometry" }); }
 
     function send(request) {
         console.info("bridge request", JSON.stringify(request));
@@ -49,6 +52,9 @@ Singleton {
             break;
         case "workspaces":
             workspaces = event.workspaces;
+            break;
+        case "geometry":
+            geometry = event.windows;
             break;
         case "error":
             console.warn("bridge:", event.message);

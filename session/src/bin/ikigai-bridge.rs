@@ -19,7 +19,7 @@ use cosmic_client_toolkit::sctk::shm::{Shm, ShmHandler};
 use cosmic_client_toolkit::toplevel_info::{ToplevelInfoHandler, ToplevelInfoState};
 use cosmic_client_toolkit::toplevel_management::{ToplevelManagerHandler, ToplevelManagerState};
 use cosmic_client_toolkit::workspace::{self, WorkspaceHandler, WorkspaceState};
-use ikigai_session::ipc::{Event, Request, State, Toplevel, Workspace};
+use ikigai_session::ipc::{Event, Geometry, Request, State, Toplevel, Workspace};
 use ikigai_session::thumb;
 use wayland_client::globals::registry_queue_init;
 use wayland_client::protocol::{wl_output, wl_seat, wl_shm};
@@ -206,6 +206,7 @@ impl Bridge {
     fn handle_request(&mut self, id: ClientId, request: Request) {
         let result = match &request {
             Request::Capture { ids } => Ok(ids.iter().for_each(|t| self.capture(t))),
+            Request::Geometry => Ok(self.send_geometry(id)),
             _ => self.apply(&request),
         };
         if let Err(message) = result {
@@ -239,7 +240,7 @@ impl Bridge {
                 let output = self.group_outputs(workspace).next().ok_or("workspace has no output")?;
                 manager.move_to_ext_workspace(toplevel, workspace, &output);
             }
-            Request::ActivateWorkspace { .. } | Request::Capture { .. } => unreachable!(),
+            Request::ActivateWorkspace { .. } | Request::Capture { .. } | Request::Geometry => unreachable!(),
         }
         Ok(())
     }
@@ -260,6 +261,20 @@ impl Bridge {
             }
             Err(err) => eprintln!("ikigai-bridge: capture of {id}: {err}"),
         }
+    }
+
+    fn send_geometry(&mut self, client: ClientId) {
+        let windows = self
+            .info
+            .toplevels()
+            .flat_map(|t| {
+                t.geometry.iter().filter_map(|(output, g)| {
+                    let output = self.output_state.info(output)?.name?;
+                    Some(Geometry { id: t.identifier.clone(), output, x: g.x, y: g.y, width: g.width, height: g.height })
+                })
+            })
+            .collect();
+        self.send(client, &Event::Geometry { windows });
     }
 
     fn drop_capture(&mut self, id: &str) {
