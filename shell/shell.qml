@@ -15,6 +15,7 @@ ShellRoot {
     Switcher {}
     Shot {}
     Lock {}
+    Polkit {}
 
     IpcHandler {
         target: "osd"

@@ -10,6 +10,7 @@ Item {
     property var user: null
     property bool busy: false
     property string message: ""
+    property string subtitle: ""
     default property alias extra: extraSlot.data
 
     signal submit(string password)
@@ -97,6 +98,18 @@ Item {
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSize * 1.5
                 font.weight: Font.Medium
+            }
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: card.fieldWidth
+                text: card.subtitle
+                visible: card.subtitle !== ""
+                color: Theme.colors.fgVariant
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.Wrap
             }
 
             Rectangle {
