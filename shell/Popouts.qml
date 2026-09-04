@@ -10,6 +10,7 @@ Item {
     property bool hovered: false
     property Item current: null
     readonly property bool workspacesOpen: current === workspaces
+    readonly property bool volumeOpen: current === volume
     readonly property Item card: frame.height > 0 ? frame : null
 
     width: 280
@@ -36,6 +37,13 @@ Item {
             close();
         else
             show(workspaces, at, null);
+    }
+
+    function toggleVolume(at) {
+        if (current === volume)
+            close();
+        else
+            show(volume, at, null);
     }
 
     function show(content, at, task) {
@@ -97,6 +105,12 @@ Item {
         Workspaces {
             id: workspaces
             shown: popouts.current === workspaces
+            onDone: popouts.close()
+        }
+
+        VolumeCard {
+            id: volume
+            shown: popouts.current === volume
             onDone: popouts.close()
         }
     }

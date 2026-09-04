@@ -16,6 +16,14 @@ ShellRoot {
     Shot {}
 
     IpcHandler {
+        target: "osd"
+
+        function brightness(direction: string): void {
+            Osd.brightness(direction);
+        }
+    }
+
+    IpcHandler {
         target: "sidebar"
 
         function toggle(): void {

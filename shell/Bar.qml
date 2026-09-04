@@ -66,6 +66,12 @@ PanelWindow {
     }
     onShownChanged: if (!shown) popouts.close()
 
+    Binding {
+        target: Osd
+        property: "suppressed"
+        value: popouts.volumeOpen
+    }
+
     Timer {
         id: hideTimer
         interval: Motion.grace
@@ -142,6 +148,21 @@ PanelWindow {
                 }
             }
 
+            // The OSD, oversized downward into the border, its bottom edge pinned.
+            BlobRect {
+                group: blobs
+                x: osd.x
+                y: osd.y + osd.height + 50 - implicitHeight
+                implicitWidth: osd.width
+                implicitHeight: Osd.shown ? osd.height + 50 : 0
+                radius: Theme.cardRadius
+                deformScale: 0.15 / 10000
+
+                Behavior on implicitHeight {
+                    Anim {}
+                }
+            }
+
             // The sidebar, oversized rightward into the border, its right edge pinned.
             BlobRect {
                 group: blobs
@@ -191,7 +212,7 @@ PanelWindow {
 
             TaskGroup {
                 anchors {
-                    bottom: recording.top
+                    bottom: status.top
                     bottomMargin: 8
                     horizontalCenter: parent.horizontalCenter
                 }
@@ -199,6 +220,17 @@ PanelWindow {
                 onMenuRequested: (task, at) => popouts.openMenu(task, at)
                 onWindowsRequested: (task, at) => popouts.openWindows(task, at)
                 onDismissRequested: popouts.close()
+            }
+
+            Status {
+                id: status
+                anchors {
+                    bottom: recording.top
+                    bottomMargin: 8
+                    horizontalCenter: parent.horizontalCenter
+                }
+                volumeOpen: popouts.volumeOpen
+                onVolumeRequested: at => popouts.toggleVolume(at)
             }
 
             RecordingBadge {
@@ -225,6 +257,15 @@ PanelWindow {
             x: bar.railWidth
             height: parent.height
             hovered: hover.hovered
+        }
+
+        OsdPill {
+            id: osd
+            anchors {
+                bottom: parent.bottom
+                bottomMargin: Theme.border
+                horizontalCenter: parent.horizontalCenter
+            }
         }
 
         Sidebar {

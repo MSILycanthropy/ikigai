@@ -34,3 +34,8 @@ Toast 1.0 Toast.qml
 Toasts 1.0 Toasts.qml
 Sidebar 1.0 Sidebar.qml
 Calendar 1.0 Calendar.qml
+singleton Audio 1.0 Audio.qml
+singleton Osd 1.0 Osd.qml
+OsdPill 1.0 OsdPill.qml
+Status 1.0 Status.qml
+VolumeCard 1.0 VolumeCard.qml
