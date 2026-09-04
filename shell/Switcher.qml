@@ -204,7 +204,7 @@ Scope {
                             objectProp: "id"
                         }
 
-                        SwitcherTile {
+                        WindowTile {
                             required property var modelData
                             required property int index
 

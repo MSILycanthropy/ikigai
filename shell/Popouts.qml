@@ -65,7 +65,7 @@ Item {
 
         width: popouts.current ? content.implicitWidth : 0
         height: popouts.current ? content.implicitHeight : 0
-        y: Math.max(0, Math.min(popouts.height - height, centre - height / 2))
+        y: Math.max(Theme.border, Math.min(popouts.height - Theme.border - height, centre - height / 2))
         clip: true
 
         Behavior on width {

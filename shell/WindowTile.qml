@@ -1,15 +1,18 @@
 import Quickshell
 import QtQuick
 
-// One window in the switcher: icon and title over a preview of the window, or the app icon
-// until the bridge has captured it.
+// One window, in the switcher or the rail's window list: icon and title over a preview of
+// the window, or the app icon until the bridge has captured it. `closable` adds a close
+// control on hover and middle-click.
 Item {
     id: tile
 
     property var entry: null
     property bool selected: false
+    property bool closable: false
 
     signal clicked
+    signal closeRequested
 
     readonly property int inset: Math.round(8 * Config.scale)
     readonly property string icon: Quickshell.iconPath(Apps.iconFor(entry ? entry.appId : ""), "application-x-executable")
@@ -38,10 +41,26 @@ Item {
         }
     }
 
+    HoverHandler {
+        id: hover
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+        onClicked: mouse => {
+            if (mouse.button === Qt.MiddleButton && tile.closable)
+                tile.closeRequested();
+            else if (mouse.button === Qt.LeftButton)
+                tile.clicked();
+        }
+    }
+
     Item {
         id: header
         x: tile.inset
         y: tile.inset
+        z: 1
         width: parent.width - 2 * tile.inset
         height: Math.round(20 * Config.scale)
 
@@ -56,7 +75,7 @@ Item {
             anchors {
                 left: smallIcon.right
                 leftMargin: 8
-                right: parent.right
+                right: closeGlyph.visible ? closeGlyph.left : parent.right
                 verticalCenter: parent.verticalCenter
             }
             text: tile.entry ? tile.entry.title : ""
@@ -64,6 +83,29 @@ Item {
             color: Theme.colors.fg
             font.family: Theme.fontFamily
             font.pointSize: Theme.fontSize
+        }
+
+        Glyph {
+            id: closeGlyph
+            anchors {
+                right: parent.right
+                verticalCenter: parent.verticalCenter
+            }
+            visible: tile.closable
+            name: "x"
+            size: 14
+            color: Theme.colors.fgVariant
+            opacity: hover.hovered ? 1 : 0
+
+            Behavior on opacity {
+                Anim { effects: true; fast: true }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                anchors.margins: -6
+                onClicked: tile.closeRequested()
+            }
         }
     }
 
@@ -95,12 +137,4 @@ Item {
         }
     }
 
-    HoverHandler {
-        id: hover
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        onClicked: tile.clicked()
-    }
 }
