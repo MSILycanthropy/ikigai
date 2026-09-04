@@ -231,6 +231,7 @@ PanelWindow {
                 }
                 volumeOpen: popouts.volumeOpen
                 onVolumeRequested: at => popouts.toggleVolume(at)
+                onTrayMenuRequested: (item, at) => popouts.openTray(item, at)
             }
 
             RecordingBadge {

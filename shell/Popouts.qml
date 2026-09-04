@@ -39,6 +39,13 @@ Item {
             show(workspaces, at, null);
     }
 
+    function openTray(item, at) {
+        if (current === tray && tray.task === item)
+            close();
+        else
+            show(tray, at, item);
+    }
+
     function toggleVolume(at) {
         if (current === volume)
             close();
@@ -105,6 +112,12 @@ Item {
         Workspaces {
             id: workspaces
             shown: popouts.current === workspaces
+            onDone: popouts.close()
+        }
+
+        TrayMenu {
+            id: tray
+            shown: popouts.current === tray
             onDone: popouts.close()
         }
 

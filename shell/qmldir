@@ -39,3 +39,5 @@ singleton Osd 1.0 Osd.qml
 OsdPill 1.0 OsdPill.qml
 Status 1.0 Status.qml
 VolumeCard 1.0 VolumeCard.qml
+TrayButton 1.0 TrayButton.qml
+TrayMenu 1.0 TrayMenu.qml
