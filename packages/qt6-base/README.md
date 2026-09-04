@@ -15,7 +15,8 @@ it; the `libqwayland.so` plugin is a thin shim and stays stock) from the install
 qt6-base's own release tarball, with Arch's configure options minus LTO and debug info.
 `install/qt.sh` installs it under `/usr/local/lib/ikigai`, runs it once, and adds a pacman
 hook so every qt6-base upgrade rebuilds it. State in `/var/lib/ikigai/qt-wayland`; source
-cache in `/var/cache/ikigai/qt`. `pacman -Qkk qt6-base` reports the one altered file.
+cache and ccache in `/var/cache/ikigai/qt`, so a pkgrel bump rebuilds from cache in a
+fraction of the time. `pacman -Qkk qt6-base` reports the one altered file.
 
 If the patch ever stops applying, the hook fails loudly and the stock library stays: the
 rail survives (it never unmaps) but the shell's overlays (Alt+Tab, the screenshot picker)

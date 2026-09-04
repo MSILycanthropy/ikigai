@@ -26,7 +26,7 @@ if [ -r "$STATE" ] && [ "$(cat "$STATE")" = "$package $(sha256sum < "$lib")" ]; 
 fi
 
 # No pacman calls here: the hook runs inside a pacman transaction. install/packages.sh installs these.
-pacman -Q cmake ninja vulkan-headers >/dev/null 2>&1 || die "cmake, ninja and vulkan-headers must be installed"
+pacman -Q cmake ninja ccache vulkan-headers >/dev/null 2>&1 || die "cmake, ninja, ccache and vulkan-headers must be installed"
 
 tarball="qtbase-everywhere-src-$ver.tar.xz"
 base="https://download.qt.io/official_releases/qt/${ver%.*}/$ver/submodules"
@@ -43,7 +43,11 @@ patch -d src -p1 --forward < "$PATCH" \
 # shellcheck disable=SC1091
 source /etc/makepkg.conf
 export CFLAGS CXXFLAGS LDFLAGS
+# A pkgrel bump rebuilds identical sources with identical flags: ccache turns that into a
+# minute. Precompiled headers are off because ccache cannot cache compilations that use them.
+export CCACHE_DIR=$CACHE/ccache
 cmake -B build -S src -G Ninja \
+  -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DBUILD_WITH_PCH=OFF \
   -DCMAKE_INSTALL_PREFIX=/usr \
   -DCMAKE_BUILD_TYPE=Release \
   -DINSTALL_BINDIR=lib/qt6/bin \
