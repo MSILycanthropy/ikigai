@@ -9,12 +9,12 @@ PACMAN=(
   docker docker-compose lazydocker mise
   zellij yazi btop
   grim slurp satty gpu-screen-recorder
-  ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard
+  ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard ufw
   ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji adw-gtk-theme
   pipewire pipewire-pulse wireplumber
   xdg-user-dirs
 )
-AUR=(zen-browser-bin vicinae-bin pear-desktop-bin ttf-phosphor-icons)
+AUR=(zen-browser-bin vicinae-bin pear-desktop-bin ttf-phosphor-icons ufw-docker)
 
 case "$(cat "$IKIGAI_STATE/gpu")" in
   nvidia) PACMAN+=(nvidia-open-dkms nvidia-utils linux-headers) ;;
@@ -23,6 +23,9 @@ case "$(cat "$IKIGAI_STATE/gpu")" in
 esac
 
 [ "$(systemd-detect-virt)" = microsoft ] && PACMAN+=(hyperv)
+
+# 32-bit packages (Steam and its drivers) come from multilib; enable it once, up front.
+sudo sed -i '/^#\[multilib\]/,/^#Include/ s/^#//' /etc/pacman.conf
 
 sudo pacman -Syu --needed --noconfirm "${PACMAN[@]}"
 
