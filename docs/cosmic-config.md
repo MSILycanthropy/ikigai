@@ -16,7 +16,9 @@ What Ikigai relies on, verified 2026-08-29/30 against COSMIC `epoch-1.7.0` (Arch
 - Fonts/icon theme: `CosmicTk/v1`. Wallpaper: `CosmicBackground/v1/{all,same-on-all}`
   (upstream's `all` has a RON syntax bug — `#true` — don't copy it).
 - Shortcuts: `CosmicSettings.Shortcuts/v1/custom` extends `defaults` by key;
-  `system_actions` maps `Terminal`/`WebBrowser` to commands. Super+E/Return unbound upstream.
+  `system_actions` maps `Terminal`/`WebBrowser` to commands and `WindowSwitcher`/
+  `WindowSwitcherPrevious` (Alt+Tab, Alt+Shift+Tab) to `ikigai-shell switcher next|prev`
+  instead of cosmic-launcher. Super+E/Return unbound upstream.
 - Greeter reads the same system theme layer; its wallpaper comes only from a user's
   cosmic-bg *state* (1.7.0 limitation) → matches after first login.
 - App themes: vendor folke/tokyonight.nvim `extras/` (ghostty, btop, lazygit, fzf, eza,
