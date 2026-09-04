@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.25)
-project(ikigai-blobs LANGUAGES CXX)
+project(ikigai-plugins LANGUAGES CXX)
 
-# The blob renderer vendored from caelestia-shell (see scripts/vendor-blobs.sh), exposed
-# to the shell as the `Ikigai.Blobs` QML module. Sources are untouched; the shaders'
-# resource path (/shaders/*.qsb) is what blobmaterial.cpp expects.
+# Two QML modules the shell needs C++ for: `Ikigai.Blobs`, the blob renderer vendored from
+# caelestia-shell (see scripts/vendor-blobs.sh; sources untouched, the shaders' resource
+# path /shaders/*.qsb is what blobmaterial.cpp expects), and `Ikigai.Input`, a keyboard
+# modifier query for the switcher.
 find_package(Qt6 REQUIRED COMPONENTS Core Qml Quick ShaderTools)
 qt_standard_project_setup(REQUIRES 6.9)
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
@@ -31,7 +32,20 @@ qt_add_shaders(ikigai-blobs "blob_shaders"
         blobs/shaders/blob.vert
 )
 
-qt_query_qml_module(ikigai-blobs QMLDIR module_qmldir TYPEINFO module_typeinfo)
-set(module_dir "${CMAKE_INSTALL_LIBDIR}/qt6/qml/Ikigai/Blobs")
-install(TARGETS ikigai-blobs LIBRARY DESTINATION "${module_dir}")
-install(FILES "${module_qmldir}" "${module_typeinfo}" DESTINATION "${module_dir}")
+qt_add_qml_module(ikigai-input
+    URI Ikigai.Input
+    PLUGIN_TARGET ikigai-input
+    SOURCES input/keyboard.cpp input/keyboard.hpp
+)
+target_include_directories(ikigai-input PRIVATE input)
+target_link_libraries(ikigai-input PRIVATE Qt::Gui Qt::Qml)
+
+function(install_module target subdir)
+    qt_query_qml_module(${target} QMLDIR module_qmldir TYPEINFO module_typeinfo)
+    set(module_dir "${CMAKE_INSTALL_LIBDIR}/qt6/qml/Ikigai/${subdir}")
+    install(TARGETS ${target} LIBRARY DESTINATION "${module_dir}")
+    install(FILES "${module_qmldir}" "${module_typeinfo}" DESTINATION "${module_dir}")
+endfunction()
+
+install_module(ikigai-blobs Blobs)
+install_module(ikigai-input Input)

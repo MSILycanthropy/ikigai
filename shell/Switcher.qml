@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import Ikigai.Input
 import QtQuick
 import QtQuick.Effects
 
@@ -101,12 +102,21 @@ Scope {
                 readonly property bool active: Window.active
                 property bool wasActive: false
 
+                // A quick tap releases Alt before the overlay exists, so that release never
+                // arrives: on gaining focus, commit at once unless a modifier is still held.
                 // Losing focus to something else (a launcher, a lock) abandons the switch.
                 onActiveChanged: {
-                    if (active)
+                    if (active) {
                         wasActive = true;
-                    else if (wasActive)
+                        Qt.callLater(keys.commitUnlessHeld);
+                    } else if (wasActive) {
                         switcher.cancel();
+                    }
+                }
+
+                function commitUnlessHeld() {
+                    if (switcher.open && !(Keyboard.modifiers() & (Qt.AltModifier | Qt.MetaModifier)))
+                        switcher.commit(switcher.index);
                 }
 
                 Keys.onReleased: event => {
