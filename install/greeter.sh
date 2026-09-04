@@ -12,7 +12,11 @@ sudo install -Dm644 "$G/ikigai-greeter.toml" /etc/greetd/ikigai-greeter.toml
 sudo install -Dm644 "$G/ikigai-greeter.service" /usr/local/lib/systemd/system/ikigai-greeter.service
 sudo systemctl daemon-reload
 
-# Both units alias display-manager.service; only one can hold it.
-sudo systemctl disable -q cosmic-greeter 2>/dev/null || true
+# Display managers alias display-manager.service and only one can hold it: step aside
+# whichever is enabled (cosmic-greeter, gdm, sddm) or our enable fails.
+current="$(readlink /etc/systemd/system/display-manager.service 2>/dev/null || true)"
+if [ -n "$current" ] && [ "$(basename "$current")" != ikigai-greeter.service ]; then
+  sudo systemctl disable -q "$(basename "$current")"
+fi
 sudo systemctl enable -q ikigai-greeter
 echo "greeter: ikigai-greeter enabled"
