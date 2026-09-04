@@ -66,3 +66,9 @@ done
 SHORTCUTS=com.system76.CosmicSettings.Shortcuts/v1
 sudo ln -sfn "/usr/share/cosmic/$SHORTCUTS/defaults" "/usr/local/share/cosmic/$SHORTCUTS/defaults"
 echo "installed COSMIC defaults → /usr/local/share/cosmic"
+
+# Vicinae runs as XDG_CURRENT_DESKTOP=Ikigai (see session/systemd/vicinae.service.d), so
+# Settings' OnlyShowIn=COSMIC would hide it from the launcher. Same entry, one line fewer,
+# earlier in XDG_DATA_DIRS.
+sed '/^OnlyShowIn=/d' /usr/share/applications/com.system76.CosmicSettings.desktop \
+  | sudo install -Dm644 /dev/stdin /usr/local/share/applications/com.system76.CosmicSettings.desktop
