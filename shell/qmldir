@@ -27,3 +27,5 @@ ColorAnim 1.0 ColorAnim.qml
 Shot 1.0 Shot.qml
 singleton Recorder 1.0 Recorder.qml
 RecordingBadge 1.0 RecordingBadge.qml
+singleton Users 1.0 Users.qml
+Login 1.0 Login.qml

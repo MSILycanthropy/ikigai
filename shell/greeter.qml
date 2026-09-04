@@ -27,12 +27,11 @@ ShellRoot {
                 asynchronous: true
             }
 
-            Text {
+            Loader {
                 anchors.centerIn: parent
-                text: "Ikigai"
-                color: Theme.colors.fg
-                font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSize * 3
+                active: modelData === Quickshell.screens[0]
+                focus: true
+                sourceComponent: Login {}
             }
         }
     }
