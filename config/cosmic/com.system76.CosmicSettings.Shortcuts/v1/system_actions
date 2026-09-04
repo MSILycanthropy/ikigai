@@ -12,7 +12,7 @@
     /// Opens the home folder in a system default file browser
     HomeFolder: "xdg-open ~",
     /// Logs out
-    LogOut: "cosmic-osd log-out",
+    // LogOut,
     /// Decreases keyboard brightness
     // KeyboardBrightnessDown,
     /// Increases keyboard brightness
@@ -32,7 +32,7 @@
     /// Goes to the previous track
     PlayPrev: "playerctl previous",
     /// Power off handler
-    PowerOff: "cosmic-osd shutdown",
+    // PowerOff,
     /// Takes a screenshot
     Screenshot: "ikigai-shot region",
     /// Suspend the system
