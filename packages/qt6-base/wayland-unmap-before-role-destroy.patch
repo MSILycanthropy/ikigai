@@ -1,6 +1,6 @@
---- a/src/plugins/platforms/wayland/qwaylandwindow.cpp	2026-09-01 17:57:35.831813494 -0500
-+++ b/src/plugins/platforms/wayland/qwaylandwindow.cpp	2026-09-01 17:57:35.847449181 -0500
-@@ -654,9 +654,12 @@
+--- a/src/plugins/platforms/wayland/qwaylandwindow.cpp
++++ b/src/plugins/platforms/wayland/qwaylandwindow.cpp
+@@ -654,9 +654,9 @@
          // make sure isExposed is false during the next event dispatch
          mExposed = false;
          sendExposeEvent(QRect());
@@ -10,4 +10,4 @@
 +        resetSurfaceRole();
      }
  }
-
+ 
