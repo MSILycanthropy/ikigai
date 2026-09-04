@@ -24,3 +24,4 @@ StateLayer 1.0 StateLayer.qml
 Switcher 1.0 Switcher.qml
 WindowTile 1.0 WindowTile.qml
 ColorAnim 1.0 ColorAnim.qml
+Shot 1.0 Shot.qml

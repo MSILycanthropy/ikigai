@@ -12,4 +12,5 @@ ShellRoot {
     }
 
     Switcher {}
+    Shot {}
 }
