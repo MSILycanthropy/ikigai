@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Screenshots: `ikigai-shot region` (Print) and `ikigai-shot output` (Shift+Print).
-# grim captures, satty annotates (Enter copies, Ctrl+S saves). The region comes from the
-# shell's picker when the Ikigai shell offers one, else from slurp in the shell's colours.
+# Screenshots: `ikigai-shot region` (Print) and `ikigai-shot screen` (Shift+Print), to the
+# clipboard and ~/Pictures/Screenshots. The shell's picker when the Ikigai shell offers
+# one (with satty as its Edit action), else grim + slurp in the shell's colours.
 set -euo pipefail
 
 SHELL_QML=/usr/local/share/ikigai/shell/shell.qml
@@ -15,7 +15,13 @@ color() {
 
 shell_has() { qs ipc -p "$SHELL_QML" show 2>/dev/null | grep -q "^target $1\$"; }
 
-mkdir -p "$(xdg-user-dir PICTURES)/Screenshots"
+# Clipboard and ~/Pictures/Screenshots, like the shell's picker does.
+keep() {
+  local dir file
+  dir="$(xdg-user-dir PICTURES)/Screenshots"; mkdir -p "$dir"
+  file="$dir/$(date +%Y-%m-%d_%H-%M-%S).png"
+  tee "$file" | wl-copy --type image/png
+}
 
 case "${1:-region}" in
   region)
@@ -23,13 +29,16 @@ case "${1:-region}" in
       exec qs ipc -p "$SHELL_QML" call shot region
     fi
     geometry=$(slurp -d -w 2 -b "#$(color surface 100e0d)b3" -c "#$(color primary 86adff)ff" -s "#00000000") || exit 0
-    grim -g "$geometry" - | satty -f -
+    grim -g "$geometry" - | keep
     ;;
-  output)
-    grim - | satty -f -
+  screen)
+    if shell_has shot; then
+      exec qs ipc -p "$SHELL_QML" call shot screen
+    fi
+    grim - | keep
     ;;
   *)
-    echo "usage: ikigai-shot [region|output]" >&2
+    echo "usage: ikigai-shot [region|screen]" >&2
     exit 2
     ;;
 esac

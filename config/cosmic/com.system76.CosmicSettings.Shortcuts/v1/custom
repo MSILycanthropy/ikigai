@@ -1,6 +1,6 @@
 {
     (modifiers: [Super], key: "Return", description: Some("Terminal")): Spawn("ghostty"),
     (modifiers: [Super], key: "e", description: Some("Editor")): Spawn("zed"),
-    (modifiers: [Shift], key: "Print", description: Some("Screenshot of the whole screen")): Spawn("ikigai-shot output"),
+    (modifiers: [Shift], key: "Print", description: Some("Screenshot of the whole screen")): Spawn("ikigai-shot screen"),
     (modifiers: [Super, Shift], key: "slash", description: Some("Keybinding cheatsheet")): Spawn("ghostty --title=Keys -e ikigai-keys --fzf"),
 }
