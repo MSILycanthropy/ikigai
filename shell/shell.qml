@@ -25,6 +25,14 @@ ShellRoot {
     }
 
     IpcHandler {
+        target: "taskview"
+
+        function toggle(): void {
+            Tasks.taskViewToggled();
+        }
+    }
+
+    IpcHandler {
         target: "sidebar"
 
         function toggle(): void {

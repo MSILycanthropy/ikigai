@@ -7,6 +7,8 @@ Singleton {
     id: root
 
     property var running: []
+    signal taskViewToggled
+
     readonly property var top: layout([...Config.pinned.top, ...running.filter(a => !pinnedAnywhere(a))])
     readonly property var bottom: layout([...Config.pinned.bottom])
 

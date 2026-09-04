@@ -5,6 +5,7 @@ Column {
     id: taskbar
 
     property bool workspacesOpen: false
+    property alias taskView: taskViewButton
 
     signal menuRequested(var task, Item at)
     signal windowsRequested(var task, Item at)
@@ -27,9 +28,9 @@ Column {
     }
 
     BarButton {
-        id: taskView
+        id: taskViewButton
         checked: taskbar.workspacesOpen
-        onClicked: taskbar.workspacesRequested(taskView)
+        onClicked: taskbar.workspacesRequested(taskViewButton)
 
         Glyph {
             anchors.centerIn: parent

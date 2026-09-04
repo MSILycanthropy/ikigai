@@ -66,6 +66,20 @@ PanelWindow {
     }
     onShownChanged: if (!shown) popouts.close()
 
+    // Super+W: the card opens on a hidden rail too, and the rail stays until the card goes.
+    Connections {
+        target: Tasks
+        function onTaskViewToggled() {
+            if (popouts.workspacesOpen) {
+                popouts.close();
+                bar.shown = bar.wanted;
+            } else {
+                bar.shown = true;
+                popouts.toggleWorkspaces(taskbar.taskView);
+            }
+        }
+    }
+
     Binding {
         target: Osd
         property: "suppressed"
@@ -198,6 +212,7 @@ PanelWindow {
             opacity: bar.reveal
 
             Taskbar {
+                id: taskbar
                 anchors {
                     top: parent.top
                     topMargin: Theme.border
