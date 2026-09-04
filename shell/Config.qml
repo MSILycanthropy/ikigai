@@ -11,9 +11,15 @@ Singleton {
     property alias icons: config.icons
     property alias autohide: config.autohide
     property alias scale: config.scale
+    property alias dnd: config.dnd
 
     function pin(appId) {
         config.pinned.top = [...config.pinned.top, appId];
+        file.writeAdapter();
+    }
+
+    function setDnd(on) {
+        config.dnd = on;
         file.writeAdapter();
     }
 
@@ -39,6 +45,7 @@ Singleton {
             property var icons: ({})
             property bool autohide: true
             property real scale: 1.0
+            property bool dnd: false
         }
     }
 }

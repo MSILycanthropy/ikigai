@@ -32,3 +32,5 @@ Login 1.0 Login.qml
 singleton Notifs 1.0 Notifs.qml
 Toast 1.0 Toast.qml
 Toasts 1.0 Toasts.qml
+Sidebar 1.0 Sidebar.qml
+Calendar 1.0 Calendar.qml

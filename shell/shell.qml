@@ -1,5 +1,6 @@
 //@ pragma IconTheme Cosmic
 import Quickshell
+import Quickshell.Io
 
 ShellRoot {
     Variants {
@@ -13,4 +14,12 @@ ShellRoot {
 
     Switcher {}
     Shot {}
+
+    IpcHandler {
+        target: "sidebar"
+
+        function toggle(): void {
+            Notifs.sidebarOpen = !Notifs.sidebarOpen;
+        }
+    }
 }

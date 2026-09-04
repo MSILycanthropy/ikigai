@@ -11,8 +11,8 @@ PanelWindow {
     id: bar
 
     property bool shown: true
-    // Hovering the toasts is not a request for the rail.
-    readonly property bool wanted: !Config.autohide || (hover.hovered && !toasts.hovered)
+    // Hovering the toasts is not a request for the rail; an open sidebar keeps it out.
+    readonly property bool wanted: !Config.autohide || Notifs.sidebarOpen || (hover.hovered && !toasts.hovered)
     property real reveal: shown ? 1 : 0
     // The left border thickens into the rail as it reveals.
     readonly property real railWidth: Theme.border + (Theme.barWidth - Theme.border) * reveal
@@ -28,11 +28,12 @@ PanelWindow {
     WlrLayershell.namespace: "ikigai:bar"
     color: "transparent"
 
-    // Input only on the rail (the bare border while hidden), the open card and the toasts.
+    // Input only on the rail (the bare border while hidden), the open card and the toasts;
+    // the whole screen while the sidebar is open, so a click anywhere else closes it.
     mask: Region {
         x: 0
         y: 0
-        width: bar.railWidth
+        width: Notifs.sidebarOpen ? bar.width : bar.railWidth
         height: bar.height
 
         regions: [
@@ -83,6 +84,12 @@ PanelWindow {
             id: hover
         }
 
+        MouseArea {
+            anchors.fill: parent
+            enabled: Notifs.sidebarOpen
+            onClicked: Notifs.sidebarOpen = false
+        }
+
         Item {
             anchors.fill: parent
             layer.enabled: true
@@ -126,7 +133,7 @@ PanelWindow {
                 x: toasts.x
                 y: toasts.y - 50
                 implicitWidth: toasts.width
-                implicitHeight: toasts.height > 0 ? toasts.height + 50 : 0
+                implicitHeight: toasts.visible && toasts.height > 0 ? toasts.height + 50 : 0
                 radius: Theme.cardRadius
                 deformScale: 0.15 / 10000
 
@@ -134,10 +141,26 @@ PanelWindow {
                     Anim {}
                 }
             }
+
+            // The sidebar, oversized rightward into the border, its right edge pinned.
+            BlobRect {
+                group: blobs
+                x: sidebar.x + sidebar.width + 50 - implicitWidth
+                y: sidebar.y
+                implicitWidth: Notifs.sidebarOpen ? sidebar.width + 50 : 0
+                implicitHeight: sidebar.height
+                radius: Theme.cardRadius
+                deformScale: 0.15 / 10000
+
+                Behavior on implicitWidth {
+                    Anim {}
+                }
+            }
         }
 
         Toasts {
             id: toasts
+            visible: !Notifs.sidebarOpen
             anchors {
                 top: parent.top
                 right: parent.right
@@ -202,6 +225,16 @@ PanelWindow {
             x: bar.railWidth
             height: parent.height
             hovered: hover.hovered
+        }
+
+        Sidebar {
+            id: sidebar
+            anchors {
+                top: parent.top
+                bottom: parent.bottom
+                right: parent.right
+                margins: Theme.border
+            }
         }
     }
 }

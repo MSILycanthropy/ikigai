@@ -10,7 +10,8 @@ Singleton {
     property var toasts: []
     property var history: []
     property int unread: 0
-    property bool dnd: false
+    property bool sidebarOpen: false
+    readonly property bool dnd: Config.dnd
     readonly property int defaultTimeout: 5000
 
     NotificationServer {
@@ -23,6 +24,7 @@ Singleton {
     }
 
     function receive(n) {
+        console.info("notification", n.appName, JSON.stringify(n.summary), "unread", unread + 1);
         n.tracked = true;
         n.closed.connect(() => root.forget(n));
         history = [snapshot(n), ...history].slice(0, 50);
@@ -35,6 +37,16 @@ Singleton {
     function forget(n) {
         toasts = toasts.filter(t => t !== n);
     }
+
+    function remove(entry) {
+        history = history.filter(e => e !== entry);
+    }
+
+    function clear() {
+        history = [];
+    }
+
+    onSidebarOpenChanged: if (sidebarOpen) unread = 0
 
     function snapshot(n) {
         return {
