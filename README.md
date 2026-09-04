@@ -44,7 +44,7 @@ won't touch your dotfiles, but two greeters will be enabled and yours may win.
 | Desktop | [COSMIC](https://system76.com/cosmic) from Arch `extra`, NASA black-hole wallpaper |
 | Theme | One palette, `themes/ikigai/palette.json`: Material 3 neutrals seeded from the wallpaper's orange (near-black warm greys), the accent from its blue, and an ANSI 16 built in OKLCH. `scripts/theme-build.py` renders it into the rail, COSMIC (window chrome, libcosmic apps), Ghostty, btop, Vicinae and a libadwaita `gtk.css` that adw-gtk3 and Qt's gtk3 platform theme carry to GTK 3 and Qt apps. Every other terminal tool follows the terminal's ANSI colours |
 | Rail | Ikigai's own [Quickshell](https://quickshell.org) shell (the experimental "Ikigai" session): a thin autohiding rail inside a rounded frame, popouts that melt out of it. The look, and the blob renderer that draws it, are [soramanew's caelestia-shell](https://github.com/caelestia-dots/shell) — see [Credits](#credits) |
-| Screenshots | `Print` freezes the screen and opens the shell's picker: Region or Screen, then Snip or Edit. Snip puts the PNG on the clipboard and in `~/Pictures/Screenshots`; Edit opens it in [satty](https://github.com/gabm/Satty). `Shift+Print` starts in Screen mode. Captured by [grim](https://gitlab.freedesktop.org/emersion/grim) over ext-image-copy-capture; under stock COSMIC the same keys use slurp in the same colours |
+| Screenshots | `Print` freezes the screen and opens the shell's picker: Region, Window or Screen, then Snip, Edit or Record. Snip puts the PNG on the clipboard and in `~/Pictures/Screenshots`; Edit opens it in [satty](https://github.com/gabm/Satty); Record starts [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/) on it with the system's audio, shows a dot and timer on the rail, and `Super+Shift+R` or a click on the dot stops it with the file's path (`~/Videos/Recordings`) on the clipboard. `Shift+Print` starts in Screen mode. Captured by [grim](https://gitlab.freedesktop.org/emersion/grim) over ext-image-copy-capture; under stock COSMIC the same keys use slurp in the same colours |
 | Switcher | Windows-style Alt+Tab in the rail's language: hold Alt, Tab cycles live previews most-recent-first across workspaces (minimized included), release to switch, Shift+Tab backwards, Escape cancels, click a tile. Previews come from the bridge over ext-image-copy-capture |
 | Icons | [Phosphor](https://phosphoricons.com) everywhere: the rail's glyphs, and an `Ikigai` symbolic icon theme built from Phosphor that COSMIC's window buttons, cosmic-settings, GTK header bars and Qt apps all pick up. Ghostty, Zen and Zed get hand-drawn marks in Phosphor's grammar on the rail (`shell/icons/brand`); app icons elsewhere stay their own |
 | Terminal | [Ghostty](https://ghostty.org) + [zellij](https://zellij.dev) (unlock-first keybinds, `zj` to attach) |
@@ -69,6 +69,7 @@ Stock COSMIC bindings, plus:
 | `Super+E` | Zed |
 | `Super+B` | Zen |
 | `Print` / `Shift+Print` | screenshot picker, starting in Region / Screen mode |
+| `Super+Shift+R` | record the screen through the same picker; again to stop |
 | `Super+Shift+/` | searchable cheatsheet of every binding (`ikigai-keys` in a terminal) |
 
 ## How it's put together
