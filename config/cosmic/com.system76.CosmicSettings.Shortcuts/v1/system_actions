@@ -1,12 +1,12 @@
 {
     /// Opens the application library
-    AppLibrary: "cosmic-app-library",
+    AppLibrary: "vicinae toggle",
     /// Decreases screen brightness
     BrightnessDown: "ikigai-shell osd brightness down",
     /// Increases screen brightness
     BrightnessUp: "ikigai-shell osd brightness up",
     /// Toggles display mode
-    DisplayToggle: "cosmic-osd display",
+    DisplayToggle: "cosmic-settings displays",
     /// Switch between input sources
     InputSourceSwitch: "busctl --user call com.system76.CosmicSettingsDaemon /com/system76/CosmicSettingsDaemon com.system76.CosmicSettingsDaemon InputSourceSwitch",
     /// Opens the home folder in a system default file browser
@@ -42,7 +42,7 @@
     /// Opens the system default terminal
     Terminal: "ghostty",
     /// Toggles touchpad on/off
-    TouchpadToggle: "cosmic-osd touchpad",
+    // TouchpadToggle,
     /// Lowers the volume of the active output device
     VolumeLower: "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-",
     /// Raises the volume of the active output device
@@ -54,5 +54,5 @@
     /// Opens the (alt+shift+tab) window switcher
     WindowSwitcherPrevious: "ikigai-shell switcher prev",
     /// Opens the workspace overview
-    WorkspaceOverview: "cosmic-workspaces",
+    WorkspaceOverview: "ikigai-shell taskview toggle",
 }
