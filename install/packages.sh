@@ -5,7 +5,7 @@ PACMAN=(
   base-devel git rust quickshell qt6-shadertools cmake ninja vulkan-headers
   cosmic cosmic-greeter
   ghostty zsh zsh-autosuggestions zsh-syntax-highlighting zsh-completions starship
-  zed neovim lazygit discord
+  zed neovim lazygit github-cli just discord
   docker docker-compose lazydocker mise
   zellij yazi btop
   grim slurp satty gpu-screen-recorder
