@@ -44,6 +44,7 @@ won't touch your dotfiles, but two greeters will be enabled and yours may win.
 | Desktop | [COSMIC](https://system76.com/cosmic) from Arch `extra`, NASA black-hole wallpaper |
 | Theme | One palette, `themes/ikigai/palette.json`: Material 3 neutrals seeded from the wallpaper's orange (near-black warm greys), the accent from its blue, and an ANSI 16 built in OKLCH. `scripts/theme-build.py` renders it into the rail, COSMIC (window chrome, libcosmic apps), Ghostty, btop, Vicinae and a libadwaita `gtk.css` that adw-gtk3 and Qt's gtk3 platform theme carry to GTK 3 and Qt apps. Every other terminal tool follows the terminal's ANSI colours |
 | Rail | Ikigai's own [Quickshell](https://quickshell.org) shell (the experimental "Ikigai" session): a thin autohiding rail inside a rounded frame, popouts that melt out of it. The look, and the blob renderer that draws it, are [soramanew's caelestia-shell](https://github.com/caelestia-dots/shell) — see [Credits](#credits) |
+| Video | [mpv](https://mpv.io) with hardware decoding, fuzzy subtitle matching and resume-where-you-left-off seeded |
 | Screenshots | `Print` freezes the screen and opens the shell's picker: Region, Window or Screen, then Snip, Edit or Record. Snip puts the PNG on the clipboard and in `~/Pictures/Screenshots`; Edit opens it in [satty](https://github.com/gabm/Satty); Record starts [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/) on it with the system's audio, shows a dot and timer on the rail, and `Super+Shift+R` or a click on the dot stops it with the file's path (`~/Videos/Recordings`) on the clipboard. `Shift+Print` starts in Screen mode. Captured by [grim](https://gitlab.freedesktop.org/emersion/grim) over ext-image-copy-capture; under stock COSMIC the same keys use slurp in the same colours |
 | Switcher | Windows-style Alt+Tab in the rail's language: hold Alt, Tab cycles live previews most-recent-first across workspaces (minimized included), release to switch, Shift+Tab backwards, Escape cancels, click a tile. Previews come from the bridge over ext-image-copy-capture |
 | Icons | [Phosphor](https://phosphoricons.com) everywhere: the rail's glyphs, and an `Ikigai` symbolic icon theme built from Phosphor that COSMIC's window buttons, cosmic-settings, GTK header bars and Qt apps all pick up. Ghostty, Zen and Zed get hand-drawn marks in Phosphor's grammar on the rail (`shell/icons/brand`); app icons elsewhere stay their own |
@@ -57,6 +58,8 @@ won't touch your dotfiles, but two greeters will be enabled and yours may win.
 | TUIs | yazi (`y`), lazygit (`lg`), btop |
 | CLI | ripgrep, fd, fzf, bat, eza, dust, git-delta, tealdeer, jq — with `ls`/`cat`/`du`/`grep` aliased to the modern ones |
 | Fonts | JetBrainsMono Nerd Font, Noto |
+| Firewall | ufw, deny incoming and allow outgoing, ssh kept when sshd is enabled; ufw-docker so Docker's published ports respect it |
+| Gaming | Not installed by default. `ikigai-steam` installs Steam, the 32-bit driver for your GPU, gamemode, gamescope and mangohud and launches it; Proton comes with Steam, [protonup-qt](https://github.com/DavidoTek/ProtonUp-Qt) for Proton-GE |
 
 ### Keys
 

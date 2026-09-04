@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Steam, on demand: the client, Proton's fonts, the 32-bit driver for this machine's GPU
+# (multilib is enabled at install), and gamemode, gamescope and mangohud for launch
+# options. Proton ships with Steam: turn on Steam Play for all titles in Settings.
+set -euo pipefail
+
+gpu=$(cat "${IKIGAI_STATE:-$HOME/.local/state/ikigai}/gpu" 2>/dev/null || echo none)
+packages=(steam ttf-liberation gamemode gamescope mangohud)
+case "$gpu" in
+  nvidia) packages+=(lib32-nvidia-utils) ;;
+  amd)    packages+=(lib32-mesa lib32-vulkan-radeon) ;;
+  intel)  packages+=(lib32-mesa lib32-vulkan-intel) ;;
+  *)      packages+=(lib32-mesa lib32-vulkan-swrast) ;;   # no GPU: software rendering, pacman would otherwise ask
+esac
+
+sudo pacman -S --needed "${packages[@]}"
+echo
+echo "Steam installed (gpu: $gpu). Launch options worth knowing:"
+echo "  gamemoderun %command%            performance governor while the game runs"
+echo "  mangohud %command%               fps and hardware overlay"
+echo "  gamescope -f -- %command%        nested session: forced resolution, FSR, sane fullscreen"
+echo "Proton-GE: protonup-qt (AUR) installs community Proton builds Steam can pick per game."
+[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ] && setsid steam >/dev/null 2>&1 &
+exit 0

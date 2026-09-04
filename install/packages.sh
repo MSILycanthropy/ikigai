@@ -2,13 +2,13 @@
 set -euo pipefail
 
 PACMAN=(
-  base-devel git rust quickshell qt6-shadertools cmake ninja vulkan-headers
+  base-devel git rust quickshell qt6-shadertools cmake ninja ccache vulkan-headers
   cosmic cosmic-greeter
   ghostty zsh zsh-autosuggestions zsh-syntax-highlighting zsh-completions starship
   zed neovim lazygit github-cli just discord
   docker docker-compose lazydocker mise
   zellij yazi btop
-  grim slurp satty gpu-screen-recorder
+  grim slurp satty gpu-screen-recorder mpv
   ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard ufw
   ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji adw-gtk-theme
   pipewire pipewire-pulse wireplumber
