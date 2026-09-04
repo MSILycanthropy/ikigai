@@ -41,7 +41,8 @@ Singleton {
         }
         case "closed":
             windows = windows.filter(x => x.id !== event.id);
-            thumbs = Object.fromEntries(Object.entries(thumbs).filter(([id]) => id !== event.id));
+            thumbs = Object.assign({}, thumbs);
+            delete thumbs[event.id];
             break;
         case "thumbnail":
             thumbs = Object.assign({}, thumbs, { [event.id]: { path: event.path, width: event.width, height: event.height } });
