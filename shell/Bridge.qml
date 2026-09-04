@@ -9,12 +9,15 @@ Singleton {
     property bool connected: false
     property var windows: []
     property var workspaces: []
+    // Latest preview per window id: { path, width, height }.
+    property var thumbs: ({})
 
     function activate(id) { send({ request: "activate", id: id }); }
     function close(id) { send({ request: "close", id: id }); }
     function minimize(id) { send({ request: "minimize", id: id }); }
     function moveToWorkspace(id, workspace) { send({ request: "move_to_workspace", id: id, workspace: workspace }); }
     function activateWorkspace(workspace) { send({ request: "activate_workspace", workspace: workspace }); }
+    function capture(ids) { send({ request: "capture", ids: ids }); }
 
     function send(request) {
         console.info("bridge request", JSON.stringify(request));
@@ -38,6 +41,10 @@ Singleton {
         }
         case "closed":
             windows = windows.filter(x => x.id !== event.id);
+            thumbs = Object.fromEntries(Object.entries(thumbs).filter(([id]) => id !== event.id));
+            break;
+        case "thumbnail":
+            thumbs = Object.assign({}, thumbs, { [event.id]: { path: event.path, width: event.width, height: event.height } });
             break;
         case "workspaces":
             workspaces = event.workspaces;
@@ -65,6 +72,7 @@ Singleton {
                 root.connected = connected;
                 if (!connected) {
                     root.windows = [];
+                    root.thumbs = {};
                     retry.start();
                 }
             }

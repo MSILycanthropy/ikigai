@@ -5,22 +5,63 @@ use std::path::PathBuf;
 
 use cosmic_client_toolkit::cosmic_protocols::toplevel_info::v1::client::zcosmic_toplevel_handle_v1;
 use cosmic_client_toolkit::cosmic_protocols::toplevel_management::v1::client::zcosmic_toplevel_manager_v1;
+use cosmic_client_toolkit::screencopy::{
+    CaptureFrame, CaptureOptions, CaptureSession, CaptureSource, Formats, Frame, ScreencopyFrameData, ScreencopyFrameDataExt,
+    ScreencopyHandler, ScreencopySessionData, ScreencopySessionDataExt, ScreencopyState,
+};
 use cosmic_client_toolkit::sctk::output::{OutputHandler, OutputState};
 use cosmic_client_toolkit::sctk::reexports::calloop::generic::Generic;
 use cosmic_client_toolkit::sctk::reexports::calloop::{EventLoop, Interest, LoopHandle, Mode, PostAction};
 use cosmic_client_toolkit::sctk::reexports::calloop_wayland_source::WaylandSource;
 use cosmic_client_toolkit::sctk::registry::{ProvidesRegistryState, RegistryState};
+use cosmic_client_toolkit::sctk::shm::slot::{Buffer, SlotPool};
+use cosmic_client_toolkit::sctk::shm::{Shm, ShmHandler};
 use cosmic_client_toolkit::toplevel_info::{ToplevelInfoHandler, ToplevelInfoState};
 use cosmic_client_toolkit::toplevel_management::{ToplevelManagerHandler, ToplevelManagerState};
 use cosmic_client_toolkit::workspace::{self, WorkspaceHandler, WorkspaceState};
 use ikigai_session::ipc::{Event, Request, State, Toplevel, Workspace};
+use ikigai_session::thumb;
 use wayland_client::globals::registry_queue_init;
-use wayland_client::protocol::{wl_output, wl_seat};
+use wayland_client::protocol::{wl_output, wl_seat, wl_shm};
 use wayland_client::{Connection, Dispatch, Proxy, QueueHandle, WEnum};
 use wayland_protocols::ext::foreign_toplevel_list::v1::client::ext_foreign_toplevel_handle_v1::ExtForeignToplevelHandleV1;
+use wayland_protocols::ext::image_copy_capture::v1::client::ext_image_copy_capture_frame_v1::FailureReason;
 use wayland_protocols::ext::workspace::v1::client::ext_workspace_handle_v1::{ExtWorkspaceHandleV1, State as WorkspaceFlags};
 
 type ClientId = u64;
+
+/// Previews are shrunk to this width at most; Quickshell scales them the rest of the way.
+const THUMB_WIDTH: u32 = 320;
+
+/// The session lives until its frame lands or fails; dropping it destroys the protocol object.
+struct Capture {
+    _session: CaptureSession,
+    buffer: Option<Buffer>,
+    size: (u32, u32),
+    order: thumb::Order,
+}
+
+struct SessionData {
+    inner: ScreencopySessionData,
+    id: String,
+}
+
+impl ScreencopySessionDataExt for SessionData {
+    fn screencopy_session_data(&self) -> &ScreencopySessionData {
+        &self.inner
+    }
+}
+
+struct FrameData {
+    inner: ScreencopyFrameData,
+    id: String,
+}
+
+impl ScreencopyFrameDataExt for FrameData {
+    fn screencopy_frame_data(&self) -> &ScreencopyFrameData {
+        &self.inner
+    }
+}
 
 struct Client {
     stream: UnixStream,
@@ -33,7 +74,15 @@ struct Bridge {
     info: ToplevelInfoState,
     manager: Option<ToplevelManagerState>,
     workspaces: WorkspaceState,
+    screencopy: ScreencopyState,
+    shm: Shm,
+    pool: SlotPool,
+    qh: QueueHandle<Bridge>,
     seat: wl_seat::WlSeat,
+    captures: HashMap<String, Capture>,
+    thumbs: HashMap<String, PathBuf>,
+    thumb_dir: PathBuf,
+    thumb_seq: u64,
     published: HashMap<String, Toplevel>,
     published_workspaces: Vec<Workspace>,
     focus_seq: u64,
@@ -44,19 +93,32 @@ struct Bridge {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let runtime_dir = PathBuf::from(std::env::var_os("XDG_RUNTIME_DIR").ok_or("XDG_RUNTIME_DIR is not set")?);
     let socket_path = runtime_dir.join("ikigai-bridge.sock");
+    let thumb_dir = runtime_dir.join("ikigai/thumbs");
+    let _ = std::fs::remove_dir_all(&thumb_dir);
+    std::fs::create_dir_all(&thumb_dir)?;
 
     let conn = Connection::connect_to_env()?;
     let (globals, queue) = registry_queue_init(&conn)?;
     let qh = queue.handle();
     let registry_state = RegistryState::new(&globals);
     let seat: wl_seat::WlSeat = globals.bind(&qh, 1..=7, ())?;
+    let shm = Shm::bind(&globals, &qh)?;
+    let pool = SlotPool::new(4096, &shm)?;
     let mut bridge = Bridge {
         output_state: OutputState::new(&globals, &qh),
         info: ToplevelInfoState::try_new(&registry_state, &qh).ok_or("compositor lacks ext-foreign-toplevel-list")?,
         manager: ToplevelManagerState::try_new(&registry_state, &qh),
         workspaces: WorkspaceState::new(&registry_state, &qh),
+        screencopy: ScreencopyState::new(&globals, &qh),
+        shm,
+        pool,
+        qh: qh.clone(),
         registry_state,
         seat,
+        captures: HashMap::new(),
+        thumbs: HashMap::new(),
+        thumb_dir,
+        thumb_seq: 0,
         published: HashMap::new(),
         published_workspaces: Vec::new(),
         focus_seq: 0,
@@ -142,7 +204,11 @@ impl Bridge {
     }
 
     fn handle_request(&mut self, id: ClientId, request: Request) {
-        if let Err(message) = self.apply(&request) {
+        let result = match &request {
+            Request::Capture { ids } => Ok(ids.iter().for_each(|t| self.capture(t))),
+            _ => self.apply(&request),
+        };
+        if let Err(message) = result {
             self.send(id, &Event::Error { message });
         }
     }
@@ -173,9 +239,37 @@ impl Bridge {
                 let output = self.group_outputs(workspace).next().ok_or("workspace has no output")?;
                 manager.move_to_ext_workspace(toplevel, workspace, &output);
             }
-            Request::ActivateWorkspace { .. } => unreachable!(),
+            Request::ActivateWorkspace { .. } | Request::Capture { .. } => unreachable!(),
         }
         Ok(())
+    }
+
+    /// One session per window, torn down after its first frame; the compositor renders the
+    /// window into our buffer on demand, so even a covered window gets a fresh picture.
+    fn capture(&mut self, id: &str) {
+        if self.captures.contains_key(id) {
+            return;
+        }
+        let Some(handle) = self.info.toplevels().find(|t| t.identifier == id).map(|t| t.foreign_toplevel.clone()) else {
+            return;
+        };
+        let data = SessionData { inner: ScreencopySessionData::default(), id: id.to_owned() };
+        match self.screencopy.capturer().create_session(&CaptureSource::Toplevel(handle), CaptureOptions::empty(), &self.qh, data) {
+            Ok(session) => {
+                self.captures.insert(id.to_owned(), Capture { _session: session, buffer: None, size: (0, 0), order: thumb::Order::Bgrx });
+            }
+            Err(err) => eprintln!("ikigai-bridge: capture of {id}: {err}"),
+        }
+    }
+
+    fn drop_capture(&mut self, id: &str) {
+        self.captures.remove(id);
+    }
+
+    fn drop_thumb(&mut self, id: &str) {
+        if let Some(path) = self.thumbs.remove(id) {
+            let _ = std::fs::remove_file(path);
+        }
     }
 
     fn workspace(&self, id: &str) -> Result<&ExtWorkspaceHandleV1, String> {
@@ -322,9 +416,84 @@ impl ToplevelInfoHandler for Bridge {
     }
     fn toplevel_closed(&mut self, _: &Connection, _: &QueueHandle<Self>, t: &ExtForeignToplevelHandleV1) {
         let Some(id) = self.info.info(t).map(|i| i.identifier.clone()) else { return };
+        self.drop_capture(&id);
+        self.drop_thumb(&id);
         if self.published.remove(&id).is_some() {
             self.broadcast(&Event::Closed { id });
         }
+    }
+}
+
+impl ScreencopyHandler for Bridge {
+    fn screencopy_state(&mut self) -> &mut ScreencopyState {
+        &mut self.screencopy
+    }
+
+    fn init_done(&mut self, _: &Connection, qh: &QueueHandle<Self>, session: &CaptureSession, formats: &Formats) {
+        let Some(id) = session.data::<SessionData>().map(|d| d.id.clone()) else { return };
+        let (width, height) = formats.buffer_size;
+        let format = [wl_shm::Format::Xrgb8888, wl_shm::Format::Argb8888, wl_shm::Format::Xbgr8888, wl_shm::Format::Abgr8888]
+            .into_iter()
+            .find(|f| formats.shm_formats.contains(f));
+        let (Some(format), true) = (format, width > 0 && height > 0) else {
+            eprintln!("ikigai-bridge: capture of {id}: no usable buffer ({width}x{height}, {:?})", formats.shm_formats);
+            self.drop_capture(&id);
+            return;
+        };
+        let buffer = match self.pool.create_buffer(width as i32, height as i32, width as i32 * 4, format) {
+            Ok((buffer, _)) => buffer,
+            Err(err) => {
+                eprintln!("ikigai-bridge: capture of {id}: {err}");
+                self.drop_capture(&id);
+                return;
+            }
+        };
+        let data = FrameData { inner: ScreencopyFrameData::default(), id: id.clone() };
+        session.capture(buffer.wl_buffer(), &[], qh, data);
+        if let Some(capture) = self.captures.get_mut(&id) {
+            capture.buffer = Some(buffer);
+            capture.size = (width, height);
+            capture.order = match format {
+                wl_shm::Format::Xbgr8888 | wl_shm::Format::Abgr8888 => thumb::Order::Rgbx,
+                _ => thumb::Order::Bgrx,
+            };
+        }
+    }
+
+    fn stopped(&mut self, _: &Connection, _: &QueueHandle<Self>, session: &CaptureSession) {
+        if let Some(id) = session.data::<SessionData>().map(|d| d.id.clone()) {
+            self.drop_capture(&id);
+        }
+    }
+
+    fn ready(&mut self, _: &Connection, _: &QueueHandle<Self>, frame: &CaptureFrame, _: Frame) {
+        let Some(id) = frame.data::<FrameData>().map(|d| d.id.clone()) else { return };
+        let Some(capture) = self.captures.remove(&id) else { return };
+        let (width, height) = capture.size;
+        let Some(canvas) = capture.buffer.as_ref().and_then(|b| b.canvas(&mut self.pool)) else { return };
+        let image = thumb::shrink(canvas, width, height, width * 4, capture.order, THUMB_WIDTH);
+        self.thumb_seq += 1;
+        let path = self.thumb_dir.join(format!("{id}-{}.ppm", self.thumb_seq));
+        if let Err(err) = thumb::write_ppm(&image, &path) {
+            eprintln!("ikigai-bridge: thumbnail of {id}: {err}");
+            return;
+        }
+        self.drop_thumb(&id);
+        self.thumbs.insert(id.clone(), path.clone());
+        self.broadcast(&Event::Thumbnail { id, path: path.to_string_lossy().into_owned(), width: image.width, height: image.height });
+    }
+
+    fn failed(&mut self, _: &Connection, _: &QueueHandle<Self>, frame: &CaptureFrame, reason: WEnum<FailureReason>) {
+        if let Some(id) = frame.data::<FrameData>().map(|d| d.id.clone()) {
+            eprintln!("ikigai-bridge: capture of {id} failed: {reason:?}");
+            self.drop_capture(&id);
+        }
+    }
+}
+
+impl ShmHandler for Bridge {
+    fn shm_state(&mut self) -> &mut Shm {
+        &mut self.shm
     }
 }
 
@@ -375,3 +544,5 @@ cosmic_client_toolkit::sctk::delegate_registry!(Bridge);
 cosmic_client_toolkit::delegate_toplevel_info!(Bridge);
 cosmic_client_toolkit::delegate_toplevel_manager!(Bridge);
 cosmic_client_toolkit::delegate_workspace!(Bridge);
+cosmic_client_toolkit::delegate_screencopy!(Bridge);
+cosmic_client_toolkit::sctk::delegate_shm!(Bridge);

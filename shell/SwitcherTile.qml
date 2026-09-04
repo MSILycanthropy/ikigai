@@ -1,8 +1,8 @@
 import Quickshell
 import QtQuick
 
-// One window in the switcher: icon and title over a preview slot. The slot shows the app
-// icon until the bridge can capture windows.
+// One window in the switcher: icon and title over a preview of the window, or the app icon
+// until the bridge has captured it.
 Item {
     id: tile
 
@@ -13,6 +13,7 @@ Item {
 
     readonly property int inset: Math.round(8 * Config.scale)
     readonly property string icon: Quickshell.iconPath(Apps.iconFor(entry ? entry.appId : ""), "application-x-executable")
+    readonly property var thumb: entry ? Bridge.thumbs[entry.id] : undefined
 
     height: header.height + inset * 3 + preview.height
 
@@ -75,6 +76,18 @@ Item {
             anchors.centerIn: parent
             size: 48
             source: tile.icon
+            visible: shot.status !== Image.Ready
+        }
+
+        Image {
+            id: shot
+            anchors.fill: parent
+            anchors.margins: 4
+            source: tile.thumb ? "file://" + tile.thumb.path : ""
+            fillMode: Image.PreserveAspectFit
+            asynchronous: true
+            cache: false
+            smooth: true
         }
     }
 

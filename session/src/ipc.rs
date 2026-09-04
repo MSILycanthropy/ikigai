@@ -39,6 +39,8 @@ pub enum Event {
     Toplevel { toplevel: Toplevel },
     Workspaces { workspaces: Vec<Workspace> },
     Closed { id: String },
+    /// A fresh preview of a window, replacing any earlier file for it.
+    Thumbnail { id: String, path: String, width: u32, height: u32 },
     Error { message: String },
 }
 
@@ -53,6 +55,8 @@ pub enum Request {
     Unmaximize { id: String },
     MoveToWorkspace { id: String, workspace: String },
     ActivateWorkspace { workspace: String },
+    /// Capture these windows; each answers with a `thumbnail` event, or nothing if it can't be drawn.
+    Capture { ids: Vec<String> },
 }
 
 impl Request {
@@ -66,7 +70,7 @@ impl Request {
             | Request::Maximize { id }
             | Request::Unmaximize { id }
             | Request::MoveToWorkspace { id, .. } => Some(id),
-            Request::ActivateWorkspace { .. } => None,
+            Request::ActivateWorkspace { .. } | Request::Capture { .. } => None,
         }
     }
 }
@@ -105,5 +109,7 @@ mod tests {
         let request: Request =
             serde_json::from_str(r#"{"request":"move_to_workspace","id":"abc","workspace":"ws1"}"#).unwrap();
         assert!(matches!(request, Request::MoveToWorkspace { id, workspace } if id == "abc" && workspace == "ws1"));
+        let request: Request = serde_json::from_str(r#"{"request":"capture","ids":["abc"]}"#).unwrap();
+        assert!(matches!(request, Request::Capture { ids } if ids == ["abc"]));
     }
 }

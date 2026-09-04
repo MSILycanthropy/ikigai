@@ -30,6 +30,7 @@ Scope {
                 return;
             index = 0;
             open = true;
+            Bridge.capture(order.map(w => w.id));
         }
         index = (index + by + order.length) % order.length;
     }
