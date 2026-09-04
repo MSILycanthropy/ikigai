@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{self, Read, Write};
+use std::fs::{File, OpenOptions};
+use std::io::{self, BufRead, BufReader, Read, Write};
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
@@ -15,6 +15,7 @@ use rustix::process::{Pid, Signal, kill_process};
 use signal_hook::consts::{SIGHUP, SIGINT, SIGTERM};
 
 const TARGET: &str = "ikigai-session.target";
+const SHELL_IPC: &str = "ikigai-shell";
 const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 
 // Same values cosmic-session's start-cosmic exports, minus what we don't ship. Qt apps
@@ -125,8 +126,22 @@ fn run(runtime_dir: &Path, log: &mut Log) -> io::Result<()> {
     systemctl(log, &with_args(&["set-environment"], &pairs));
     systemctl(log, &["start", "--no-block", TARGET]);
 
+    let display = env.get("WAYLAND_DISPLAY").cloned().unwrap_or_default();
+    let lock_log = OpenOptions::new().append(true).open(runtime_dir.join("ikigai-session.log"))?;
+    let mut lock_watcher = match watch_lock(display, session_path(), lock_log) {
+        Ok(child) => Some(child),
+        Err(err) => {
+            log.line(format!("lock watcher not started: {err}"));
+            None
+        }
+    };
+
     let status = wait_for(&mut comp, &terminate)?;
     log.line(format!("cosmic-comp exited: {status}"));
+    if let Some(watcher) = lock_watcher.as_mut() {
+        let _ = watcher.kill();
+        let _ = watcher.wait();
+    }
     systemctl(log, &["stop", TARGET]);
     let keys: Vec<String> = env.into_keys().collect();
     systemctl(log, &with_args(&["unset-environment"], &keys));
@@ -167,6 +182,65 @@ fn read_env(sock: &mut UnixStream) -> io::Result<HashMap<String, String>> {
     }
 }
 
+/// logind's object path for this session, so another session's lock is ignored.
+fn session_path() -> Option<String> {
+    let id = std::env::var("XDG_SESSION_ID").ok()?;
+    let out = Command::new("busctl")
+        .args(["--system", "call", "org.freedesktop.login1", "/org/freedesktop/login1"])
+        .args(["org.freedesktop.login1.Manager", "GetSession", "s", &id])
+        .stdin(Stdio::null())
+        .output()
+        .ok()?;
+    String::from_utf8_lossy(&out.stdout).split('"').nth(1).map(str::to_owned)
+}
+
+/// Lock and unlock requests arrive as logind signals: cosmic-idle, Super+L and
+/// `loginctl lock-session` all end there. gdbus subscribes as an ordinary client
+/// (monitoring the system bus needs privileges); each matching line becomes an IPC
+/// call into the shell, which owns the lock surface.
+fn watch_lock(display: String, session: Option<String>, mut log: File) -> io::Result<Child> {
+    let mut child = Command::new("gdbus")
+        .args(["monitor", "--system", "--dest", "org.freedesktop.login1"])
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()?;
+    let stdout = child.stdout.take().expect("stdout is piped");
+    std::thread::spawn(move || {
+        for line in BufReader::new(stdout).lines().map_while(Result::ok) {
+            let Some(action) = session_signal(&line, session.as_deref()) else { continue };
+            let _ = writeln!(log, "[lock] {} -> {action}", line.trim_end());
+            let result = Command::new(SHELL_IPC)
+                .args(["session", action])
+                .env("WAYLAND_DISPLAY", &display)
+                .stdin(Stdio::null())
+                .status();
+            match result {
+                Ok(status) if status.success() => {}
+                Ok(status) => { let _ = writeln!(log, "[lock] {SHELL_IPC} session {action}: {status}"); }
+                Err(err) => { let _ = writeln!(log, "[lock] {SHELL_IPC}: {err}"); }
+            }
+        }
+    });
+    Ok(child)
+}
+
+fn session_signal(line: &str, session: Option<&str>) -> Option<&'static str> {
+    let (path, signal) = line.split_once(": ")?;
+    let signal = signal.trim_end();
+    if path == "/org/freedesktop/login1" {
+        return signal.starts_with("org.freedesktop.login1.Manager.PrepareForSleep (true").then_some("lock");
+    }
+    if session.is_some_and(|ours| ours != path) {
+        return None;
+    }
+    match signal {
+        "org.freedesktop.login1.Session.Lock ()" => Some("lock"),
+        "org.freedesktop.login1.Session.Unlock ()" => Some("unlock"),
+        _ => None,
+    }
+}
+
 fn send_term(comp: &Child) {
     let _ = kill_process(Pid::from_child(comp), Signal::TERM);
 }
@@ -182,5 +256,32 @@ fn wait_for(comp: &mut Child, terminate: &AtomicBool) -> io::Result<std::process
             forwarded = true;
         }
         std::thread::sleep(Duration::from_millis(100));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::session_signal;
+
+    const OURS: &str = "/org/freedesktop/login1/session/_39";
+
+    #[test]
+    fn lock_and_unlock_for_our_session() {
+        assert_eq!(session_signal(&format!("{OURS}: org.freedesktop.login1.Session.Lock ()"), Some(OURS)), Some("lock"));
+        assert_eq!(session_signal(&format!("{OURS}: org.freedesktop.login1.Session.Unlock ()\n"), Some(OURS)), Some("unlock"));
+    }
+
+    #[test]
+    fn other_sessions_and_signals_are_ignored() {
+        assert_eq!(session_signal("/org/freedesktop/login1/session/_354: org.freedesktop.login1.Session.Lock ()", Some(OURS)), None);
+        assert_eq!(session_signal(&format!("{OURS}: org.freedesktop.login1.Session.PauseDevice (...)"), Some(OURS)), None);
+        assert_eq!(session_signal("The name org.freedesktop.login1 is owned by :1.4", Some(OURS)), None);
+    }
+
+    #[test]
+    fn sleep_locks_and_an_unknown_session_matches_any() {
+        assert_eq!(session_signal("/org/freedesktop/login1: org.freedesktop.login1.Manager.PrepareForSleep (true,)", Some(OURS)), Some("lock"));
+        assert_eq!(session_signal("/org/freedesktop/login1: org.freedesktop.login1.Manager.PrepareForSleep (false,)", Some(OURS)), None);
+        assert_eq!(session_signal("/org/freedesktop/login1/session/_354: org.freedesktop.login1.Session.Lock ()", None), Some("lock"));
     }
 }
