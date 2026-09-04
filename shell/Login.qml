@@ -322,7 +322,7 @@ Item {
 
                     Repeater {
                         model: [
-                            { icon: "moon", action: "suspend" },
+                            { icon: "bed", action: "suspend" },
                             { icon: "arrow-clockwise", action: "reboot" },
                             { icon: "power", action: "poweroff" }
                         ]
