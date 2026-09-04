@@ -1,6 +1,7 @@
 # Ikigai
 
-An opinionated developer workstation on **Arch Linux + COSMIC**.
+An opinionated developer workstation on **Arch Linux**: COSMIC's compositor underneath,
+Ikigai's own shell on top.
 
 No questions. No bullshit.
 
@@ -29,23 +30,28 @@ archinstall --config-url https://raw.githubusercontent.com/MSILycanthropy/ikigai
 (To do that from another machine: on the live ISO run `passwd`, `systemctl start sshd`,
 `ip -br addr`, then `ssh root@<ip>` and run it there.)
 
-Either way: one sudo prompt, ~10 minutes, `sudo reboot` into the COSMIC greeter.
-First login runs COSMIC's own setup wizard (language, keyboard, Wi-Fi, scaling,
-accessibility); everything else is already done.
+Either way: one sudo prompt, ~10 minutes, `sudo reboot` into the Ikigai greeter. There
+is no setup wizard: locale and keyboard come from archinstall or the system you had.
 
 **Supported** means a fresh minimal Arch (what the config above produces) — that's what
 gets tested. On an Arch box that already has a desktop it *works*, best-effort: Ikigai
-won't touch your dotfiles, but two greeters will be enabled and yours may win.
+won't touch your dotfiles, but its greeter takes over `display-manager.service` from
+whichever one you had, and cosmic-comp's defaults land as system config next to yours.
 
 ## What you get
 
 | | |
 |---|---|
-| Desktop | [COSMIC](https://system76.com/cosmic) from Arch `extra`, NASA black-hole wallpaper |
+| Desktop | [COSMIC](https://system76.com/cosmic)'s compositor, Settings, Files, portal and daemons from Arch `extra`. The panel, launcher, notifications, OSD, greeter, lock and polkit prompt are Ikigai's; COSMIC's versions are not installed. NASA black-hole wallpaper |
 | Theme | One palette, `themes/ikigai/palette.json`: Material 3 neutrals seeded from the wallpaper's orange (near-black warm greys), the accent from its blue, and an ANSI 16 built in OKLCH. `scripts/theme-build.py` renders it into the rail, COSMIC (window chrome, libcosmic apps), Ghostty, btop, Vicinae and a libadwaita `gtk.css` that adw-gtk3 and Qt's gtk3 platform theme carry to GTK 3 and Qt apps. Every other terminal tool follows the terminal's ANSI colours |
-| Rail | Ikigai's own [Quickshell](https://quickshell.org) shell (the experimental "Ikigai" session): a thin autohiding rail inside a rounded frame, popouts that melt out of it. The look, and the blob renderer that draws it, are [soramanew's caelestia-shell](https://github.com/caelestia-dots/shell) — see [Credits](#credits) |
+| Rail | Ikigai's own [Quickshell](https://quickshell.org) shell: a thin autohiding rail inside a rounded frame, popouts that melt out of it. Pinned and running apps (click to focus, again to minimize, middle-click to close, right-click to pin or move), a task view of workspaces and windows, tray, volume card with output picker, clock. The look, and the blob renderer that draws it, are [soramanew's caelestia-shell](https://github.com/caelestia-dots/shell) — see [Credits](#credits) |
+| Notifications | Toasts out of the rail, a sidebar (click the clock) with the history, a calendar and do-not-disturb, an unread badge. Volume and brightness changes show a pill at the bottom edge |
+| Launcher | [Vicinae](https://vicinae.com) on `Super`: apps, files, clipboard history, and its own log out, power off, reboot and sleep commands |
+| Greeter | Ikigai's, on greetd: cosmic-comp in kiosk mode drawing the same card as the lock screen, with the theme and wallpaper, your avatar from Settings, and the last user preselected |
+| Lock | `Super+L`, the idle timeout or the lid: logind locks, the shell draws the card over every screen and checks the password through PAM. The same card answers polkit when an app asks for privilege |
+| Settings | cosmic-settings, with the rail in place of its panel: the Panel and Dock pages are inert, everything else works. The rail's own settings (pins, autohide, scale) are in `~/.config/ikigai/shell.json` for now |
 | Video | [mpv](https://mpv.io) with hardware decoding, fuzzy subtitle matching and resume-where-you-left-off seeded |
-| Screenshots | `Print` freezes the screen and opens the shell's picker: Region, Window or Screen, then Snip, Edit or Record. Snip puts the PNG on the clipboard and in `~/Pictures/Screenshots`; Edit opens it in [satty](https://github.com/gabm/Satty); Record starts [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/) on it with the system's audio, shows a dot and timer on the rail, and `Super+Shift+R` or a click on the dot stops it with the file's path (`~/Videos/Recordings`) on the clipboard. `Shift+Print` starts in Screen mode. Captured by [grim](https://gitlab.freedesktop.org/emersion/grim) over ext-image-copy-capture; under stock COSMIC the same keys use slurp in the same colours |
+| Screenshots | `Print` freezes the screen and opens the shell's picker: Region, Window or Screen, then Snip, Edit or Record. Snip puts the PNG on the clipboard and in `~/Pictures/Screenshots`; Edit opens it in [satty](https://github.com/gabm/Satty); Record starts [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/) on it with the system's audio, shows a dot and timer on the rail, and `Super+Shift+R` or a click on the dot stops it with the file's path (`~/Videos/Recordings`) on the clipboard. `Shift+Print` starts in Screen mode. Captured by [grim](https://gitlab.freedesktop.org/emersion/grim) over ext-image-copy-capture |
 | Switcher | Windows-style Alt+Tab in the rail's language: hold Alt, Tab cycles live previews most-recent-first across workspaces (minimized included), release to switch, Shift+Tab backwards, Escape cancels, click a tile. Previews come from the bridge over ext-image-copy-capture |
 | Icons | [Phosphor](https://phosphoricons.com) everywhere: the rail's glyphs, and an `Ikigai` symbolic icon theme built from Phosphor that COSMIC's window buttons, cosmic-settings, GTK header bars and Qt apps all pick up. Ghostty, Zen and Zed get hand-drawn marks in Phosphor's grammar on the rail (`shell/icons/brand`); app icons elsewhere stay their own |
 | Terminal | [Ghostty](https://ghostty.org) + [zellij](https://zellij.dev) (unlock-first keybinds, `zj` to attach) |
@@ -63,11 +69,14 @@ won't touch your dotfiles, but two greeters will be enabled and yours may win.
 
 ### Keys
 
-Stock COSMIC bindings, plus:
+cosmic-comp's stock bindings, plus:
 
 | Key | |
 |---|---|
-| `Super` | Vicinae |
+| `Super`, `Super+A` | Vicinae |
+| `Super+W` | task view: workspaces and their windows, on the rail |
+| `Super+L` | lock |
+| `Super+P` | Displays, in Settings |
 | `Alt+Tab` / `Alt+Shift+Tab` | window switcher, Windows-style (hold, cycle, release) |
 | `Super+Return` / `Super+T` | Ghostty |
 | `Super+E` | Zed |
@@ -75,6 +84,9 @@ Stock COSMIC bindings, plus:
 | `Print` / `Shift+Print` | screenshot picker, starting in Region / Screen mode |
 | `Super+Shift+R` | record the screen through the same picker; again to stop |
 | `Super+Shift+/` | searchable cheatsheet of every binding (`ikigai-keys` in a terminal) |
+
+Log out, power off, reboot and sleep are Vicinae commands rather than chords: `Super`,
+type the word.
 
 ## How it's put together
 
@@ -88,26 +100,34 @@ Stock COSMIC bindings, plus:
   before being replaced.
 - **No AUR helper in the installer.** AUR packages are built with `makepkg`; `paru`
   is installed (from source) for *you* to use afterwards.
-- **An "Ikigai" session entry, experimental.** `ikigai-session` starts cosmic-comp on
-  its own, gets `WAYLAND_DISPLAY` from cosmic-comp's session socket and brings up
-  `ikigai-session.target`; `ikigai-bridge` under it exposes COSMIC's toplevel and
-  workspace protocols on `$XDG_RUNTIME_DIR/ikigai-bridge.sock` as JSON lines; `ikigai-shell`
-  runs the Quickshell shell from `/usr/local/share/ikigai/shell`: an autohiding bottom bar
-  with a Windows-style taskbar (pinned + running apps, click to focus or minimize,
-  middle-click to close, right-click for pin/unpin, move to workspace, close), a task-view
-  button that switches workspaces, and a clock. [Vicinae](https://vicinae.com) is the
-  launcher (Super, or the start and search buttons), running as a layer-shell overlay on
-  the patched Qt below; its config is seeded once with the Ikigai theme and telemetry off, and
-  its welcome tour runs on first login. The shell reads its theme from
-  `~/.local/state/ikigai/shell-theme.json` (written by `ikigai-theme-set`) and your settings
-  from `~/.config/ikigai/shell.json` (seeded once: pinned apps, alignment, autohide, scale); both reload
-  live. Not yet: per-monitor window lists, drag to reorder pins. Stock COSMIC stays the
-  default in the greeter.
+- **One session.** `ikigai-session` (Rust, `session/`) starts cosmic-comp on its own,
+  gets `WAYLAND_DISPLAY` from cosmic-comp's session socket and brings up
+  `ikigai-session.target`: cosmic-bg, cosmic-settings-daemon and cosmic-idle under Ikigai
+  unit names, `ikigai-bridge` (COSMIC's toplevel and workspace protocols on
+  `$XDG_RUNTIME_DIR/ikigai-bridge.sock` as JSON lines) and `ikigai-shell` (the Quickshell
+  shell from `/usr/local/share/ikigai/shell`). [Vicinae](https://vicinae.com) runs
+  alongside as a layer-shell overlay on the patched Qt below, under its own desktop name
+  because it refuses layer-shell on anything called COSMIC; its config is seeded once with
+  the Ikigai theme and telemetry off, and its welcome tour runs on first login. The shell
+  reads its theme from `~/.local/state/ikigai/shell-theme.json` (written by
+  `ikigai-theme-set`) and your settings from `~/.config/ikigai/shell.json` (seeded once:
+  pinned apps, autohide, scale); both reload live. cosmic-comp's shortcuts point at the
+  shell over `ikigai-shell <target> <call>` (Quickshell IPC). `ikigai.desktop` is the only
+  session entry.
+- **The greeter is the shell.** greetd runs `ikigai-greeter` as its own user: cosmic-comp
+  in kiosk mode with the Quickshell greeter as its only client. No daemon: theme and
+  wallpaper from `/usr/local/share/ikigai/theme`, users from `/etc/passwd`, avatars from
+  AccountsService. When the card succeeds cosmic-comp exits with it and greetd starts the
+  session.
+- **Lock and polkit share the card.** `ikigai-session` listens to logind and relays Lock
+  and Unlock to the shell, which draws ext-session-lock surfaces and checks the password
+  through PAM. The shell is also the session's polkit agent, so an app asking for
+  privilege gets the same card with what it wants written under the name.
 
 Repo layout: `install/` (steps run by `install.sh`), `config/` (seeds), `themes/`
 (`ikigai/palette.json` plus the app themes `scripts/theme-build.py` renders from it and the built COSMIC theme), `bin/` (`ikigai-keys`,
-`ikigai-theme-set`), `session/` (Rust: `ikigai-session` + `ikigai-bridge` and the session's
-user units, built at install), `shell/` (the Quickshell shell), `tools/cosmic-theme-gen` (dev-only: builds the COSMIC theme from
+`ikigai-theme-set`, `ikigai-shell`, `ikigai-shot`, `ikigai-greeter`), `session/` (Rust: `ikigai-session` + `ikigai-bridge` and the session's
+user units, built at install), `shell/` (the Quickshell shell, greeter and lock included), `greeter/` (greetd config and units), `tools/cosmic-theme-gen` (dev-only: builds the COSMIC theme from
 `builder.ron`), `scripts/vm.sh` (Hyper-V test harness).
 
 ## Hardware
@@ -118,10 +138,16 @@ The reference test environment is a Hyper-V VM; that's the path we actually veri
 
 ## Status
 
-Early. Both install paths work end to end. No update mechanism yet — `git pull` in
-`~/.local/share/ikigai` + `pacman -Syu` + `paru -Sua` is the honest answer for now.
+v2: the shell replaced COSMIC's panel, launcher, notifications, OSD, greeter and lock,
+and those packages are no longer installed. Both install paths work end to end. No update
+mechanism yet — `git pull` in `~/.local/share/ikigai` + `pacman -Syu` + `paru -Sua` is
+the honest answer for now.
 
-Next, roughly in order: an update command (reconcile seeded files `.pacnew`-style —
+Not yet: a first-login welcome card, a settings card for the rail, network and battery
+on the rail, a chooser when polkit offers several admins, multi-monitor beyond "the
+sidebar on every screen, the card on the first".
+
+Next, roughly in order: those, an update command (reconcile seeded files `.pacnew`-style —
 the seed hashes are already recorded), a custom pacman repo so the installer needs no
 AUR at all, an ISO with an SSH-first console, a second theme
 (the palette pipeline and `tools/cosmic-theme-gen` are ready for it).
