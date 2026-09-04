@@ -1,0 +1,9 @@
+[general]
+initial-tool = "arrow"
+corner-roundness = 8
+copy-command = "wl-copy"
+output-filename = "~/Pictures/Screenshots/%Y-%m-%d_%H-%M-%S.png"
+early-exit = ["all"]
+actions-on-enter = ["save-to-clipboard"]
+actions-on-escape = ["exit"]
+no-window-decoration = true

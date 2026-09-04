@@ -34,7 +34,7 @@
     /// Power off handler
     PowerOff: "cosmic-osd shutdown",
     /// Takes a screenshot
-    Screenshot: "cosmic-screenshot",
+    Screenshot: "ikigai-shot region",
     /// Suspend the system
     Suspend: "systemctl suspend",
     /// Toggles the screen reader

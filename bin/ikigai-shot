@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Screenshots: `ikigai-shot region` (Print) and `ikigai-shot output` (Shift+Print).
+# grim captures, satty annotates (Enter copies, Ctrl+S saves). The region comes from the
+# shell's picker when the Ikigai shell offers one, else from slurp in the shell's colours.
+set -euo pipefail
+
+SHELL_QML=/usr/local/share/ikigai/shell/shell.qml
+THEME=${XDG_STATE_HOME:-$HOME/.local/state}/ikigai/shell-theme.json
+
+color() {
+  local c
+  c=$(jq -r ".colors.$1" "$THEME" 2>/dev/null) || c=
+  case "$c" in \#??????) echo "${c#\#}" ;; *) echo "$2" ;; esac
+}
+
+shell_has() { qs ipc -p "$SHELL_QML" show 2>/dev/null | grep -q "^target $1\$"; }
+
+mkdir -p "$(xdg-user-dir PICTURES)/Screenshots"
+
+case "${1:-region}" in
+  region)
+    if shell_has shot; then
+      exec qs ipc -p "$SHELL_QML" call shot region
+    fi
+    geometry=$(slurp -d -w 2 -b "#$(color surface 100e0d)b3" -c "#$(color primary 86adff)ff" -s "#00000000") || exit 0
+    grim -g "$geometry" - | satty -f -
+    ;;
+  output)
+    grim - | satty -f -
+    ;;
+  *)
+    echo "usage: ikigai-shot [region|output]" >&2
+    exit 2
+    ;;
+esac

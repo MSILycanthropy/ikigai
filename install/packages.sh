@@ -8,6 +8,7 @@ PACMAN=(
   zed neovim lazygit discord
   docker docker-compose lazydocker mise
   zellij yazi btop
+  grim slurp satty
   ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard
   ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji adw-gtk-theme
   pipewire pipewire-pulse wireplumber
