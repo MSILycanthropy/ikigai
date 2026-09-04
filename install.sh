@@ -6,7 +6,7 @@ export IKIGAI_STATE="${IKIGAI_STATE:-$HOME/.local/state/ikigai}"
 mkdir -p "$IKIGAI_STATE"
 LOG="$IKIGAI_STATE/install.log"
 
-STEPS=(preflight packages qt configs tools theme services firewall session)
+STEPS=(preflight packages qt configs tools theme services firewall session greeter)
 CURRENT=setup
 
 step() { echo; echo "==> [$1]"; }

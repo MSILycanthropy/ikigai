@@ -22,7 +22,7 @@ Singleton {
     property alias colors: theme.colors
 
     FileView {
-        path: root.stateDir + "/shell-theme.json"
+        path: Quickshell.env("IKIGAI_THEME_FILE") || root.stateDir + "/shell-theme.json"
         watchChanges: true
         onFileChanged: reload()
 

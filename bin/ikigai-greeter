@@ -1,0 +1,7 @@
+#!/bin/sh
+# greetd's greeter command: cosmic-comp in kiosk mode with the Quickshell greeter as its
+# only client. cosmic-comp exits with it, and greetd then starts the chosen session.
+export QT_QPA_PLATFORM=wayland QT_QPA_PLATFORMTHEME= QS_DISABLE_FILE_WATCHER=1
+export QML_IMPORT_PATH=/usr/local/lib/qt6/qml
+export IKIGAI_THEME_FILE=/usr/local/share/ikigai/theme/shell.json
+exec cosmic-comp --no-xwayland qs -p /usr/local/share/ikigai/shell/greeter.qml

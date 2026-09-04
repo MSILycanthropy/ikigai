@@ -28,6 +28,9 @@ put gtk/gtk.css          "$HOME/.config/gtk-3.0/gtk.css"
 put gtk/gtk.css          "$HOME/.config/gtk-4.0/gtk.css"
 
 sudo install -Dm644 "$T/wallpaper.jpg" "/usr/local/share/backgrounds/ikigai/$THEME.jpg"
+# The greeter has no user state: it reads the theme from here.
+sudo install -Dm644 "$T/shell.json"    /usr/local/share/ikigai/theme/shell.json
+sudo install -Dm644 "$T/wallpaper.jpg" /usr/local/share/ikigai/theme/wallpaper.jpg
 (cd "$T/cosmic" && find . -type f -not -name '*.ron' -not -name README) | while read -r f; do
   sudo install -Dm644 "$T/cosmic/$f" "/usr/local/share/cosmic/$f"
 done

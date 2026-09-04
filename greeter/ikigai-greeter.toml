@@ -1,0 +1,9 @@
+[terminal]
+vt = "1"
+
+[general]
+service = "login"
+
+[default_session]
+command = "ikigai-greeter"
+user = "ikigai-greeter"
