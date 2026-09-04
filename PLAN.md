@@ -29,7 +29,7 @@ is an experimental greeter entry next to stock COSMIC.
 | Daemons kept under the target | cosmic-settings-daemon (applies Settings), cosmic-idle (until the Quickshell lock). cosmic-osd is replaced by a Quickshell popup; volume/brightness keys route via cosmic-comp `system_actions` → `qs ipc`. |
 | Settings app | cosmic-settings stays; its Panel/Dock pages are inert and the README says so. |
 | First login | Nothing. cosmic-initial-setup is dropped at the swap; locale/keyboard come from archinstall or the existing system. |
-| Greeter | greetd + cosmic-comp + `qs -p greeter.qml` as the greeter user. Last user preselected with avatar, password, power buttons, small user switcher. Only the Ikigai session is offered. Replaces cosmic-greeter + daemon. |
+| Greeter | Built 2026-09-04 (commits caf8987, 6055f48), ahead of D–G. greetd (`greeter/ikigai-greeter.toml`, unit aliasing display-manager.service) runs `bin/ikigai-greeter` as the `ikigai-greeter` user: `cosmic-comp --no-xwayland qs -p shell/greeter.qml` (kiosk mode: comp exits with its client, greetd then starts the session). No daemon: theme + wallpaper from `/usr/local/share/ikigai/theme` (written by theme-set, `IKIGAI_THEME_FILE`), users from `/etc/passwd` in login.defs's UID range, avatars from `/var/lib/AccountsService/icons` (world-readable, cosmic-settings writes them), sessions parsed from `/usr/share/wayland-sessions` so both are offered until the swap, last choice in the greeter's home. Gaps: keyboard layout is the compositor default (seed from archinstall's choice later); no caps-lock hint; verified under llvmpipe only. cosmic-greeter stays installed for its locker. |
 | Lock | ext-session-lock via Quickshell `WlSessionLock` in the shell process, PAM via Quickshell's Pam service, same UI as the greeter. Triggers: Super+L, launcher, cosmic-idle. Built with the greeter; cosmic-greeter's locker until then. |
 | The swap | Explicit package list replaces the `cosmic` meta: cosmic-comp, cosmic-greeter (until ours), cosmic-bg, cosmic-settings, cosmic-settings-daemon, cosmic-idle, cosmic-randr, cosmic-icon-theme, xdg-desktop-portal-cosmic. `ikigai.desktop` is the only session entry. No migration: v1 only ever existed on the VM. |
 
@@ -66,9 +66,11 @@ Check what cosmic-idle calls to lock and that cosmic-greeter's locker answers it
 rewrite (screenshot, keys, "Panel/Dock pages are inert"), fresh-install test on both
 archinstall paths, checkpoint `v2`.
 
-**H. Greeter + lock.** `greeter/greeter.qml`, greetd config + unit replacing
-`cosmic-greeter.service`, greeter user setup (theme + wallpaper readable), lock screen in the
-shell, drop cosmic-greeter/daemon from the package list.
+**H. Greeter + lock.** Greeter done (see the Greeter row). Left: lock screen in the shell
+(`WlSessionLock` + Pam, same card; the session launcher listens for logind's `Lock` signal since
+cosmic-idle and Super+L both run `loginctl lock-session`), then drop cosmic-greeter/daemon from
+the package list. A first-login welcome card in the shell (keys, the rail, where settings live)
+was decided 2026-09-04 in place of cosmic-initial-setup.
 
 ## Apps (decided 2026-09-03)
 
