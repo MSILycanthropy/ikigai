@@ -11,7 +11,8 @@ PanelWindow {
     id: bar
 
     property bool shown: true
-    readonly property bool wanted: !Config.autohide || hover.hovered
+    // Hovering the toasts is not a request for the rail.
+    readonly property bool wanted: !Config.autohide || (hover.hovered && !toasts.hovered)
     property real reveal: shown ? 1 : 0
     // The left border thickens into the rail as it reveals.
     readonly property real railWidth: Theme.border + (Theme.barWidth - Theme.border) * reveal
@@ -27,7 +28,7 @@ PanelWindow {
     WlrLayershell.namespace: "ikigai:bar"
     color: "transparent"
 
-    // Input only on the rail (the bare border while hidden) and the open card.
+    // Input only on the rail (the bare border while hidden), the open card and the toasts.
     mask: Region {
         x: 0
         y: 0
@@ -40,6 +41,12 @@ PanelWindow {
                 y: popouts.card ? popouts.card.y : 0
                 width: popouts.card ? popouts.card.width : 0
                 height: popouts.card ? popouts.card.height : 0
+            },
+            Region {
+                x: toasts.x
+                y: toasts.y
+                width: toasts.width
+                height: toasts.height
             }
         ]
     }
@@ -111,6 +118,31 @@ PanelWindow {
                 implicitHeight: popouts.card ? popouts.card.height : 0
                 radius: Theme.cardRadius
                 deformScale: 0.15 / 10000
+            }
+
+            // The toast sheet, oversized upward so it hangs out of the top border.
+            BlobRect {
+                group: blobs
+                x: toasts.x
+                y: toasts.y - 50
+                implicitWidth: toasts.width
+                implicitHeight: toasts.height > 0 ? toasts.height + 50 : 0
+                radius: Theme.cardRadius
+                deformScale: 0.15 / 10000
+
+                Behavior on implicitHeight {
+                    Anim {}
+                }
+            }
+        }
+
+        Toasts {
+            id: toasts
+            anchors {
+                top: parent.top
+                right: parent.right
+                topMargin: Theme.border
+                rightMargin: Theme.border + 8
             }
         }
 

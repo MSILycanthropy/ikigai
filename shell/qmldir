@@ -29,3 +29,6 @@ singleton Recorder 1.0 Recorder.qml
 RecordingBadge 1.0 RecordingBadge.qml
 singleton Users 1.0 Users.qml
 Login 1.0 Login.qml
+singleton Notifs 1.0 Notifs.qml
+Toast 1.0 Toast.qml
+Toasts 1.0 Toasts.qml
