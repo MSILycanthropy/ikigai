@@ -57,7 +57,7 @@ dual_layout() {
   start=$(( (start * 512 + 1048575) / 1048576 ))
   end=$(( end * 512 / 1048576 ))
   existing=$(lsblk -Jb -o PATH,START,SIZE,FSTYPE,PARTTYPE "$disk" | jq -c --arg esp c12a7328-f81f-11d2-ba4b-00a0c93ec93b '
-    [ .blockdevices[0].children[] | {
+    [ .blockdevices[] | select(.start != null) | {
         obj_id: .path, status: "existing", type: "primary",
         start: { value: (.start * 512), unit: "B", sector_size: { value: 512, unit: "B" } },
         size:  { value: .size,          unit: "B", sector_size: { value: 512, unit: "B" } },
