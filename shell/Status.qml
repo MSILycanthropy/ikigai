@@ -1,13 +1,15 @@
 import Quickshell.Services.SystemTray
 import QtQuick
 
-// Status items above the clock: tray icons, then the output volume (scroll to adjust,
-// click for the card).
+// Status items above the clock: tray icons, the battery when there is one, then the
+// output volume (scroll to adjust, click for the card).
 Column {
     id: status
 
+    property bool batteryOpen: false
     property bool volumeOpen: false
 
+    signal batteryRequested(Item at)
     signal volumeRequested(Item at)
     signal trayMenuRequested(var item, Item at)
 
@@ -18,6 +20,20 @@ Column {
 
         TrayButton {
             onMenuRequested: at => status.trayMenuRequested(item, at)
+        }
+    }
+
+    BarButton {
+        id: battery
+        visible: Power.present
+        checked: status.batteryOpen
+        onClicked: status.batteryRequested(battery)
+
+        Glyph {
+            anchors.centerIn: parent
+            name: Power.icon
+            size: Theme.iconSize
+            color: Power.low ? Theme.colors.error : Theme.colors.fg
         }
     }
 

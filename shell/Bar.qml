@@ -244,7 +244,9 @@ PanelWindow {
                     bottomMargin: 8
                     horizontalCenter: parent.horizontalCenter
                 }
+                batteryOpen: popouts.batteryOpen
                 volumeOpen: popouts.volumeOpen
+                onBatteryRequested: at => popouts.toggleBattery(at)
                 onVolumeRequested: at => popouts.toggleVolume(at)
                 onTrayMenuRequested: (item, at) => popouts.openTray(item, at)
             }
