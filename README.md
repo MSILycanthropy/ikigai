@@ -30,6 +30,19 @@ archinstall --config-url https://raw.githubusercontent.com/MSILycanthropy/ikigai
 (To do that from another machine: on the live ISO run `passwd`, `systemctl start sshd`,
 `ip -br addr`, then `ssh root@<ip>` and run it there.)
 
+**On Windows, no USB stick?** From an administrator PowerShell, with Secure Boot off in
+your firmware and BitLocker off:
+
+```powershell
+irm https://raw.githubusercontent.com/MSILycanthropy/ikigai/main/boot.ps1 | iex
+```
+
+It asks whether to replace Windows or dual boot, puts the Arch ISO on a small new
+partition, boots it once, and the ISO runs the `archinstall` line above for you. Windows
+stays intact until you confirm the disk in archinstall; before that, `-Undo` puts
+everything back. Dual boot keeps Windows' boot partition and adds Ikigai next to it,
+with both on systemd-boot's menu; back in Windows, run it once with `-Clean`.
+
 Either way: one sudo prompt, ~10 minutes, `sudo reboot` into the Ikigai greeter. There
 is no setup wizard: locale and keyboard come from archinstall or the system you had.
 

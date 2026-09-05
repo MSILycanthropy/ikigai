@@ -231,6 +231,12 @@ try {
   }
 
   Test-Preflight $target
+  if (-not $Yes) {
+    $pc = $env:COMPUTERNAME
+    if ($Mode -eq 'replace') { Write-Host "This erases Windows and everything else on $pc's disk." -ForegroundColor Yellow }
+    else { Write-Host "This shrinks C: by $($GB + $StageGB) GB and installs Ikigai next to Windows on $pc." -ForegroundColor Yellow }
+    if ((Read-Host "Type $pc to continue") -cne $pc) { throw 'not confirmed, nothing changed' }
+  }
   if ($Mode -eq 'dual') {
     # Fast startup leaves NTFS half-hibernated; Linux then refuses to mount it read-write.
     powercfg /h off
