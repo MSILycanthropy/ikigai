@@ -50,6 +50,8 @@ whichever one you had, and cosmic-comp's defaults land as system config next to 
 | Greeter | Ikigai's, on greetd: cosmic-comp in kiosk mode drawing the same card as the lock screen, with the theme and wallpaper, your avatar from Settings, and the last user preselected |
 | Lock | `Super+L`, the idle timeout or the lid: logind locks, the shell draws the card over every screen and checks the password through PAM. The same card answers polkit when an app asks for privilege |
 | First login | A welcome card on the shell: the keys, the rail, where settings live, and a Connect to Wi-Fi button when the box is offline. Once per user (`~/.local/state/ikigai/welcomed`); `ikigai-shell welcome open` brings it back |
+| Network | NetworkManager, on the rail: the Wi-Fi strength or the wired link as the glyph, a card with the Wi-Fi switch, the wired link and the networks in range. Click to connect; a new secured network asks for its password in a window; the connected row expands to Disconnect and Forget. cosmic-settings' Network page for VPNs and the rest |
+| Battery | On the rail when there is one: level and charging state as the glyph, a card with the time left and the power profile (upower, power-profiles-daemon) |
 | Settings | cosmic-settings, with the rail in place of its panel: the Panel and Dock pages are inert, everything else works. The rail's own settings (pins, autohide, scale) are in `~/.config/ikigai/shell.json` for now |
 | Video | [mpv](https://mpv.io) with hardware decoding, fuzzy subtitle matching and resume-where-you-left-off seeded |
 | Screenshots | `Print` freezes the screen and opens the shell's picker: Region, Window or Screen, then Snip, Edit or Record. Snip puts the PNG on the clipboard and in `~/Pictures/Screenshots`; Edit opens it in [satty](https://github.com/gabm/Satty); Record starts [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/) on it with the system's audio, shows a dot and timer on the rail, and `Super+Shift+R` or a click on the dot stops it with the file's path (`~/Videos/Recordings`) on the clipboard. `Shift+Print` starts in Screen mode. Captured by [grim](https://gitlab.freedesktop.org/emersion/grim) over ext-image-copy-capture |
@@ -144,9 +146,8 @@ and those packages are no longer installed. Both install paths work end to end. 
 mechanism yet — `git pull` in `~/.local/share/ikigai` + `pacman -Syu` + `paru -Sua` is
 the honest answer for now.
 
-Not yet: a settings card for the rail, network and battery on the rail, a chooser when
-polkit offers several admins, multi-monitor beyond "the sidebar on every screen, the
-card on the first".
+Not yet: a settings card for the rail, a chooser when polkit offers several admins,
+multi-monitor beyond "the sidebar on every screen, the card on the first".
 
 Next, roughly in order: those, an update command (reconcile seeded files `.pacnew`-style —
 the seed hashes are already recorded), a custom pacman repo so the installer needs no
