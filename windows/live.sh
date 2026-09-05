@@ -53,6 +53,7 @@ replace_layout() {
 dual_layout() {
   local start end boot_mib=1024 existing
   sfdisk --delete "$disk" "$(cat "/sys/class/block/$(basename "$stage")/partition")" >/dev/null
+  udevadm settle
   read -r start end < <(sfdisk -F "$disk" | awk '$1 ~ /^[0-9]+$/ && $3 > best { best = $3; s = $1; e = $2 } END { print s, e }')
   start=$(( (start * 512 + 1048575) / 1048576 ))
   end=$(( end * 512 / 1048576 ))
@@ -86,6 +87,7 @@ curl -fsSL "$raw/archinstall.json" \
 
 say "archinstall: set a user and password and your timezone, then Install"
 archinstall --config "$config"
+[ -f /mnt/archinstall/etc/fstab ] || die "nothing was installed. 'reboot' brings Windows back; run boot.ps1 again from there"
 
 lsblk -o name,size,fstype,label,mountpoints "$disk"
 say "Done. 'reboot' when ready."
