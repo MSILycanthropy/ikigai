@@ -16,6 +16,8 @@ ShellRoot {
     Shot {}
     Lock {}
     Polkit {}
+    Welcome {}
+    WifiAuth {}
 
     IpcHandler {
         target: "osd"

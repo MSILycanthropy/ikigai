@@ -30,6 +30,19 @@ archinstall --config-url https://raw.githubusercontent.com/MSILycanthropy/ikigai
 (To do that from another machine: on the live ISO run `passwd`, `systemctl start sshd`,
 `ip -br addr`, then `ssh root@<ip>` and run it there.)
 
+**On Windows, no USB stick?** From an administrator PowerShell, with Secure Boot off in
+your firmware and BitLocker off:
+
+```powershell
+irm https://raw.githubusercontent.com/MSILycanthropy/ikigai/main/boot.ps1 | iex
+```
+
+It asks whether to replace Windows or dual boot, puts the Arch ISO on a small new
+partition, boots it once, and the ISO runs the `archinstall` line above for you. Windows
+stays intact until you confirm the disk in archinstall; before that, `-Undo` puts
+everything back. Dual boot keeps Windows' boot partition and adds Ikigai next to it,
+with both on systemd-boot's menu; back in Windows, run it once with `-Clean`.
+
 Either way: one sudo prompt, ~10 minutes, `sudo reboot` into the Ikigai greeter. There
 is no setup wizard: locale and keyboard come from archinstall or the system you had.
 
@@ -49,6 +62,9 @@ whichever one you had, and cosmic-comp's defaults land as system config next to 
 | Launcher | [Vicinae](https://vicinae.com) on `Super`: apps, files, clipboard history, and its own log out, power off, reboot and sleep commands |
 | Greeter | Ikigai's, on greetd: cosmic-comp in kiosk mode drawing the same card as the lock screen, with the theme and wallpaper, your avatar from Settings, and the last user preselected |
 | Lock | `Super+L`, the idle timeout or the lid: logind locks, the shell draws the card over every screen and checks the password through PAM. The same card answers polkit when an app asks for privilege |
+| First login | A welcome card on the shell: the keys, the rail, where settings live, and a Connect to Wi-Fi button when the box is offline. Once per user (`~/.local/state/ikigai/welcomed`); `ikigai-shell welcome open` brings it back |
+| Network | NetworkManager, on the rail: the Wi-Fi strength or the wired link as the glyph, a card with the Wi-Fi switch, the wired link and the networks in range. Click to connect; a new secured network asks for its password in a window; the connected row expands to Disconnect and Forget. cosmic-settings' Network page for VPNs and the rest |
+| Battery | On the rail when there is one: level and charging state as the glyph, a card with the time left and the power profile (upower, power-profiles-daemon) |
 | Settings | cosmic-settings, with the rail in place of its panel: the Panel and Dock pages are inert, everything else works. The rail's own settings (pins, autohide, scale) are in `~/.config/ikigai/shell.json` for now |
 | Video | [mpv](https://mpv.io) with hardware decoding, fuzzy subtitle matching and resume-where-you-left-off seeded |
 | Screenshots | `Print` freezes the screen and opens the shell's picker: Region, Window or Screen, then Snip, Edit or Record. Snip puts the PNG on the clipboard and in `~/Pictures/Screenshots`; Edit opens it in [satty](https://github.com/gabm/Satty); Record starts [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/) on it with the system's audio, shows a dot and timer on the rail, and `Super+Shift+R` or a click on the dot stops it with the file's path (`~/Videos/Recordings`) on the clipboard. `Shift+Print` starts in Screen mode. Captured by [grim](https://gitlab.freedesktop.org/emersion/grim) over ext-image-copy-capture |
@@ -62,7 +78,7 @@ whichever one you had, and cosmic-comp's defaults land as system config next to 
 | Dev | [gh](https://cli.github.com), [just](https://just.systems), and [Claude Code](https://code.claude.com) through its native installer (`~/.local/bin/claude`, updates itself) |
 | Runtimes | [mise](https://mise.jdx.dev) — `mise use -g node@lts`; Arch builds mise without `self-update`, pacman updates it. Docker + lazydocker (you're added to the `docker` group, which is root-equivalent) |
 | TUIs | yazi (`y`), lazygit (`lg`), btop |
-| CLI | ripgrep, fd, fzf, bat, eza, dust, git-delta, tealdeer, jq — with `ls`/`cat`/`du`/`grep` aliased to the modern ones |
+| CLI | ripgrep, fd, fzf, bat, eza, dust, git-delta, tealdeer, jq, fastfetch (with the black holes as its logo) — with `ls`/`cat`/`du`/`grep` aliased to the modern ones |
 | Fonts | JetBrainsMono Nerd Font, Noto |
 | Firewall | ufw, deny incoming and allow outgoing, ssh kept when sshd is enabled; ufw-docker so Docker's published ports respect it |
 | Gaming | Not installed by default. `ikigai-steam` installs Steam, the 32-bit driver for your GPU, gamemode, gamescope and mangohud and launches it; Proton comes with Steam, [protonup-qt](https://github.com/DavidoTek/ProtonUp-Qt) for Proton-GE |
@@ -98,6 +114,10 @@ type the word.
 - **Theme files are Ikigai-owned** and re-applied by `ikigai-theme-set ikigai`. Any
   COSMIC theme customised in Settings is backed up to `~/.local/state/ikigai/backup/`
   before being replaced.
+- **The installer shows a step list**: spinner, elapsed time per step and the last log
+  line under the running one; a failed step prints its last 20 log lines. Everything a
+  step printed is in `~/.local/state/ikigai/install.log`. Without a terminal (archinstall,
+  `IKIGAI_PLAIN=1`) it prints plain `==> [n/10]` lines instead.
 - **No AUR helper in the installer.** AUR packages are built with `makepkg`; `paru`
   is installed (from source) for *you* to use afterwards.
 - **One session.** `ikigai-session` (Rust, `session/`) starts cosmic-comp on its own,
@@ -143,9 +163,8 @@ and those packages are no longer installed. Both install paths work end to end. 
 mechanism yet — `git pull` in `~/.local/share/ikigai` + `pacman -Syu` + `paru -Sua` is
 the honest answer for now.
 
-Not yet: a first-login welcome card, a settings card for the rail, network and battery
-on the rail, a chooser when polkit offers several admins, multi-monitor beyond "the
-sidebar on every screen, the card on the first".
+Not yet: a settings card for the rail, a chooser when polkit offers several admins,
+multi-monitor beyond "the sidebar on every screen, the card on the first".
 
 Next, roughly in order: those, an update command (reconcile seeded files `.pacnew`-style —
 the seed hashes are already recorded), a custom pacman repo so the installer needs no

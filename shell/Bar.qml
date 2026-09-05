@@ -66,6 +66,15 @@ PanelWindow {
     }
     onShownChanged: if (!shown) popouts.close()
 
+    // The welcome card's Wi-Fi button: the network card on the rail, revealed like Super+W.
+    Connections {
+        target: Network
+        function onCardRequested() {
+            bar.shown = true;
+            popouts.toggleNetwork(status.networkButton);
+        }
+    }
+
     // Super+W: the card opens on a hidden rail too, and the rail stays until the card goes.
     Connections {
         target: Tasks
@@ -244,7 +253,11 @@ PanelWindow {
                     bottomMargin: 8
                     horizontalCenter: parent.horizontalCenter
                 }
+                networkOpen: popouts.networkOpen
+                batteryOpen: popouts.batteryOpen
                 volumeOpen: popouts.volumeOpen
+                onNetworkRequested: at => popouts.toggleNetwork(at)
+                onBatteryRequested: at => popouts.toggleBattery(at)
                 onVolumeRequested: at => popouts.toggleVolume(at)
                 onTrayMenuRequested: (item, at) => popouts.openTray(item, at)
             }

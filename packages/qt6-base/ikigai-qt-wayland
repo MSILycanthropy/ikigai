@@ -11,6 +11,10 @@ CACHE=/var/cache/ikigai/qt
 LIB=/usr/lib/libQt6WaylandClient.so
 
 die() { echo "ikigai-qt-wayland: $*" >&2; exit 1; }
+# The build is silent by default: the pacman hook runs inside a transaction. install/qt.sh
+# passes --progress so the installer can show ninja's [n/N] lines while it waits.
+progress=${1:-}
+run() { if [ "$progress" = --progress ]; then "$@"; else "$@" >/dev/null; fi; }
 
 [ "$(id -u)" -eq 0 ] || die "run as root"
 [ -r "$PATCH" ] || die "patch not found: $PATCH"
@@ -46,7 +50,7 @@ export CFLAGS CXXFLAGS LDFLAGS
 # A pkgrel bump rebuilds identical sources with identical flags: ccache turns that into a
 # minute. Precompiled headers are off because ccache cannot cache compilations that use them.
 export CCACHE_DIR=$CACHE/ccache
-cmake -B build -S src -G Ninja \
+run cmake -B build -S src -G Ninja \
   -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DBUILD_WITH_PCH=OFF \
   -DCMAKE_INSTALL_PREFIX=/usr \
   -DCMAKE_BUILD_TYPE=Release \
@@ -69,12 +73,12 @@ cmake -B build -S src -G Ninja \
   -DFEATURE_openssl_hash=ON \
   -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF \
   -DQT_BUILD_TESTS=OFF -DQT_BUILD_EXAMPLES=OFF \
-  -DCMAKE_MESSAGE_LOG_LEVEL=WARNING >/dev/null
+  -DCMAKE_MESSAGE_LOG_LEVEL=WARNING
 
 # One job per ~1.2 GB of RAM: QtGui translation units are large.
 mem_jobs=$(( $(awk '/MemTotal/ { print $2 }' /proc/meminfo) / 1200000 ))
 jobs=$(( mem_jobs < $(nproc) ? mem_jobs : $(nproc) ))
-ninja -C build -j "$(( jobs > 0 ? jobs : 1 ))" WaylandClient >/dev/null
+run ninja -C build -j "$(( jobs > 0 ? jobs : 1 ))" WaylandClient
 
 built="build/lib/libQt6WaylandClient.so.$ver"
 [ -f "$built" ] || die "build produced no $built"

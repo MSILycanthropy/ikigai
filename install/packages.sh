@@ -9,8 +9,8 @@ PACMAN=(
   zed neovim lazygit github-cli just discord
   docker docker-compose lazydocker mise
   zellij yazi btop
-  grim slurp satty gpu-screen-recorder mpv brightnessctl
-  ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard ufw
+  grim slurp satty gpu-screen-recorder mpv brightnessctl upower power-profiles-daemon
+  ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard ufw fastfetch
   ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji adw-gtk-theme
   pipewire pipewire-pulse wireplumber
   xdg-user-dirs

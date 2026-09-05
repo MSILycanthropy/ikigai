@@ -34,6 +34,7 @@ AuthCard 1.0 AuthCard.qml
 Login 1.0 Login.qml
 Lock 1.0 Lock.qml
 Polkit 1.0 Polkit.qml
+Welcome 1.0 Welcome.qml
 singleton Notifs 1.0 Notifs.qml
 Toast 1.0 Toast.qml
 Toasts 1.0 Toasts.qml
@@ -44,5 +45,11 @@ singleton Osd 1.0 Osd.qml
 OsdPill 1.0 OsdPill.qml
 Status 1.0 Status.qml
 VolumeCard 1.0 VolumeCard.qml
+singleton Power 1.0 Power.qml
+BatteryCard 1.0 BatteryCard.qml
+Pill 1.0 Pill.qml
+singleton Network 1.0 Network.qml
+NetworkCard 1.0 NetworkCard.qml
+WifiAuth 1.0 WifiAuth.qml
 TrayButton 1.0 TrayButton.qml
 TrayMenu 1.0 TrayMenu.qml
