@@ -29,4 +29,4 @@ for CURRENT in "${STEPS[@]}"; do
 done
 
 echo
-echo "==> Ikigai installed. Reboot to start COSMIC:  sudo reboot"
+echo "==> Ikigai installed. Reboot into Ikigai:  sudo reboot"
