@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitCode, Stdio};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
 use rustix::io::FdFlags;
@@ -16,7 +17,10 @@ use signal_hook::consts::{SIGHUP, SIGINT, SIGTERM};
 
 const TARGET: &str = "ikigai-session.target";
 const SHELL_IPC: &str = "ikigai-shell";
+const SESSION_PATH_VAR: &str = "IKIGAI_SESSION_PATH";
 const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
+const LOCK_CONFIRM_TIMEOUT: Duration = Duration::from_secs(3);
+const LOCK_POLL: Duration = Duration::from_millis(50);
 
 // Same values cosmic-session's start-cosmic exports, minus what we don't ship. Qt apps
 // take their palette, fonts and icons from the GTK theme: "cosmic" names no plugin.
@@ -121,6 +125,11 @@ fn run(runtime_dir: &Path, log: &mut Log) -> io::Result<()> {
             return Err(err);
         }
     };
+    let mut env = env;
+    let session = session_path();
+    if let Some(path) = &session {
+        env.insert(SESSION_PATH_VAR.to_owned(), path.clone());
+    }
     let pairs: Vec<String> = env.iter().map(|(k, v)| format!("{k}={v}")).collect();
     log.line(format!("compositor up: {}", pairs.join(" ")));
     systemctl(log, &with_args(&["set-environment"], &pairs));
@@ -128,8 +137,8 @@ fn run(runtime_dir: &Path, log: &mut Log) -> io::Result<()> {
 
     let display = env.get("WAYLAND_DISPLAY").cloned().unwrap_or_default();
     let lock_log = OpenOptions::new().append(true).open(runtime_dir.join("ikigai-session.log"))?;
-    let mut lock_watcher = match watch_lock(display, session_path(), lock_log) {
-        Ok(child) => Some(child),
+    let mut lock_watcher = match watch_lock(display, session, lock_log) {
+        Ok(watcher) => Some(watcher),
         Err(err) => {
             log.line(format!("lock watcher not started: {err}"));
             None
@@ -138,9 +147,11 @@ fn run(runtime_dir: &Path, log: &mut Log) -> io::Result<()> {
 
     let status = wait_for(&mut comp, &terminate)?;
     log.line(format!("cosmic-comp exited: {status}"));
-    if let Some(watcher) = lock_watcher.as_mut() {
-        let _ = watcher.kill();
-        let _ = watcher.wait();
+    if let Some((monitor, relay)) = lock_watcher.take() {
+        let mut monitor = monitor;
+        let _ = monitor.kill();
+        let _ = monitor.wait();
+        let _ = relay.join();
     }
     systemctl(log, &["stop", TARGET]);
     let keys: Vec<String> = env.into_keys().collect();
@@ -198,45 +209,133 @@ fn session_path() -> Option<String> {
 /// `loginctl lock-session` all end there. gdbus subscribes as an ordinary client
 /// (monitoring the system bus needs privileges); each matching line becomes an IPC
 /// call into the shell, which owns the lock surface.
-fn watch_lock(display: String, session: Option<String>, mut log: File) -> io::Result<Child> {
-    let mut child = Command::new("gdbus")
+fn watch_lock(display: String, session: Option<String>, log: File) -> io::Result<(Child, JoinHandle<()>)> {
+    let mut monitor = Command::new("gdbus")
         .args(["monitor", "--system", "--dest", "org.freedesktop.login1"])
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()?;
-    let stdout = child.stdout.take().expect("stdout is piped");
-    std::thread::spawn(move || {
+    let stdout = monitor.stdout.take().expect("stdout is piped");
+    let mut relay = LockRelay { display, session, log, inhibitor: None };
+    relay.hold_sleep();
+    let thread = std::thread::spawn(move || {
         for line in BufReader::new(stdout).lines().map_while(Result::ok) {
-            let Some(action) = session_signal(&line, session.as_deref()) else { continue };
-            let _ = writeln!(log, "[lock] {} -> {action}", line.trim_end());
-            let result = Command::new(SHELL_IPC)
-                .args(["session", action])
-                .env("WAYLAND_DISPLAY", &display)
-                .stdin(Stdio::null())
-                .status();
-            match result {
-                Ok(status) if status.success() => {}
-                Ok(status) => { let _ = writeln!(log, "[lock] {SHELL_IPC} session {action}: {status}"); }
-                Err(err) => { let _ = writeln!(log, "[lock] {SHELL_IPC}: {err}"); }
-            }
+            relay.handle(&line);
         }
+        relay.release_sleep();
     });
-    Ok(child)
+    Ok((monitor, thread))
 }
 
-fn session_signal(line: &str, session: Option<&str>) -> Option<&'static str> {
+#[derive(Debug, PartialEq)]
+enum LockEvent {
+    Lock,
+    Unlock,
+    Sleep,
+    Wake,
+}
+
+/// logind emits PrepareForSleep(true) and then suspends at once unless a delay
+/// inhibitor asks it to wait (up to InhibitDelayMaxSec, 5 s by default). The inhibitor
+/// is an fd on the caller's bus connection, which a one-shot CLI call would drop, so
+/// `systemd-inhibit` holds it for as long as its `sleep infinity` child lives: killed
+/// once the shell confirms the lock, started again after resume.
+struct LockRelay {
+    display: String,
+    session: Option<String>,
+    log: File,
+    inhibitor: Option<Child>,
+}
+
+impl LockRelay {
+    fn handle(&mut self, line: &str) {
+        let Some(event) = lock_event(line, self.session.as_deref()) else { return };
+        self.log(format!("{} -> {event:?}", line.trim_end()));
+        match event {
+            LockEvent::Lock => { self.shell("lock"); }
+            LockEvent::Unlock => { self.shell("unlock"); }
+            LockEvent::Sleep => {
+                self.shell("lock");
+                if !self.wait_locked() {
+                    self.log("lock not confirmed before sleep");
+                }
+                self.release_sleep();
+            }
+            LockEvent::Wake => self.hold_sleep(),
+        }
+    }
+
+    fn wait_locked(&mut self) -> bool {
+        let deadline = Instant::now() + LOCK_CONFIRM_TIMEOUT;
+        while Instant::now() < deadline {
+            if self.shell("locked").is_some_and(|out| out.trim() == "true") {
+                return true;
+            }
+            std::thread::sleep(LOCK_POLL);
+        }
+        false
+    }
+
+    fn shell(&mut self, call: &str) -> Option<String> {
+        let result = Command::new(SHELL_IPC)
+            .args(["session", call])
+            .env("WAYLAND_DISPLAY", &self.display)
+            .stdin(Stdio::null())
+            .stderr(Stdio::null())
+            .output();
+        match result {
+            Ok(out) if out.status.success() => Some(String::from_utf8_lossy(&out.stdout).into_owned()),
+            Ok(out) => { self.log(format!("{SHELL_IPC} session {call}: {}", out.status)); None }
+            Err(err) => { self.log(format!("{SHELL_IPC}: {err}")); None }
+        }
+    }
+
+    fn hold_sleep(&mut self) {
+        if self.inhibitor.is_some() {
+            return;
+        }
+        let result = Command::new("systemd-inhibit")
+            .args(["--what=sleep", "--mode=delay", "--who=ikigai-session", "--why=lock before sleep"])
+            .args(["sleep", "infinity"])
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn();
+        match result {
+            Ok(child) => self.inhibitor = Some(child),
+            Err(err) => self.log(format!("systemd-inhibit: {err}")),
+        }
+    }
+
+    fn release_sleep(&mut self) {
+        if let Some(mut child) = self.inhibitor.take() {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+    }
+
+    fn log(&mut self, msg: impl AsRef<str>) {
+        let _ = writeln!(self.log, "[lock] {}", msg.as_ref());
+    }
+}
+
+/// Signals from other sessions are ignored. When ours is unknown, Lock is honoured
+/// from any (locking twice is harmless) and Unlock from none.
+fn lock_event(line: &str, session: Option<&str>) -> Option<LockEvent> {
     let (path, signal) = line.split_once(": ")?;
     let signal = signal.trim_end();
     if path == "/org/freedesktop/login1" {
-        return signal.starts_with("org.freedesktop.login1.Manager.PrepareForSleep (true").then_some("lock");
-    }
-    if session.is_some_and(|ours| ours != path) {
-        return None;
+        let sleep = signal.strip_prefix("org.freedesktop.login1.Manager.PrepareForSleep (")?;
+        return match sleep.split(',').next()? {
+            "true" => Some(LockEvent::Sleep),
+            "false" => Some(LockEvent::Wake),
+            _ => None,
+        };
     }
     match signal {
-        "org.freedesktop.login1.Session.Lock ()" => Some("lock"),
-        "org.freedesktop.login1.Session.Unlock ()" => Some("unlock"),
+        "org.freedesktop.login1.Session.Lock ()" if session.is_none_or(|ours| ours == path) => Some(LockEvent::Lock),
+        "org.freedesktop.login1.Session.Unlock ()" if session == Some(path) => Some(LockEvent::Unlock),
         _ => None,
     }
 }
@@ -261,27 +360,34 @@ fn wait_for(comp: &mut Child, terminate: &AtomicBool) -> io::Result<std::process
 
 #[cfg(test)]
 mod tests {
-    use super::session_signal;
+    use super::{LockEvent, lock_event};
 
     const OURS: &str = "/org/freedesktop/login1/session/_39";
+    const OTHER: &str = "/org/freedesktop/login1/session/_354";
 
     #[test]
     fn lock_and_unlock_for_our_session() {
-        assert_eq!(session_signal(&format!("{OURS}: org.freedesktop.login1.Session.Lock ()"), Some(OURS)), Some("lock"));
-        assert_eq!(session_signal(&format!("{OURS}: org.freedesktop.login1.Session.Unlock ()\n"), Some(OURS)), Some("unlock"));
+        assert_eq!(lock_event(&format!("{OURS}: org.freedesktop.login1.Session.Lock ()"), Some(OURS)), Some(LockEvent::Lock));
+        assert_eq!(lock_event(&format!("{OURS}: org.freedesktop.login1.Session.Unlock ()\n"), Some(OURS)), Some(LockEvent::Unlock));
     }
 
     #[test]
     fn other_sessions_and_signals_are_ignored() {
-        assert_eq!(session_signal("/org/freedesktop/login1/session/_354: org.freedesktop.login1.Session.Lock ()", Some(OURS)), None);
-        assert_eq!(session_signal(&format!("{OURS}: org.freedesktop.login1.Session.PauseDevice (...)"), Some(OURS)), None);
-        assert_eq!(session_signal("The name org.freedesktop.login1 is owned by :1.4", Some(OURS)), None);
+        assert_eq!(lock_event(&format!("{OTHER}: org.freedesktop.login1.Session.Lock ()"), Some(OURS)), None);
+        assert_eq!(lock_event(&format!("{OTHER}: org.freedesktop.login1.Session.Unlock ()"), Some(OURS)), None);
+        assert_eq!(lock_event(&format!("{OURS}: org.freedesktop.login1.Session.PauseDevice (...)"), Some(OURS)), None);
+        assert_eq!(lock_event("The name org.freedesktop.login1 is owned by :1.4", Some(OURS)), None);
     }
 
     #[test]
-    fn sleep_locks_and_an_unknown_session_matches_any() {
-        assert_eq!(session_signal("/org/freedesktop/login1: org.freedesktop.login1.Manager.PrepareForSleep (true,)", Some(OURS)), Some("lock"));
-        assert_eq!(session_signal("/org/freedesktop/login1: org.freedesktop.login1.Manager.PrepareForSleep (false,)", Some(OURS)), None);
-        assert_eq!(session_signal("/org/freedesktop/login1/session/_354: org.freedesktop.login1.Session.Lock ()", None), Some("lock"));
+    fn sleep_and_wake() {
+        assert_eq!(lock_event("/org/freedesktop/login1: org.freedesktop.login1.Manager.PrepareForSleep (true,)", Some(OURS)), Some(LockEvent::Sleep));
+        assert_eq!(lock_event("/org/freedesktop/login1: org.freedesktop.login1.Manager.PrepareForSleep (false,)", Some(OURS)), Some(LockEvent::Wake));
+    }
+
+    #[test]
+    fn unknown_session_locks_from_any_and_unlocks_from_none() {
+        assert_eq!(lock_event(&format!("{OTHER}: org.freedesktop.login1.Session.Lock ()"), None), Some(LockEvent::Lock));
+        assert_eq!(lock_event(&format!("{OTHER}: org.freedesktop.login1.Session.Unlock ()"), None), None);
     }
 }

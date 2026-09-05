@@ -6,7 +6,8 @@ import QtQuick
 
 // The lock screen: ext-session-lock surfaces on every screen with the wallpaper, and the
 // auth card on the first checking the password through PAM. Locked and unlocked over
-// IPC by the session launcher, which relays logind's Lock and Unlock signals.
+// IPC by the session launcher, which relays logind's Lock and Unlock signals and holds
+// suspend back until `locked` reports the compositor has the lock.
 Scope {
     id: scope
 
@@ -21,6 +22,12 @@ Scope {
         function unlock(): void {
             console.info("unlock");
             lock.locked = false;
+        }
+
+        // True once the compositor has covered every screen; the launcher waits for
+        // this before letting logind suspend.
+        function locked(): bool {
+            return lock.secure;
         }
     }
 
