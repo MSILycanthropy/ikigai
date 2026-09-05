@@ -30,8 +30,8 @@ done
 # the backup GPT header at the end. Sizes in MiB keep the arithmetic honest.
 partition() {
   local start=$1 size=$2 fs=$3 mount=$4 flags=$5
-  jq -cn --arg start "$start" --arg size "$size" --arg fs "$fs" --arg mount "$mount" --argjson flags "$flags" '{
-    obj_id: (now | tostring), status: "create", type: "primary",
+  jq -cn --arg id "$(uuidgen)" --arg start "$start" --arg size "$size" --arg fs "$fs" --arg mount "$mount" --argjson flags "$flags" '{
+    obj_id: $id, status: "create", type: "primary",
     start: { value: ($start | tonumber), unit: "MiB", sector_size: { value: 512, unit: "B" } },
     size:  { value: ($size | tonumber),  unit: "MiB", sector_size: { value: 512, unit: "B" } },
     fs_type: $fs, mountpoint: $mount, mount_options: [], flags: $flags, btrfs: [], dev_path: null }'
@@ -46,9 +46,33 @@ replace_layout() {
     '{ config_type: "manual_partitioning", device_modifications: [ { device: $disk, wipe: true, partitions: [$boot, $root] } ] }'
 }
 
+# Keep Windows: drop the staging partition, then put a 1 GiB /boot and the root in the
+# largest free region. Windows' own ESP becomes /efi, untouched: systemd-boot fits in
+# it, kernels do not, so /boot is a separate XBOOTLDR partition. Every Windows
+# partition is listed as existing so archinstall leaves it alone.
+dual_layout() {
+  local start end boot_mib=1024 existing
+  sfdisk --delete "$disk" "$(cat "/sys/class/block/$(basename "$stage")/partition")" >/dev/null
+  read -r start end < <(sfdisk -F "$disk" | awk '$1 ~ /^[0-9]+$/ && $3 > best { best = $3; s = $1; e = $2 } END { print s, e }')
+  start=$(( (start * 512 + 1048575) / 1048576 ))
+  end=$(( end * 512 / 1048576 ))
+  existing=$(lsblk -Jb -o PATH,START,SIZE,FSTYPE,PARTTYPE "$disk" | jq -c --arg esp c12a7328-f81f-11d2-ba4b-00a0c93ec93b '
+    [ .blockdevices[0].children[] | {
+        obj_id: .path, status: "existing", type: "primary",
+        start: { value: (.start * 512), unit: "B", sector_size: { value: 512, unit: "B" } },
+        size:  { value: .size,          unit: "B", sector_size: { value: 512, unit: "B" } },
+        fs_type: (if .fstype == "vfat" then "fat32" elif .fstype == "ntfs" then "ntfs" else null end),
+        mountpoint: (if .parttype == $esp then "/efi" else null end),
+        mount_options: [], flags: (if .parttype == $esp then ["esp"] else [] end), btrfs: [], dev_path: .path } ]')
+  jq -cn --arg disk "$disk" --argjson existing "$existing" \
+    --argjson boot "$(partition "$start" $boot_mib fat32 /boot '["boot","xbootldr"]')" \
+    --argjson root "$(partition $((start + boot_mib)) $((end - start - boot_mib - 1)) ext4 / '[]')" \
+    '{ config_type: "manual_partitioning", device_modifications: [ { device: $disk, wipe: false, partitions: ($existing + [$boot, $root]) } ] }'
+}
+
 case "$mode" in
   replace) layout="$(replace_layout)" ;;
-  dual) die "dual boot is not written yet" ;;
+  dual) layout="$(dual_layout)" ;;
   *) die "unknown mode $mode" ;;
 esac
 
@@ -63,7 +87,5 @@ curl -fsSL "$raw/archinstall.json" \
 say "archinstall: set a user and password and your timezone, then Install"
 archinstall --config "$config"
 
-say "Installed. Rebooting in 10 s (Ctrl+C to stay here)"
 lsblk -o name,size,fstype,label,mountpoints "$disk"
-sleep 10
-systemctl reboot
+say "Done. 'reboot' when ready."

@@ -221,6 +221,11 @@ try {
   }
 
   Test-Preflight $target
+  if ($Mode -eq 'dual') {
+    # Fast startup leaves NTFS half-hibernated; Linux then refuses to mount it read-write.
+    powercfg /h off
+    Note 'hibernation and fast startup off, so Linux can mount C:'
+  }
   $stage = New-Stage $target
   $iso = Get-Iso $stage
   Install-Boot $stage $iso
