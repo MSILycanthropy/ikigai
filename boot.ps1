@@ -13,6 +13,7 @@ param(
   [int]$GB = 0,
   [string]$Ref = 'main',
   [switch]$Undo,
+  [switch]$Clean,
   [switch]$Yes,
   [switch]$NoReboot,
   [string]$Raw
@@ -186,12 +187,20 @@ function Add-BootEntry($stage) {
   Note "boot entry $id, once"
 }
 
-function Undo-Ikigai($target) {
-  Step 'Undoing'
+# Windows rewrites its BCD firmware entries into NVRAM on every boot, so the one-shot
+# entry can only be removed for good from here. After a dual-boot install that is all
+# there is to clean up: -Clean.
+function Remove-BootEntry {
   $entries = (bcdedit /enum firmware) -join "`n" -split "`n`n" |
     Where-Object { $_ -match [regex]::Escape($Description) } |
     ForEach-Object { [regex]::Match($_, '\{[0-9a-f-]+\}').Value }
   foreach ($id in $entries) { bcdedit /delete $id | Out-Null; Note "removed boot entry $id" }
+  if (-not $entries) { Note 'no installer boot entry to remove' }
+}
+
+function Undo-Ikigai($target) {
+  Step 'Undoing'
+  Remove-BootEntry
 
   $stage = Get-Stage $target
   if ($stage) { Remove-Partition -InputObject $stage -Confirm:$false; Note "removed the $Label partition" }
@@ -208,6 +217,7 @@ try {
   Assert-Admin
   $target = Get-Target
   if ($Undo) { Undo-Ikigai $target; return }
+  if ($Clean) { Step 'Cleaning up after the install'; Remove-BootEntry; return }
 
   if (-not $Mode) {
     Write-Host "  replace  erase Windows, Ikigai gets the whole disk"
@@ -235,6 +245,10 @@ try {
   Write-Host "    On restart this PC boots the Arch installer once. It asks for a user, a password"
   Write-Host "    and a timezone, confirms the disk, installs Ikigai and reboots into it."
   Write-Host "    Windows is untouched until you confirm that disk. Changed your mind? Run this with -Undo."
+  if ($Mode -eq 'dual') {
+    Write-Host "    Afterwards systemd-boot lists both Ikigai and Windows. The first time you are back in"
+    Write-Host "    Windows, run this once with -Clean to drop the leftover 'Ikigai installer' boot entry."
+  }
   if ($NoReboot) { Note 'not restarting (-NoReboot)'; return }
   Restart-Computer -Force
 }
