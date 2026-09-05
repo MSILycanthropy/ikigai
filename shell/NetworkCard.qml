@@ -104,7 +104,7 @@ PopupCard {
                     leftMargin: 8
                     verticalCenter: parent.verticalCenter
                 }
-                name: "network"
+                name: "brand:ethernet"
                 size: 16
                 color: Theme.colors.primary
             }

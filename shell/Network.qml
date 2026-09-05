@@ -42,7 +42,8 @@ Singleton {
 
     readonly property bool online: connectivity === "full"
     readonly property bool connected: ssid !== "" || wired
-    readonly property string icon: ssid !== "" ? wifiIcon(strength) : wired ? "network" : !wifiHardware ? "network-slash" : wifiEnabled ? "wifi-x" : "wifi-slash"
+    // The cable's connector when it is up, like every other desktop, then the Wi-Fi arcs.
+    readonly property string icon: wired ? "brand:ethernet" : ssid !== "" ? wifiIcon(strength) : !wifiHardware ? "network-slash" : wifiEnabled ? "wifi-x" : "wifi-slash"
     readonly property string pskFile: Quickshell.env("XDG_RUNTIME_DIR") + "/ikigai-psk"
 
     function wifiIcon(level) {
