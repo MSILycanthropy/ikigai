@@ -1,19 +1,15 @@
 #!/usr/bin/env bash
-# Arch ships no firewall. Deny incoming, allow outgoing, keep ssh when it is enabled,
-# and let ufw-docker close the hole Docker's own iptables rules punch through ufw for
-# published ports. Containers may still reach the host's DNS.
+# Arch ships no firewall; bin/ikigai-firewall sets one up with ufw. It needs the nf_tables
+# module, which the running kernel cannot load once pacman has upgraded it (its modules are
+# gone from disk until a reboot), and never inside archinstall's chroot. Apply now when the
+# kernel can take it, otherwise on first boot through the oneshot unit.
 set -euo pipefail
 
-sudo ufw default deny incoming
-sudo ufw default allow outgoing
-if systemctl is-enabled -q sshd 2>/dev/null; then
-  sudo ufw allow ssh
-fi
-sudo ufw allow in proto udp from 172.16.0.0/12 to 172.17.0.1 port 53 comment 'docker dns'
-sudo ufw allow in proto udp from 192.168.0.0/16 to 172.17.0.1 port 53 comment 'docker dns'
+sudo install -Dm644 "$IKIGAI_PATH/firewall/ikigai-firewall.service" /usr/local/lib/systemd/system/ikigai-firewall.service
+sudo systemctl enable -q ikigai-firewall
 
-sudo ufw --force enable
-sudo ufw-docker install
-sudo systemctl enable --now ufw
-sudo ufw reload
-sudo ufw status verbose | head -5
+if sudo iptables -V >/dev/null 2>&1; then
+  sudo ikigai-firewall
+else
+  echo "firewall: kernel upgraded, rules apply on first boot"
+fi
