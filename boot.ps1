@@ -13,7 +13,8 @@ param(
   [int]$GB = 0,
   [string]$Ref = 'main',
   [switch]$Undo,
-  [switch]$Yes
+  [switch]$Yes,
+  [switch]$NoReboot
 )
 
 $ErrorActionPreference = 'Stop'
@@ -87,6 +88,9 @@ function Test-Preflight($target) {
   Note "C: can shrink by $($target.ShrinkGB) GB, need $need"
 }
 
+# A plain data partition on purpose: typed as ESP, Windows drops its volume and letter
+# until a reboot, and -Undo could not find it. UEFI loads the boot file by partition
+# and path and does not care about the type.
 function Get-Stage($target) {
   Get-Partition -DiskNumber $target.Disk.Number | Get-Volume -ErrorAction SilentlyContinue |
     Where-Object FileSystemLabel -eq $Label | Get-Partition | Select-Object -First 1
@@ -101,10 +105,16 @@ function New-Stage($target) {
 
   Step 'Making room'
   $take = $StageGB + $(if ($Mode -eq 'dual') { $GB } else { 0 })
-  Resize-Partition -DriveLetter C -Size ($target.Partition.Size - $take * 1GB)
-  Note "C: shrunk by $take GB"
+  if ((Get-Disk -Number $target.Disk.Number).LargestFreeExtent -ge $take * 1GB - 64MB) {
+    Note "using the $take GB already free"
+  }
+  else {
+    Resize-Partition -DriveLetter C -Size ($target.Partition.Size - $take * 1GB)
+    Note "C: shrunk by $take GB"
+  }
 
-  $stage = New-Partition -DiskNumber $target.Disk.Number -Size ($StageGB * 1GB) -AssignDriveLetter
+  # A little under the gap: GPT's backup table and alignment take the last few MB of a disk.
+  $stage = New-Partition -DiskNumber $target.Disk.Number -Size ($StageGB * 1GB - 64MB) -AssignDriveLetter
   Format-Volume -Partition $stage -FileSystem FAT32 -NewFileSystemLabel $Label -Confirm:$false | Out-Null
   $stage = Get-Partition -DiskNumber $stage.DiskNumber -PartitionNumber $stage.PartitionNumber
   Note "$Label partition is $($stage.DriveLetter): ($StageGB GB)"
@@ -132,6 +142,49 @@ function Get-Iso($stage) {
   $iso
 }
 
+# The ISO's own systemd-boot, kernel and initramfs, at the paths its loader entry
+# expects. The initramfs loop-mounts the ISO next to them and copies it to RAM, so
+# the disk is free by the time the live system is up.
+function Install-Boot($stage, $iso) {
+  Step 'Staging the boot'
+  $d = "$($stage.DriveLetter):"
+  Mount-DiskImage -ImagePath $iso | Out-Null
+  try {
+    $src = $null
+    foreach ($i in 1..20) {
+      $src = (Get-DiskImage -ImagePath $iso | Get-Volume).DriveLetter
+      if ($src) { break }
+      Start-Sleep 1
+    }
+    if (-not $src) { throw 'the mounted ISO got no drive letter' }
+    New-Item -ItemType Directory -Force "$d\EFI\BOOT", "$d\arch\boot\x86_64", "$d\loader\entries" | Out-Null
+    Copy-Item "${src}:\EFI\BOOT\BOOTx64.EFI" "$d\EFI\BOOT\"
+    Copy-Item "${src}:\arch\boot\x86_64\vmlinuz-linux", "${src}:\arch\boot\x86_64\initramfs-linux.img" "$d\arch\boot\x86_64\"
+  }
+  finally { Dismount-DiskImage -ImagePath $iso | Out-Null }
+
+  $options = "archisobasedir=arch img_label=$Label img_loop=/archlinux-x86_64.iso copytoram=y " +
+    "script=$Raw/windows/live.sh ikigai.mode=$Mode ikigai.ref=$Ref"
+  [IO.File]::WriteAllText("$d\loader\loader.conf", "timeout 3`ndefault ikigai.conf`n")
+  [IO.File]::WriteAllText("$d\loader\entries\ikigai.conf",
+    "title Ikigai installer`nlinux /arch/boot/x86_64/vmlinuz-linux`ninitrd /arch/boot/x86_64/initramfs-linux.img`noptions $options`n")
+  Note 'systemd-boot, kernel, initramfs and loader entry in place'
+}
+
+# A firmware boot entry cloned from Windows' own, pointed at the staging partition,
+# and queued for the next boot only: if it fails, Windows is back on the boot after.
+function Add-BootEntry($stage) {
+  Step 'Queuing the installer for the next boot'
+  $out = bcdedit /copy '{bootmgr}' /d $Description
+  $id = [regex]::Match("$out", '\{[0-9a-f-]+\}').Value
+  if ($LASTEXITCODE -ne 0 -or -not $id) { throw "bcdedit /copy failed: $out" }
+  bcdedit /set $id device "partition=$($stage.DriveLetter):" | Out-Null
+  bcdedit /set $id path '\EFI\BOOT\BOOTx64.EFI' | Out-Null
+  bcdedit /set '{fwbootmgr}' bootsequence $id | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw 'bcdedit could not queue the boot entry' }
+  Note "boot entry $id, once"
+}
+
 function Undo-Ikigai($target) {
   Step 'Undoing'
   $entries = (bcdedit /enum firmware) -join "`n" -split "`n`n" |
@@ -139,11 +192,8 @@ function Undo-Ikigai($target) {
     ForEach-Object { [regex]::Match($_, '\{[0-9a-f-]+\}').Value }
   foreach ($id in $entries) { bcdedit /delete $id | Out-Null; Note "removed boot entry $id" }
 
-  Get-Partition -DiskNumber $target.Disk.Number | Get-Volume -ErrorAction SilentlyContinue |
-    Where-Object FileSystemLabel -eq $Label | Get-Partition | ForEach-Object {
-      Remove-Partition -InputObject $_ -Confirm:$false
-      Note "removed the $Label partition"
-    }
+  $stage = Get-Stage $target
+  if ($stage) { Remove-Partition -InputObject $stage -Confirm:$false; Note "removed the $Label partition" }
 
   $max = (Get-PartitionSupportedSize -DriveLetter C).SizeMax
   if ($max - $target.Partition.Size -gt 1MB) {
@@ -172,7 +222,15 @@ try {
   Test-Preflight $target
   $stage = New-Stage $target
   $iso = Get-Iso $stage
-  Step "Staged. Nothing boots yet; the next steps are not written. Undo with -Undo."
+  Install-Boot $stage $iso
+  Add-BootEntry $stage
+
+  Step 'Ready'
+  Write-Host "    On restart this PC boots the Arch installer once. It asks for a user, a password"
+  Write-Host "    and a timezone, confirms the disk, installs Ikigai and reboots into it."
+  Write-Host "    Windows is untouched until you confirm that disk. Changed your mind? Run this with -Undo."
+  if ($NoReboot) { Note 'not restarting (-NoReboot)'; return }
+  Restart-Computer -Force
 }
 catch {
   Write-Host "boot.ps1: $($_.Exception.Message)" -ForegroundColor Red
