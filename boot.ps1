@@ -14,7 +14,8 @@ param(
   [string]$Ref = 'main',
   [switch]$Undo,
   [switch]$Yes,
-  [switch]$NoReboot
+  [switch]$NoReboot,
+  [string]$Raw
 )
 
 $ErrorActionPreference = 'Stop'
@@ -22,7 +23,7 @@ $Label = 'IKIGAI'
 $StageGB = 2
 $Description = 'Ikigai installer'
 $Mirror = 'https://geo.mirror.pkgbuild.com/iso/latest'
-$Raw = "https://raw.githubusercontent.com/MSILycanthropy/ikigai/$Ref"
+if (-not $Raw) { $Raw = "https://raw.githubusercontent.com/MSILycanthropy/ikigai/$Ref" }
 
 function Step($text) { Write-Host "==> $text" -ForegroundColor Cyan }
 function Note($text) { Write-Host "    $text" -ForegroundColor DarkGray }
@@ -164,7 +165,7 @@ function Install-Boot($stage, $iso) {
   finally { Dismount-DiskImage -ImagePath $iso | Out-Null }
 
   $options = "archisobasedir=arch img_label=$Label img_loop=/archlinux-x86_64.iso copytoram=y " +
-    "script=$Raw/windows/live.sh ikigai.mode=$Mode ikigai.ref=$Ref"
+    "script=$Raw/windows/live.sh ikigai.mode=$Mode ikigai.ref=$Ref ikigai.raw=$Raw"
   [IO.File]::WriteAllText("$d\loader\loader.conf", "timeout 3`ndefault ikigai.conf`n")
   [IO.File]::WriteAllText("$d\loader\entries\ikigai.conf",
     "title Ikigai installer`nlinux /arch/boot/x86_64/vmlinuz-linux`ninitrd /arch/boot/x86_64/initramfs-linux.img`noptions $options`n")
