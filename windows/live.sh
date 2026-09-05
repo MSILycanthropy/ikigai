@@ -87,7 +87,10 @@ curl -fsSL "$raw/archinstall.json" \
 
 say "archinstall: set a user and password and your timezone, then Install"
 archinstall --config "$config"
-[ -f /mnt/archinstall/etc/fstab ] || die "nothing was installed. 'reboot' brings Windows back; run boot.ps1 again from there"
+[ -f /mnt/etc/fstab ] || die "nothing was installed. 'reboot' brings Windows back; run boot.ps1 again from there"
+
+# The one-shot entry boot.ps1 registered points at a partition that no longer exists.
+efibootmgr | sed -n 's/^Boot\([0-9A-F]*\)\* Ikigai installer.*/\1/p' | xargs -rI{} efibootmgr -q -b {} -B
 
 lsblk -o name,size,fstype,label,mountpoints "$disk"
 say "Done. 'reboot' when ready."
