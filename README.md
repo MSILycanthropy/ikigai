@@ -101,6 +101,10 @@ type the word.
 - **Theme files are Ikigai-owned** and re-applied by `ikigai-theme-set ikigai`. Any
   COSMIC theme customised in Settings is backed up to `~/.local/state/ikigai/backup/`
   before being replaced.
+- **The installer shows a step list**: spinner, elapsed time per step and the last log
+  line under the running one; a failed step prints its last 20 log lines. Everything a
+  step printed is in `~/.local/state/ikigai/install.log`. Without a terminal (archinstall,
+  `IKIGAI_PLAIN=1`) it prints plain `==> [n/10]` lines instead.
 - **No AUR helper in the installer.** AUR packages are built with `makepkg`; `paru`
   is installed (from source) for *you* to use afterwards.
 - **One session.** `ikigai-session` (Rust, `session/`) starts cosmic-comp on its own,
