@@ -10,7 +10,8 @@ sudo systemd-sysusers ikigai-greeter.conf
 sudo systemd-tmpfiles --create ikigai-greeter.conf
 sudo install -Dm644 "$G/ikigai-greeter.toml" /etc/greetd/ikigai-greeter.toml
 sudo install -Dm644 "$G/ikigai-greeter.service" /usr/local/lib/systemd/system/ikigai-greeter.service
-sudo systemctl daemon-reload
+# No running systemd inside archinstall's chroot; enable works on the files alone.
+sudo systemctl daemon-reload 2>/dev/null || true
 
 # Display managers alias display-manager.service and only one can hold it: step aside
 # whichever is enabled (cosmic-greeter, gdm, sddm) or our enable fails.
