@@ -32,7 +32,7 @@ is an experimental greeter entry next to stock COSMIC.
 | First login | Nothing. cosmic-initial-setup is dropped at the swap; locale/keyboard come from archinstall or the existing system. |
 | Greeter | Built 2026-09-04 (commits caf8987, 6055f48), ahead of D–G. greetd (`greeter/ikigai-greeter.toml`, unit aliasing display-manager.service) runs `bin/ikigai-greeter` as the `ikigai-greeter` user: `cosmic-comp --no-xwayland qs -p shell/greeter.qml` (kiosk mode: comp exits with its client, greetd then starts the session). No daemon: theme + wallpaper from `/usr/local/share/ikigai/theme` (written by theme-set, `IKIGAI_THEME_FILE`), users from `/etc/passwd` in login.defs's UID range, avatars from `/var/lib/AccountsService/icons` (world-readable, cosmic-settings writes them), sessions parsed from `/usr/share/wayland-sessions` so both are offered until the swap, last choice in the greeter's home. Gaps: keyboard layout is the compositor default (seed from archinstall's choice later); no caps-lock hint; verified under llvmpipe only. cosmic-greeter dropped at the swap; the pills vanish with `cosmic.desktop` (verified). `install/greeter.sh` disables whichever unit holds the display-manager alias, not just cosmic-greeter (8947a11). |
 | Lock | Done 2026-09-04: `shell/Lock.qml` (`WlSessionLock` + `PamContext` config "login") on `AuthCard`, the greeter's card. Triggers all go through logind: `ikigai-session` runs `gdbus monitor --system --dest org.freedesktop.login1` and relays Lock/Unlock for its own session path and PrepareForSleep(true) as `ikigai-shell session lock\|unlock`. Gotcha: cosmic-comp only focuses a lock surface during a focus fixup, never on an empty desktop → Lock maps a 1 px exclusive layer ("bait") before locking and unmaps it after. Not done: SetLockedHint to logind; the card only on the first screen. |
-| The swap | Built 2026-09-04, fresh-install runs pending. `install/packages.sh` (5499385): cosmic-comp, cosmic-bg, cosmic-settings, cosmic-settings-daemon, cosmic-idle, cosmic-randr, cosmic-icon-theme, cosmic-sound-theme, cosmic-files, xdg-desktop-portal-cosmic, greetd replace the `cosmic` group (a pacman group, not a meta) and cosmic-greeter. Dropped: session, panel, applets, notifications, launcher, osd, workspaces, app-library, initial-setup, greeter, screenshot, terminal, text-editor, player, monitor, store, wallpapers (~400 MB). Nothing kept depends on anything dropped; the portal's unit has no cosmic-session dependency; the GTK portal stays as gtk4's dep; default handlers all resolve to ours. `system_actions` off the dropped binaries (77be597): Super+A → `vicinae toggle`, Super+W → `ikigai-shell taskview toggle` (71eb126), Super+P → `cosmic-settings displays`, TouchpadToggle unbound. `CosmicAppList` seed dropped (463894b). In-place smoke test on the VM: `pacman -Rs` of the drop list, greeter without pills, session units + portal up. VM-only gotcha: greetd was a dep of cosmic-greeter there and went with it (a fresh install names it). `ikigai.desktop` is the only session entry. No migration: v1 only ever existed on the VM. |
+| The swap | Done 2026-09-05: fresh installs on both paths (A from `vanilla-keyed`, checkpoint `v2`; B via `archinstall --config-url` on VM `ikigai-b`, checkpoint `v2-b`), greeter login, Super+W, Settings in Vicinae and the polkit card confirmed at the console. Found by path A: `pacman -Syu` upgrades the kernel mid-install and the running one can then load no new module, so ufw failed (nf_tables); archinstall's chroot has the same shape always. Fix 91d8947: `bin/ikigai-firewall` + `firewall/ikigai-firewall.service`, a first-boot oneshot when `iptables -V` fails at install time (Omarchy does the same at first login, plus `kernel-modules-hook`). Also 026953c: no `daemon-reload` hard failure in the chroot. `install/packages.sh` (5499385): cosmic-comp, cosmic-bg, cosmic-settings, cosmic-settings-daemon, cosmic-idle, cosmic-randr, cosmic-icon-theme, cosmic-sound-theme, cosmic-files, xdg-desktop-portal-cosmic, greetd replace the `cosmic` group (a pacman group, not a meta) and cosmic-greeter. Dropped: session, panel, applets, notifications, launcher, osd, workspaces, app-library, initial-setup, greeter, screenshot, terminal, text-editor, player, monitor, store, wallpapers (~400 MB). Nothing kept depends on anything dropped; the portal's unit has no cosmic-session dependency; the GTK portal stays as gtk4's dep; default handlers all resolve to ours. `system_actions` off the dropped binaries (77be597): Super+A → `vicinae toggle`, Super+W → `ikigai-shell taskview toggle` (71eb126), Super+P → `cosmic-settings displays`, TouchpadToggle unbound. `CosmicAppList` seed dropped (463894b). In-place smoke test on the VM: `pacman -Rs` of the drop list, greeter without pills, session units + portal up. VM-only gotcha: greetd was a dep of cosmic-greeter there and went with it (a fresh install names it). `ikigai.desktop` is the only session entry. No migration: v1 only ever existed on the VM. |
 
 ## Steps
 
@@ -60,14 +60,24 @@ Launcher row) once the patched Qt made layer-shell teardown safe on cosmic-comp.
 
 **F. Daemons.** Done 2026-09-04, with the lock screen (see the Lock row) instead of borrowing cosmic-greeter's locker.
 
-**G. The swap.** Built 2026-09-04 (The swap, Polkit, Launcher, Settings app rows; README
-7553159). Left: fresh-install test on both archinstall paths, new `docs/desktop.png`,
-checkpoint `v2`.
+**G. The swap.** Done 2026-09-05 (The swap, Polkit, Launcher, Settings app rows; README
+7553159; both fresh installs, checkpoints `v2` and `v2-b`). Left: a new `docs/desktop.png`.
 
 **H. Greeter + lock.** Both done (Greeter and Lock rows); cosmic-greeter dropped at the swap.
 A first-login welcome card in the shell (keys, the rail, where settings live) was decided
-2026-09-04 in place of cosmic-initial-setup; not built. After G with it: a settings card for
-the rail, network and battery on the rail.
+2026-09-04 in place of cosmic-initial-setup; not built.
+
+## After G (order decided 2026-09-05)
+
+1. Welcome card (first login: keys, the rail, where settings live).
+2. Settings card for the rail (autohide, scale; icon overrides on the app's menu).
+3. Network and battery on the rail.
+4. Installer UI: step list with spinner, elapsed time per step, last log line under the
+   current step, failure tail; plain lines when there is no TTY (archinstall's chroot).
+   Bash-only, in `install.sh`; gum only if branding wants it.
+5. `kernel-modules-hook` in the package list (keeps the running kernel's modules after an
+   upgrade until reboot); does not help the install itself, protects every upgrade after.
+6. Polkit identity chooser; greeter keyboard layout from archinstall's choice.
 
 ## Apps (decided 2026-09-03)
 
