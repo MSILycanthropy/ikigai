@@ -7,7 +7,7 @@ import QtQuick.Effects
 // The first-login card: keys, the rail, where settings live. Shown once per user, a
 // moment after the shell starts, while ~/.local/state/ikigai/welcomed is missing; closing
 // writes it. `ikigai-shell welcome open` brings it back. A box with no connectivity gets
-// a button to Settings' Wi-Fi page, until the rail has its own network item.
+// a button that opens the rail's network card.
 Scope {
     id: scope
 
@@ -30,8 +30,8 @@ Scope {
     }
 
     function wifi() {
-        Apps.spawn(["cosmic-settings", "wireless"]);
         close();
+        Network.cardRequested();
     }
 
     IpcHandler {
@@ -104,46 +104,6 @@ Scope {
         font.family: Theme.fontFamily
         font.pointSize: Theme.fontSize
         wrapMode: Text.Wrap
-    }
-
-    component Pill: Rectangle {
-        id: pill
-
-        property string label
-        property bool primary: false
-
-        signal clicked
-
-        width: pillText.width + Math.round(28 * Config.scale)
-        height: Math.round(36 * Config.scale)
-        radius: height / 2
-        color: primary ? Theme.colors.primary : Theme.colors.surfaceContainerHigh
-
-        Text {
-            id: pillText
-            anchors.centerIn: parent
-            text: pill.label
-            color: pill.primary ? Theme.colors.primaryFg : Theme.colors.primary
-            font.family: Theme.fontFamily
-            font.pointSize: Theme.fontSize
-            font.weight: Font.Medium
-        }
-
-        StateLayer {
-            radius: parent.radius
-            hovered: pillHover.hovered
-            pressed: pillPress.pressed
-        }
-
-        HoverHandler {
-            id: pillHover
-        }
-
-        MouseArea {
-            id: pillPress
-            anchors.fill: parent
-            onClicked: pill.clicked()
-        }
     }
 
     LazyLoader {

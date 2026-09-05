@@ -12,6 +12,7 @@ Item {
     readonly property bool workspacesOpen: current === workspaces
     readonly property bool volumeOpen: current === volume
     readonly property bool batteryOpen: current === battery
+    readonly property bool networkOpen: current === network
     readonly property Item card: frame.height > 0 ? frame : null
 
     width: 280
@@ -45,6 +46,13 @@ Item {
             close();
         else
             show(tray, at, item);
+    }
+
+    function toggleNetwork(at) {
+        if (current === network)
+            close();
+        else
+            show(network, at, null);
     }
 
     function toggleBattery(at) {
@@ -138,6 +146,12 @@ Item {
         BatteryCard {
             id: battery
             shown: popouts.current === battery
+            onDone: popouts.close()
+        }
+
+        NetworkCard {
+            id: network
+            shown: popouts.current === network
             onDone: popouts.close()
         }
     }
