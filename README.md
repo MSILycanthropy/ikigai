@@ -65,7 +65,7 @@ whichever one you had, and cosmic-comp's defaults land as system config next to 
 | Dev | [gh](https://cli.github.com), [just](https://just.systems), and [Claude Code](https://code.claude.com) through its native installer (`~/.local/bin/claude`, updates itself) |
 | Runtimes | [mise](https://mise.jdx.dev) — `mise use -g node@lts`; Arch builds mise without `self-update`, pacman updates it. Docker + lazydocker (you're added to the `docker` group, which is root-equivalent) |
 | TUIs | yazi (`y`), lazygit (`lg`), btop |
-| CLI | ripgrep, fd, fzf, bat, eza, dust, git-delta, tealdeer, jq — with `ls`/`cat`/`du`/`grep` aliased to the modern ones |
+| CLI | ripgrep, fd, fzf, bat, eza, dust, git-delta, tealdeer, jq, fastfetch (with the black holes as its logo) — with `ls`/`cat`/`du`/`grep` aliased to the modern ones |
 | Fonts | JetBrainsMono Nerd Font, Noto |
 | Firewall | ufw, deny incoming and allow outgoing, ssh kept when sshd is enabled; ufw-docker so Docker's published ports respect it |
 | Gaming | Not installed by default. `ikigai-steam` installs Steam, the 32-bit driver for your GPU, gamemode, gamescope and mangohud and launches it; Proton comes with Steam, [protonup-qt](https://github.com/DavidoTek/ProtonUp-Qt) for Proton-GE |

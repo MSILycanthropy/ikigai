@@ -36,6 +36,8 @@ seed satty/config.toml       "$HOME/.config/satty/config.toml"
 seed mpv/mpv.conf            "$HOME/.config/mpv/mpv.conf"
 seed gtk-3.0/settings.ini    "$HOME/.config/gtk-3.0/settings.ini"
 seed gtk-4.0/settings.ini    "$HOME/.config/gtk-4.0/settings.ini"
+seed fastfetch/config.jsonc  "$HOME/.config/fastfetch/config.jsonc"
+seed fastfetch/logo.txt      "$HOME/.config/fastfetch/logo.txt"
 
 if [ ${#skipped[@]} -gt 0 ]; then
   echo "kept existing (IKIGAI_FORCE=1 to overwrite):"
