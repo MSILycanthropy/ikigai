@@ -21,6 +21,7 @@ Singleton {
         "dev.zed.Zed": "brand:zed",
         "com.github.th-ch.youtube-music": "youtube-logo",
         "discord": "discord-logo",
+        "steam": "steam-logo",
         "com.system76.CosmicSettings": "gear"
     })
     readonly property var categories: ({

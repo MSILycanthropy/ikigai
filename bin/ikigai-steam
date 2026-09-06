@@ -20,5 +20,12 @@ echo "  gamemoderun %command%            performance governor while the game run
 echo "  mangohud %command%               fps and hardware overlay"
 echo "  gamescope -f -- %command%        nested session: forced resolution, FSR, sane fullscreen"
 echo "Proton-GE: protonup-qt (AUR) installs community Proton builds Steam can pick per game."
+# Pin Steam to the rail, once. The shell watches shell.json, so this lands live.
+cfg="${XDG_CONFIG_HOME:-$HOME/.config}/ikigai/shell.json"
+if [ -f "$cfg" ] && ! jq -e '([(.pinned.top // [])[], (.pinned.bottom // [])[]] | index("steam")) != null' "$cfg" >/dev/null; then
+  tmp=$(mktemp "$cfg.XXXXXX")
+  jq '.pinned.bottom = ((.pinned.bottom // []) + ["steam"])' "$cfg" > "$tmp" && mv "$tmp" "$cfg" || rm -f "$tmp"
+fi
+
 [ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ] && setsid steam >/dev/null 2>&1 &
 exit 0
