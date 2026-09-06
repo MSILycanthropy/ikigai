@@ -6,6 +6,8 @@ import QtQuick
 Item {
     id: popouts
 
+    // The screen this rail sits on: a workspace list is per output.
+    property var screen: null
     property Item anchorItem: null
     property bool hovered: false
     property Item current: null
@@ -127,6 +129,7 @@ Item {
 
         Workspaces {
             id: workspaces
+            screen: popouts.screen
             shown: popouts.current === workspaces
             onDone: popouts.close()
         }

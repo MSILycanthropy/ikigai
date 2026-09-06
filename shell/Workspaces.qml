@@ -1,9 +1,12 @@
 import Quickshell
 import QtQuick
 
+// The workspaces of the screen this rail lives on. Every output carries its own 1, 2, ...,
+// so listing all of them shows each number twice.
 PopupCard {
     id: popup
 
+    property var screen: null
 
     implicitWidth: 260
     implicitHeight: list.implicitHeight + 12
@@ -17,7 +20,7 @@ PopupCard {
         }
 
         Repeater {
-            model: Bridge.workspaces
+            model: Bridge.workspaces.filter(w => !popup.screen || w.outputs.includes(popup.screen.name))
 
             Item {
                 id: row

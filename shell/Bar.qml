@@ -287,6 +287,7 @@ PanelWindow {
 
         Popouts {
             id: popouts
+            screen: bar.screen
             x: bar.railWidth
             height: parent.height
             hovered: hover.hovered
