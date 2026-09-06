@@ -7,7 +7,8 @@ import QtQuick
 Item {
     id: sidebar
 
-    readonly property bool open: Notifs.sidebarOpen
+    property bool active: true
+    readonly property bool open: active && Notifs.sidebarOpen
     readonly property int pad: Math.round(16 * Config.scale)
 
     width: Math.round(360 * Config.scale)

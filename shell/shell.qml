@@ -39,7 +39,7 @@ ShellRoot {
         target: "sidebar"
 
         function toggle(): void {
-            Notifs.sidebarOpen = !Notifs.sidebarOpen;
+            Notifs.toggleSidebar(Notifs.screen);
         }
     }
 }

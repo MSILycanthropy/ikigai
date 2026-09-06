@@ -11,8 +11,10 @@ PanelWindow {
     id: bar
 
     property bool shown: true
+    // Toasts belong to one screen, not to every rail.
+    readonly property bool showsToasts: bar.screen === Notifs.screen
     // Hovering the toasts is not a request for the rail; an open sidebar keeps it out.
-    readonly property bool wanted: !Config.autohide || Notifs.sidebarOpen || (hover.hovered && !toasts.hovered)
+    readonly property bool wanted: !Config.autohide || sidebar.open || (hover.hovered && !toasts.hovered)
     property real reveal: shown ? 1 : 0
     // The left border thickens into the rail as it reveals.
     readonly property real railWidth: Theme.border + (Theme.barWidth - Theme.border) * reveal
@@ -33,7 +35,7 @@ PanelWindow {
     mask: Region {
         x: 0
         y: 0
-        width: Notifs.sidebarOpen ? bar.width : bar.railWidth
+        width: sidebar.open ? bar.width : bar.railWidth
         height: bar.height
 
         regions: [
@@ -115,8 +117,8 @@ PanelWindow {
 
         MouseArea {
             anchors.fill: parent
-            enabled: Notifs.sidebarOpen
-            onClicked: Notifs.sidebarOpen = false
+            enabled: sidebar.open
+            onClicked: Notifs.sidebarScreen = null
         }
 
         Item {
@@ -191,7 +193,7 @@ PanelWindow {
                 group: blobs
                 x: sidebar.x + sidebar.width + 50 - implicitWidth
                 y: sidebar.y
-                implicitWidth: Notifs.sidebarOpen ? sidebar.width + 50 : 0
+                implicitWidth: sidebar.open ? sidebar.width + 50 : 0
                 implicitHeight: sidebar.height
                 radius: Theme.cardRadius
                 deformScale: 0.15 / 10000
@@ -204,7 +206,8 @@ PanelWindow {
 
         Toasts {
             id: toasts
-            visible: !Notifs.sidebarOpen
+            active: bar.showsToasts
+            visible: !sidebar.open
             anchors {
                 top: parent.top
                 right: parent.right
@@ -273,6 +276,7 @@ PanelWindow {
 
             Clock {
                 id: clock
+                screen: bar.screen
                 anchors {
                     bottom: parent.bottom
                     bottomMargin: Theme.border + 4
@@ -299,6 +303,7 @@ PanelWindow {
 
         Sidebar {
             id: sidebar
+            active: Notifs.sidebarScreen === bar.screen
             anchors {
                 top: parent.top
                 bottom: parent.bottom

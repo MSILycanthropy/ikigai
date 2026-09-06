@@ -12,6 +12,7 @@ Singleton {
     property alias autohide: config.autohide
     property alias scale: config.scale
     property alias dnd: config.dnd
+    property alias monitor: config.monitor
 
     function pin(appId) {
         config.pinned.top = [...config.pinned.top, appId];
@@ -46,6 +47,7 @@ Singleton {
             property bool autohide: true
             property real scale: 1.0
             property bool dnd: false
+            property string monitor: ""
         }
     }
 }

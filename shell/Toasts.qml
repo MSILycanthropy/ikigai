@@ -7,6 +7,9 @@ Column {
     id: toasts
 
     readonly property alias hovered: hover.hovered
+    // Off on the other screens: an empty column takes no space, so Bar's blob and mask
+    // collapse with it.
+    property bool active: true
 
     spacing: 0
 
@@ -24,7 +27,7 @@ Column {
 
     Repeater {
         model: ScriptModel {
-            values: Notifs.toasts
+            values: toasts.active ? Notifs.toasts : []
         }
 
         Toast {}

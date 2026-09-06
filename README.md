@@ -66,7 +66,7 @@ whichever one you had, and cosmic-comp's defaults land as system config next to 
 | Network | NetworkManager, on the rail: the Wi-Fi strength or the wired link as the glyph, a card with the Wi-Fi switch, the wired link and the networks in range. Click to connect; a new secured network asks for its password in a window; the connected row expands to Disconnect and Forget. cosmic-settings' Network page for VPNs and the rest |
 | Battery | On the rail when there is one: level and charging state as the glyph, a card with the time left and the power profile (upower, power-profiles-daemon) |
 | Bluetooth | bluez, enabled at install; pairing on cosmic-settings' Bluetooth page. Nothing on the rail yet |
-| Settings | cosmic-settings, with the rail in place of its panel: the Panel and Dock pages are inert, everything else works. The rail's own settings (pins, autohide, scale) are in `~/.config/ikigai/shell.json` for now |
+| Settings | cosmic-settings, with the rail in place of its panel: the Panel and Dock pages are inert, everything else works. The rail's own settings (pins, autohide, scale, the monitor toasts go to) are in `~/.config/ikigai/shell.json` for now |
 | Video | [mpv](https://mpv.io) with hardware decoding, fuzzy subtitle matching and resume-where-you-left-off seeded |
 | Images | [cosmic-viewer](https://github.com/pop-os/cosmic-viewer), COSMIC's own image viewer: crop, rotate, markup, set as wallpaper (AUR `cosmic-viewer-git`) |
 | Screenshots | `Print` freezes the screen and opens the shell's picker: Region, Window or Screen, then Snip, Edit or Record. Snip puts the PNG on the clipboard and in `~/Pictures/Screenshots`; Edit opens it in [satty](https://github.com/gabm/Satty); Record starts [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/) on it with the system's audio, shows a dot and timer on the rail, and `Super+Shift+R` or a click on the dot stops it with the file's path (`~/Videos/Recordings`) on the clipboard. `Shift+Print` starts in Screen mode. Captured by [grim](https://gitlab.freedesktop.org/emersion/grim) over ext-image-copy-capture |
@@ -133,9 +133,10 @@ type the word.
   the Ikigai theme and telemetry off, and its welcome tour runs on first login. The shell
   reads its theme from `~/.local/state/ikigai/shell-theme.json` (written by
   `ikigai-theme-set`) and your settings from `~/.config/ikigai/shell.json` (seeded once:
-  pinned apps, autohide, scale); both reload live. cosmic-comp's shortcuts point at the
-  shell over `ikigai-shell <target> <call>` (Quickshell IPC). `ikigai.desktop` is the only
-  session entry.
+  pinned apps, autohide, scale, and `monitor`, the output toasts appear on — empty for
+  the first one); both reload live. cosmic-comp's shortcuts point at the shell over
+  `ikigai-shell <target> <call>` (Quickshell IPC). `ikigai.desktop` is the only session
+  entry.
 - **The greeter is the shell.** greetd runs `ikigai-greeter` as its own user: cosmic-comp
   in kiosk mode with the Quickshell greeter as its only client. No daemon: theme and
   wallpaper from `/usr/local/share/ikigai/theme`, users from `/etc/passwd`, avatars from

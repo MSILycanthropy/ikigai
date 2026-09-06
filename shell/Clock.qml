@@ -4,6 +4,10 @@ import QtQuick
 // Stacked clock for a narrow rail: hours over minutes, date beneath. Click opens the
 // sidebar; a badge counts notifications not yet seen there.
 Item {
+    id: root
+
+    required property ShellScreen screen
+
     implicitWidth: Theme.barWidth
     implicitHeight: column.implicitHeight
 
@@ -14,7 +18,7 @@ Item {
 
     StateLayer {
         hovered: hover.hovered
-        active: Notifs.sidebarOpen
+        active: Notifs.sidebarScreen === root.screen
     }
 
     Column {
@@ -80,6 +84,6 @@ Item {
 
     MouseArea {
         anchors.fill: parent
-        onClicked: Notifs.sidebarOpen = !Notifs.sidebarOpen
+        onClicked: Notifs.toggleSidebar(root.screen)
     }
 }

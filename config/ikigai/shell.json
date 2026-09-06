@@ -6,5 +6,6 @@
   "icons": {},
   "autohide": true,
   "scale": 1.0,
-  "dnd": false
+  "dnd": false,
+  "monitor": ""
 }
