@@ -23,6 +23,12 @@ done
 # The blob renderer is a Qt Quick plugin (shell/plugin); the shell unit adds
 # /usr/local/lib/qt6/qml to the QML import path.
 BLOBS_BUILD="${XDG_CACHE_HOME:-$HOME/.cache}/ikigai/build/blobs"
+# The cache pins the source directory, so a checkout at another path (a working tree next
+# to ~/.local/share/ikigai) makes cmake refuse to configure: start that build over.
+if [ -f "$BLOBS_BUILD/CMakeCache.txt" ] &&
+  ! grep -qxF "CMAKE_HOME_DIRECTORY:INTERNAL=$IKIGAI_PATH/shell/plugin" "$BLOBS_BUILD/CMakeCache.txt"; then
+  rm -rf "$BLOBS_BUILD"
+fi
 cmake -S "$IKIGAI_PATH/shell/plugin" -B "$BLOBS_BUILD" -G Ninja -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_INSTALL_LIBDIR=lib >/dev/null
 cmake --build "$BLOBS_BUILD" >/dev/null
