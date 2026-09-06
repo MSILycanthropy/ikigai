@@ -85,25 +85,47 @@ Item {
             font.pointSize: Theme.fontSize
         }
 
-        Glyph {
+        // Close control: a round button that turns to the error colour under the pointer,
+        // like the X on a Windows switcher tile.
+        Rectangle {
             id: closeGlyph
             anchors {
                 right: parent.right
                 verticalCenter: parent.verticalCenter
             }
+            width: Math.round(22 * Config.scale)
+            height: width
+            radius: width / 2
             visible: tile.closable
-            name: "x"
-            size: 14
-            color: Theme.colors.fgVariant
+            color: closeHover.hovered ? Theme.colors.error : "transparent"
             opacity: hover.hovered ? 1 : 0
 
             Behavior on opacity {
                 Anim { effects: true; fast: true }
             }
 
+            Behavior on color {
+                ColorAnim {}
+            }
+
+            Glyph {
+                anchors.centerIn: parent
+                name: "x"
+                size: 14
+                color: closeHover.hovered ? Theme.colors.surface : Theme.colors.fgVariant
+
+                Behavior on color {
+                    ColorAnim {}
+                }
+            }
+
+            HoverHandler {
+                id: closeHover
+            }
+
             MouseArea {
                 anchors.fill: parent
-                anchors.margins: -6
+                anchors.margins: -4
                 onClicked: tile.closeRequested()
             }
         }

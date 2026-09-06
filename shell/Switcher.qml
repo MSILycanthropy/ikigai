@@ -49,6 +49,12 @@ Scope {
         dismiss();
     }
 
+    // Closing a window from the switcher leaves it open; the closed event drops the entry.
+    function close(i) {
+        if (open && !closing && order[i])
+            Bridge.close(order[i].id);
+    }
+
     function cancel() {
         if (closing)
             return;
@@ -154,6 +160,7 @@ Scope {
                     case Qt.Key_Escape: switcher.cancel(); break;
                     case Qt.Key_Left: switcher.step(-1); break;
                     case Qt.Key_Right: switcher.step(1); break;
+                    case Qt.Key_Delete: switcher.close(switcher.index); break;
                     case Qt.Key_Return:
                     case Qt.Key_Enter:
                     case Qt.Key_Space: switcher.commit(switcher.index); break;
@@ -211,7 +218,9 @@ Scope {
                             entry: modelData
                             selected: index === switcher.index
                             width: window.tileWidth
+                            closable: true
                             onClicked: switcher.commit(index)
+                            onCloseRequested: switcher.close(index)
                         }
                     }
                 }
