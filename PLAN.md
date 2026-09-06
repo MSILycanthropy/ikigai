@@ -80,11 +80,17 @@ The first-login welcome card (First login row) landed 2026-09-05.
 5. `kernel-modules-hook` in the package list (keeps the running kernel's modules after an
    upgrade until reboot); does not help the install itself, protects every upgrade after.
 6. Polkit identity chooser; greeter keyboard layout from archinstall's choice.
-7. Lock survives a shell restart: when the shell dies while locked, cosmic-comp keeps the
-   screen blank (ext-session-lock) and the restarted shell knows nothing; `ikigai-shell
-   session lock` then `unlock` recovers by hand. Found 2026-09-05 (a crash loop under the
-   idle lock). Fix: Lock sets logind's LockedHint, the launcher re-sends lock when a shell
-   starts under a locked session.
+7. Lock survives a shell restart. Done 2026-09-05: Lock.qml sets logind's LockedHint while
+   the compositor holds the lock (`WlSessionLock.secure`) and reads it at startup, over the
+   session path the launcher publishes as `IKIGAI_SESSION_PATH`. Same day, lock before
+   sleep: the launcher holds a delay inhibitor (`systemd-inhibit … sleep infinity`, no D-Bus
+   in the crate), on PrepareForSleep sends lock and polls `ikigai-shell session locked` up
+   to 3 s before releasing, re-takes it on resume; Unlock is relayed only for our own
+   session path. Verified on the VM: lock/restart-shell/unlock, and a real suspend (logind
+   waited ~180 ms, resumed locked). Found and fixed on the way: every unlock killed the
+   shell with an ext-session-lock `null_buffer` protocol error, hidden by Restart=on-failure
+   as a 1 s rail flicker. Cause: the Qt layer-shell patch's null commit, which lock surfaces
+   forbid; the patch now skips the commit for lock windows (packages/qt6-base/README.md).
 
 ## Apps (decided 2026-09-03)
 

@@ -10,6 +10,13 @@ smithay#1979.
 first, then destroy the role. Verified against qt6-base 6.11.2 on cosmic-comp 1.7.0
 (2026-09-01): hide, re-show and `LazyLoader` unload all survive.
 
+ext-session-lock is the exception (2026-09-05): a lock surface may never carry a null
+buffer, and Smithay's commit hook stays on the surface after the role is destroyed, so
+*any* commit after the hide kills the client too. A lock window therefore drops its role
+and commits nothing; the wl_surface goes with the QWindow. The patch tells lock windows
+apart by the `sessionlock_ext` dynamic property Quickshell sets on them. Verified: two
+lock/unlock cycles with the shell keeping its pid, Vicinae open/close on the same library.
+
 `ikigai-qt-wayland` rebuilds only `libQt6WaylandClient.so` (the patched file compiles into
 it; the `libqwayland.so` plugin is a thin shim and stays stock) from the installed
 qt6-base's own release tarball, with Arch's configure options minus LTO and debug info.
