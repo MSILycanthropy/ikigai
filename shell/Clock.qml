@@ -28,7 +28,7 @@ Item {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: Qt.formatTime(clock.date, "h")
+            text: (clock.date.getHours() + 11) % 12 + 1
             color: Theme.colors.fg
             font.family: Theme.fontFamily
             font.pointSize: Theme.fontSize
