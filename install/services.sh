@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-sudo systemctl enable docker NetworkManager
+sudo systemctl enable docker NetworkManager bluetooth
 [ "$(systemd-detect-virt)" = microsoft ] && sudo systemctl enable hv_kvp_daemon
 sudo usermod -aG docker "$USER"
 

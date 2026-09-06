@@ -10,12 +10,13 @@ PACMAN=(
   docker docker-compose lazydocker mise
   zellij yazi btop
   grim slurp satty gpu-screen-recorder mpv brightnessctl upower power-profiles-daemon
-  ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard ufw fastfetch
+  ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard ufw fastfetch zip unzip openssh
+  bluez bluez-utils
   ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji adw-gtk-theme
   pipewire pipewire-pulse wireplumber
   xdg-user-dirs
 )
-AUR=(zen-browser-bin vicinae-bin pear-desktop-bin ttf-phosphor-icons ufw-docker)
+AUR=(zen-browser-bin vicinae-bin pear-desktop-bin cosmic-viewer-git ttf-phosphor-icons ufw-docker)
 
 case "$(cat "$IKIGAI_STATE/gpu")" in
   nvidia) PACMAN+=(nvidia-open-dkms nvidia-utils linux-headers) ;;
