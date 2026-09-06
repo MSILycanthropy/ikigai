@@ -1,0 +1,17 @@
+diff --git a/src/state.rs b/src/state.rs
+index 5ccc7a7..2984994 100644
+--- a/src/state.rs
++++ b/src/state.rs
+@@ -679,7 +679,11 @@ impl State {
+         let overlap_notify_state =
+             OverlapNotifyState::new::<Self, _>(dh, client_has_no_security_context);
+         let presentation_state = PresentationState::new::<Self>(dh, clock.id() as u32);
+-        let primary_selection_state = PrimarySelectionState::new::<Self>(dh);
++        // Ikigai: no primary selection, so middle-click pastes nothing. The manager global is
++        // offered to no client; the state stays for XWayland's selection bridge and the
++        // data-control protocols, which cannot hand it to an app either.
++        let primary_selection_state =
++            PrimarySelectionState::new_with_filter::<Self, _>(dh, |_| false);
+         let cosmic_image_capture_source_state =
+             CosmicImageCaptureSourceState::new::<Self, _>(dh, client_not_sandboxed);
+         let output_capture_source_state =

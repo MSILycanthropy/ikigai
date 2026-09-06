@@ -1,4 +1,9 @@
 #!/bin/sh
 # Calls into the running shell, e.g. `ikigai-shell switcher next`; the target for
-# cosmic-comp's shortcut commands (system_actions).
-exec qs ipc -p /usr/local/share/ikigai/shell/shell.qml call "$@"
+# cosmic-comp's shortcut commands (system_actions). `just shell` runs the shell from a
+# working tree instead and leaves its path in $XDG_RUNTIME_DIR/ikigai/dev-shell, so the
+# shortcuts reach that one while it runs.
+shell=/usr/local/share/ikigai/shell/shell.qml
+dev="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ikigai/dev-shell"
+[ -r "$dev" ] && shell=$(cat "$dev")
+exec qs ipc -p "$shell" call "$@"

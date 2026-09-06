@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# Is this box's Ikigai whole and current? Installed commit vs. the checkout, session units
+# and their sockets, the greeter holding display-manager, the patched Qt and cosmic-comp, the firewall,
+# and the seeded configs. Prints one line per check; exits 1 if any is "bad".
+set -uo pipefail
+
+IKIGAI_PATH="${IKIGAI_PATH:-$HOME/.local/share/ikigai}"
+STATE="${IKIGAI_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/ikigai}"
+RUN="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+bad=0
+ok()   { printf '  ok    %-12s %s\n' "$1" "$2"; }
+warn() { printf '  warn  %-12s %s\n' "$1" "$2"; }
+fail() { printf '  BAD   %-12s %s\n' "$1" "$2"; bad=1; }
+
+echo "ikigai doctor"
+
+# ---- tree and installed commit -------------------------------------------------------
+installed=$(cat "$STATE/installed_commit" 2>/dev/null || echo none)
+head=$(git -C "$IKIGAI_PATH" rev-parse HEAD 2>/dev/null || echo none)
+if [ "$installed" = none ]; then fail install "never installed (no $STATE/installed_commit)"
+elif [ "$installed" = "$head" ]; then ok install "${installed:0:7} = $IKIGAI_PATH HEAD"
+else
+  behind=$(git -C "$IKIGAI_PATH" rev-list --count "$installed..$head" 2>/dev/null || echo '?')
+  steps=$(git -C "$IKIGAI_PATH" diff --name-only "$installed" "$head" -- install 2>/dev/null | sed 's|install/||; s|\.sh$||' | tr '\n' ' ')
+  warn install "${installed:0:7} installed, HEAD ${head:0:7} is $behind ahead${steps:+ (steps changed: $steps)}"
+fi
+if [ -f "$STATE/gpu" ]; then ok gpu "$(cat "$STATE/gpu")"; else warn gpu "no $STATE/gpu (preflight never ran)"; fi
+
+# ---- session ----------------------------------------------------------------------
+if [ -z "${WAYLAND_DISPLAY:-}" ]; then
+  warn session "not inside a Wayland session; skipping unit checks"
+else
+  [ "${XDG_CURRENT_DESKTOP:-}" ] && ok desktop "XDG_CURRENT_DESKTOP=$XDG_CURRENT_DESKTOP"
+  for u in ikigai-session.target ikigai-shell ikigai-bridge ikigai-bg ikigai-settings-daemon ikigai-idle vicinae; do
+    st=$(systemctl --user is-active "$u" 2>/dev/null)
+    case "$st" in
+      active) ok unit "$u" ;;
+      inactive) if [ "$u" = ikigai-shell ] && [ -r "$RUN/ikigai/dev-shell" ]; then ok unit "$u stopped: dev shell from $(cat "$RUN/ikigai/dev-shell")"; else fail unit "$u $st"; fi ;;
+      *) fail unit "$u $st ($(systemctl --user show -p Result --value "$u" 2>/dev/null))" ;;
+    esac
+  done
+  [ -S "$RUN/ikigai-bridge.sock" ] && ok bridge "$RUN/ikigai-bridge.sock" || fail bridge "no socket at $RUN/ikigai-bridge.sock"
+  n=$(qs list -a -j 2>/dev/null | jq -r '.[].config_path // empty' 2>/dev/null | grep -c 'shell/shell.qml')
+  case "$n" in
+    1) ok shell "one Quickshell instance: $(qs list -a -j | jq -r '.[] | select(.config_path | endswith("shell/shell.qml")) | .config_path')" ;;
+    0) fail shell "no Quickshell instance running shell.qml" ;;
+    *) warn shell "$n Quickshell instances running shell.qml (installed and a dev shell?)" ;;
+  esac
+  [ -f "$STATE/shell-theme.json" ] && ok theme "$STATE/shell-theme.json" || fail theme "no $STATE/shell-theme.json (ikigai-theme-set never ran)"
+  [ -f "$HOME/.config/ikigai/shell.json" ] && ok config "$HOME/.config/ikigai/shell.json" || warn config "no $HOME/.config/ikigai/shell.json (shell runs on defaults)"
+  [ -f "$RUN/ikigai-session.log" ] && ok log "$RUN/ikigai-session.log ($(wc -l < "$RUN/ikigai-session.log") lines)"
+fi
+
+# ---- system ------------------------------------------------------------------------
+dm=$(basename "$(readlink /etc/systemd/system/display-manager.service 2>/dev/null)" 2>/dev/null)
+[ "$dm" = ikigai-greeter.service ] && ok greeter "display-manager.service -> ikigai-greeter" || fail greeter "display-manager.service -> ${dm:-nothing} (expected ikigai-greeter)"
+for f in /usr/local/bin/ikigai-session /usr/local/bin/ikigai-bridge /usr/local/share/ikigai/shell/shell.qml /usr/local/lib/qt6/qml/Ikigai/Blobs /usr/share/wayland-sessions/ikigai.desktop; do
+  [ -e "$f" ] && ok file "$f" || fail file "missing $f"
+done
+for b in "$IKIGAI_PATH"/bin/*; do
+  n=$(basename "$b")
+  if [ ! -e "/usr/local/bin/$n" ]; then warn bin "/usr/local/bin/$n not installed (just install services)"
+  elif ! cmp -s "$b" "/usr/local/bin/$n"; then warn bin "/usr/local/bin/$n differs from bin/$n (just install services)"
+  fi
+done
+qt=$(pacman -Q qt6-base 2>/dev/null | cut -d' ' -f2)
+qtstate=$(sudo -n cat /var/lib/ikigai/qt-wayland 2>/dev/null || cat /var/lib/ikigai/qt-wayland 2>/dev/null)
+if [ -z "$qtstate" ]; then fail qt "no /var/lib/ikigai/qt-wayland: Qt Wayland client is stock (layer-shell hide bug)"
+elif [ "${qtstate%% *}" = "$qt" ]; then ok qt "patched Wayland client for qt6-base $qt"
+else fail qt "patched for ${qtstate%% *}, installed qt6-base is $qt (pacman hook did not run?)"; fi
+cc=$(pacman -Q cosmic-comp 2>/dev/null | cut -d' ' -f2)
+ccstate=$(sudo -n cat /var/lib/ikigai/cosmic-comp 2>/dev/null || cat /var/lib/ikigai/cosmic-comp 2>/dev/null)
+if [ -z "$ccstate" ]; then fail cosmic-comp "no /var/lib/ikigai/cosmic-comp: compositor is stock (middle-click paste is on)"
+elif [ "${ccstate%% *}" = "$cc" ]; then ok cosmic-comp "patched compositor for cosmic-comp $cc"
+else fail cosmic-comp "patched for ${ccstate%% *}, installed cosmic-comp is $cc (pacman hook did not run?)"; fi
+if systemctl -q is-enabled ikigai-firewall 2>/dev/null; then
+  [ -e /var/lib/ikigai/firewall-applied ] && ok firewall "applied" || warn firewall "enabled, applies on next boot"
+else fail firewall "ikigai-firewall not enabled"; fi
+[ "$(getent passwd "$USER" | cut -d: -f7)" = "$(command -v zsh)" ] && ok shell-login zsh || warn shell-login "login shell is not zsh"
+id -nG | tr ' ' '\n' | grep -qx docker && ok docker "in docker group" || warn docker "not in docker group (re-login after install)"
+
+# ---- seeds -------------------------------------------------------------------------
+if [ -x "$IKIGAI_PATH/scripts/config-diff.sh" ]; then
+  edited=$("$IKIGAI_PATH/scripts/config-diff.sh" | awk '$1=="edited"{n++} END{print n+0}')
+  behind=$("$IKIGAI_PATH/scripts/config-diff.sh" | awk '$1=="behind"{n++} END{print n+0}')
+  [ "$edited" -gt 0 ] && warn seeds "$edited seeded config(s) edited by hand (scripts/config-diff.sh --diff)"
+  [ "$behind" -gt 0 ] && warn seeds "$behind seeded config(s) behind the repo"
+  [ "$edited" -eq 0 ] && [ "$behind" -eq 0 ] && ok seeds "all seeded configs match config/"
+fi
+
+exit $bad

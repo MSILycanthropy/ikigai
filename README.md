@@ -72,7 +72,7 @@ whichever one you had, and cosmic-comp's defaults land as system config next to 
 | Images | [cosmic-viewer](https://github.com/pop-os/cosmic-viewer), COSMIC's own image viewer: crop, rotate, markup, set as wallpaper (AUR `cosmic-viewer-git`) |
 | Screenshots | `Print` freezes the screen and opens the shell's picker: Region, Window or Screen, then Snip, Edit or Record. Snip puts the PNG on the clipboard and in `~/Pictures/Screenshots`; Edit opens it in [satty](https://github.com/gabm/Satty); Record starts [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/) on it with the system's audio, shows a dot and timer on the rail, and `Super+Shift+R` or a click on the dot stops it with the file's path (`~/Videos/Recordings`) on the clipboard. `Shift+Print` starts in Screen mode. Captured by [grim](https://gitlab.freedesktop.org/emersion/grim) over ext-image-copy-capture |
 | Switcher | Windows-style Alt+Tab in the rail's language: hold Alt, Tab cycles live previews most-recent-first across workspaces (minimized included), release to switch, Shift+Tab backwards, Escape cancels, click a tile. Previews come from the bridge over ext-image-copy-capture |
-| Mouse | Middle-click autoscroll the way Windows has it: per app, with each app's own anchor icon and pan cursors. Zen's is Firefox's, switched on as a default by `/etc/zen/policies/policies.json` (Settings can turn it off again). Discord and YouTube Music get Chromium's, which the Linux build hides behind `--enable-blink-features=MiddleClickAutoscroll`, from desktop-entry overlays in `/usr/local/share/applications`. GTK, Qt and COSMIC apps have none, as their Windows counterparts mostly didn't |
+| Mouse | Middle-click autoscroll the way Windows has it: per app, with each app's own anchor icon and pan cursors. Zen's is Firefox's, switched on as a default by `/etc/zen/policies/policies.json` (Settings can turn it off again). Discord and YouTube Music get Chromium's, which the Linux build hides behind `--enable-blink-features=MiddleClickAutoscroll`, from desktop-entry overlays in `/usr/local/share/applications`. GTK, Qt and COSMIC apps have none, as their Windows counterparts mostly didn't. No middle-click paste anywhere: cosmic-comp is rebuilt (`packages/cosmic-comp`, a pacman hook keeps it rebuilt) to offer no primary selection, so the wheel button pastes nothing and the clipboard is the clipboard |
 | Icons | [Phosphor](https://phosphoricons.com) everywhere: the rail's glyphs, and an `Ikigai` symbolic icon theme built from Phosphor that COSMIC's window buttons, cosmic-settings, GTK header bars and Qt apps all pick up. Ghostty, Zen and Zed get hand-drawn marks in Phosphor's grammar on the rail (`shell/icons/brand`); app icons elsewhere stay their own |
 | Terminal | [Ghostty](https://ghostty.org) + [zellij](https://zellij.dev) (unlock-first keybinds, `zj` to attach) |
 | Shell | zsh (no framework) + [starship](https://starship.rs), autosuggestions, syntax highlighting, oh-my-zsh's git aliases |
@@ -153,13 +153,21 @@ Repo layout: `install/` (steps run by `install.sh`), `config/` (seeds), `themes/
 (`ikigai/palette.json` plus the app themes `scripts/theme-build.py` renders from it and the built COSMIC theme), `bin/` (`ikigai-keys`,
 `ikigai-theme-set`, `ikigai-shell`, `ikigai-shot`, `ikigai-greeter`), `session/` (Rust: `ikigai-session` + `ikigai-bridge` and the session's
 user units, built at install), `shell/` (the Quickshell shell, greeter and lock included), `greeter/` (greetd config and units), `tools/cosmic-theme-gen` (dev-only: builds the COSMIC theme from
-`builder.ron`), `scripts/vm.sh` (Hyper-V test harness).
+`builder.ron`), `scripts/vm.sh` (QEMU test harness; `vm-hyperv.sh` is the same for Hyper-V from WSL2).
+
+Developing: `just` lists the recipes. `just shell` runs the shell from the checkout in
+place of the installed one with live reload (cosmic-comp's shortcuts follow it), `just
+greeter` opens the greeter in a nested cosmic-comp window, `just install <step>` runs one
+installer step from the checkout, `just update` reruns the steps that changed since the
+installed commit, `just doctor` says what is installed, running, patched and drifted, and
+`just vm ...` drives the test VM.
 
 ## Hardware
 
 AMD and Intel graphics are first-class. NVIDIA gets `nvidia-open-dkms` installed and
 is otherwise best-effort — COSMIC on NVIDIA is upstream's problem before it's ours.
-The reference test environment is a Hyper-V VM; that's the path we actually verify.
+The reference test environment is a fresh install in a QEMU VM (`just vm`); that's the
+path we actually verify.
 
 ## Status
 
