@@ -23,6 +23,11 @@ Singleton {
         }
     }
 
+    // Does this app have a rail button right now — pinned, or running and appended?
+    function shows(appId) {
+        return top.some(t => t.appId === appId) || bottom.some(t => t.appId === appId);
+    }
+
     function pinnedAnywhere(appId) {
         return Config.pinned.top.includes(appId) || Config.pinned.bottom.includes(appId);
     }

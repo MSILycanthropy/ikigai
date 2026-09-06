@@ -39,6 +39,50 @@ Item {
         }
     }
 
+    // What the app wants noticed, in the corner of its glyph: how many notifications
+    // of its own are unread, and failing that a quiet dot while it sits in the tray.
+    // The tray's own artwork never lands on the rail — the rail speaks in glyphs.
+    Rectangle {
+        readonly property int count: Notifs.unreadFor(button.task.appId)
+        readonly property bool trayed: Tray.itemFor(button.task.appId) !== null
+        readonly property int side: Math.round((count > 0 ? 13 : 6) * Config.scale)
+
+        anchors {
+            right: parent.right
+            bottom: parent.bottom
+            rightMargin: 1
+            bottomMargin: 1
+        }
+        visible: count > 0 || trayed
+        width: count > 0 ? Math.max(side, label.implicitWidth + 6) : side
+        height: side
+        radius: height / 2
+        color: count > 0 ? Theme.colors.primary : Theme.colors.fgVariant
+
+        Behavior on width {
+            Anim { fast: true }
+        }
+
+        Behavior on height {
+            Anim { fast: true }
+        }
+
+        Behavior on color {
+            ColorAnim { fast: true }
+        }
+
+        Text {
+            id: label
+            anchors.centerIn: parent
+            visible: parent.count > 0
+            text: parent.count > 9 ? "9+" : parent.count
+            color: Theme.colors.primaryFg
+            font.family: Theme.fontFamily
+            font.pixelSize: Math.round(9 * Config.scale)
+            font.bold: true
+        }
+    }
+
     // Running mark on the rail edge: short while running, long while focused.
     Rectangle {
         anchors {

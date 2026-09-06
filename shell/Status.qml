@@ -1,8 +1,8 @@
-import Quickshell.Services.SystemTray
 import QtQuick
 
-// Status items above the clock: tray icons, the network, the battery when there is one,
-// then the output volume (scroll to adjust, click for the card).
+// Status items above the clock: the tray icons no rail button already owns, the network,
+// the battery when there is one, then the output volume (scroll to adjust, click for the
+// card).
 Column {
     id: status
 
@@ -19,7 +19,7 @@ Column {
     spacing: 4
 
     Repeater {
-        model: SystemTray.items
+        model: Tray.loose
 
         TrayButton {
             onMenuRequested: at => status.trayMenuRequested(item, at)

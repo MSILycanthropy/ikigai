@@ -3,6 +3,7 @@ singleton Config 1.0 Config.qml
 singleton Motion 1.0 Motion.qml
 singleton Bridge 1.0 Bridge.qml
 singleton Tasks 1.0 Tasks.qml
+singleton Tray 1.0 Tray.qml
 Bar 1.0 Bar.qml
 Clock 1.0 Clock.qml
 Taskbar 1.0 Taskbar.qml

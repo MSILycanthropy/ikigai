@@ -1,6 +1,7 @@
 pragma Singleton
 import Quickshell
 import Quickshell.Services.Notifications
+import QtQuick
 
 // The notification server. Live ones become toasts; every one is copied into a session
 // history for the sidebar. Do-not-disturb skips the toast for all but critical urgency.
@@ -10,6 +11,10 @@ Singleton {
     property var toasts: []
     property var history: []
     property int unread: 0
+    // Unread count per app, so a rail button can badge its own. Keyed by desktop entry
+    // id: the notification names itself by desktop-entry hint or app name, and the rail
+    // by Wayland app_id, and Apps.entryFor is what reconciles the two.
+    property var unreadBy: ({})
     // The screen showing the sidebar, null while it is closed: it opens on the rail that
     // asked for it, where toasts always land on `screen`.
     property ShellScreen sidebarScreen: null
@@ -42,6 +47,8 @@ Singleton {
         n.closed.connect(() => root.forget(n));
         history = [snapshot(n), ...history].slice(0, 50);
         unread += 1;
+        const app = key(n.desktopEntry || n.appName);
+        unreadBy = Object.assign({}, unreadBy, { [app]: (unreadBy[app] || 0) + 1 });
         if (dnd && n.urgency !== NotificationUrgency.Critical)
             return;
         toasts = [...toasts, n];
@@ -59,7 +66,44 @@ Singleton {
         history = [];
     }
 
-    onSidebarOpenChanged: if (sidebarOpen) unread = 0
+    onSidebarOpenChanged: if (sidebarOpen) {
+        unread = 0;
+        unreadBy = ({});
+    }
+
+    // Focusing an app is reading it.
+    Connections {
+        target: Bridge
+        function onWindowsChanged() {
+            for (const w of Bridge.windows)
+                if (w.states.includes("activated"))
+                    root.clearFor(w.appId);
+        }
+    }
+
+    // One name for an app however it announced itself: a desktop entry id when we can
+    // find one, the lowercased name when we cannot.
+    function key(name) {
+        if (!name)
+            return "";
+        const entry = Apps.entryFor(name);
+        return (entry ? entry.id : name).toLowerCase();
+    }
+
+    function unreadFor(appId) {
+        return unreadBy[key(appId)] || 0;
+    }
+
+    function clearFor(appId) {
+        const app = key(appId);
+        if (!unreadBy[app])
+            return;
+        const next = Object.assign({}, unreadBy);
+        const seen = next[app];
+        delete next[app];
+        unreadBy = next;
+        unread = Math.max(0, unread - seen);
+    }
 
     // Asking again from the same screen closes it; from another, it moves there.
     function toggleSidebar(on) {
