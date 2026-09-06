@@ -9,7 +9,7 @@
 #   & ([scriptblock]::Create((irm <url>))) -Mode dual -GB 200
 [CmdletBinding()]
 param(
-  [ValidateSet('replace', 'dual')] [string]$Mode,
+  [string]$Mode,
   [int]$GB = 0,
   [string]$Ref = 'main',
   [switch]$Undo,
@@ -223,8 +223,8 @@ try {
     Write-Host "  replace  erase Windows, Ikigai gets the whole disk"
     Write-Host "  dual     keep Windows, Ikigai gets part of C:"
     $Mode = (Read-Host 'Mode [replace/dual]').Trim().ToLower()
-    if ($Mode -notin 'replace', 'dual') { throw "not a mode: $Mode" }
   }
+  if ($Mode -notin 'replace', 'dual') { throw "not a mode: $Mode" }
   if ($Mode -eq 'dual' -and $GB -lt 20) {
     $GB = [int](Read-Host "GB for Ikigai (20 or more, up to $((Get-Target).ShrinkGB - $StageGB))")
     if ($GB -lt 20) { throw 'Ikigai needs at least 20 GB' }
