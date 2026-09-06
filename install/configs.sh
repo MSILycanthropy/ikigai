@@ -74,3 +74,7 @@ echo "installed COSMIC defaults → /usr/local/share/cosmic"
 # earlier in XDG_DATA_DIRS.
 sed '/^OnlyShowIn=/d' /usr/share/applications/com.system76.CosmicSettings.desktop \
   | sudo install -Dm644 /dev/stdin /usr/local/share/applications/com.system76.CosmicSettings.desktop
+
+# Default apps as the lowest XDG layer ($XDG_DATA_DIRS/applications/mimeapps.list): Zen for
+# the web and PDFs. Settings' Default Apps page writes ~/.config/mimeapps.list, which wins.
+sudo install -Dm644 "$IKIGAI_PATH/config/applications/mimeapps.list" /usr/local/share/applications/mimeapps.list
