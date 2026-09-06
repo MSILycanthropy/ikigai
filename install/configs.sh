@@ -75,6 +75,20 @@ echo "installed COSMIC defaults → /usr/local/share/cosmic"
 sed '/^OnlyShowIn=/d' /usr/share/applications/com.system76.CosmicSettings.desktop \
   | sudo install -Dm644 /dev/stdin /usr/local/share/applications/com.system76.CosmicSettings.desktop
 
+# Middle-click autoscroll, Windows style, in the apps that had it on Windows: each draws its
+# own anchor icon and pan cursors. Zen has Firefox's, off by default on Linux; a system policy
+# turns it on as a default the user can still flip in Settings. Zen reads /etc/zen/policies
+# *instead of* its package's distribution/policies.json, so the file carries the AUR package's
+# two policies as well.
+sudo install -Dm644 "$SRC/zen/policies.json" /etc/zen/policies/policies.json
+
+# Discord and YouTube Music are Chromium, whose autoscroll is in the Linux build behind a blink
+# flag. Same entries with the flag, earlier in XDG_DATA_DIRS, like the Settings entry above.
+for entry in discord com.github.th-ch.youtube-music; do
+  sed 's|^Exec=\([^ ]*\)|Exec=\1 --enable-blink-features=MiddleClickAutoscroll|' "/usr/share/applications/$entry.desktop" \
+    | sudo install -Dm644 /dev/stdin "/usr/local/share/applications/$entry.desktop"
+done
+
 # Default apps as the lowest XDG layer ($XDG_DATA_DIRS/applications/mimeapps.list): Zen for
 # the web and PDFs. Settings' Default Apps page writes ~/.config/mimeapps.list, which wins.
 sudo install -Dm644 "$IKIGAI_PATH/config/applications/mimeapps.list" /usr/local/share/applications/mimeapps.list

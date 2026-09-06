@@ -51,6 +51,6 @@ echo "archinstall.json ok"
 
 python -c '
 import json, glob
-for f in ["config/ikigai/shell.json", *glob.glob("themes/*/shell.json")]: json.load(open(f))
+for f in ["config/ikigai/shell.json", "config/zen/policies.json", *glob.glob("themes/*/shell.json")]: json.load(open(f))
 '
-echo "shell json ok"
+echo "json configs ok"
