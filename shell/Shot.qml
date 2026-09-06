@@ -17,6 +17,8 @@ Scope {
     property bool closing: false
     property bool flashing: false
     property string mode: "region"
+    property int focused: 0
+    property bool everFocused: false
     property string action: "snip"
     property string stamp: ""
     readonly property string dir: Quickshell.env("XDG_RUNTIME_DIR") + "/ikigai/shot"
@@ -53,9 +55,22 @@ Scope {
         shot.action = action;
         stamp = Date.now().toString();
         frozen = false;
+        focused = 0;
+        everFocused = false;
         open = true;
         Bridge.requestGeometry();
         settle.restart();
+    }
+
+    // Focus moving between our own overlays arrives as a leave then an enter; let the
+    // pair land before deciding the shot lost the screen.
+    Timer {
+        id: settleFocus
+        interval: 50
+        onTriggered: {
+            if (shot.open && shot.everFocused && shot.focused <= 0)
+                shot.cancel();
+        }
     }
 
     // A couple of frames for the overlays to map and the pointer to pick up the blank cursor.
@@ -279,14 +294,19 @@ Scope {
                     Anim { effects: true; fast: true }
                 }
 
-                // Losing focus to something else (a launcher, a lock) abandons the shot.
+                // Losing focus to something else (a launcher, a lock) abandons the shot,
+                // but only once every overlay has lost it: clicking one output hands
+                // keyboard focus to that overlay and takes it off its sibling, and our
+                // own overlay is not someone else.
                 readonly property bool active: Window.active
-                property bool wasActive: false
                 onActiveChanged: {
-                    if (active)
-                        wasActive = true;
-                    else if (wasActive)
-                        shot.cancel();
+                    if (active) {
+                        shot.focused++;
+                        shot.everFocused = true;
+                    } else {
+                        shot.focused--;
+                        settleFocus.restart();
+                    }
                 }
 
                 Keys.onPressed: event => {
