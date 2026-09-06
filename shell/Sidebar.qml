@@ -146,7 +146,7 @@ Item {
 
                             Text {
                                 anchors.right: parent.right
-                                text: Qt.formatTime(entry.modelData.time, "HH:mm")
+                                text: Qt.formatTime(entry.modelData.time, "h:mm AP")
                                 color: Theme.colors.outline
                                 font.family: Theme.fontFamily
                                 font.pointSize: Theme.fontSize - 3

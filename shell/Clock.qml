@@ -1,7 +1,7 @@
 import Quickshell
 import QtQuick
 
-// Stacked clock for a narrow rail: hours over minutes, date beneath. Click opens the
+// Stacked clock for a narrow rail: hours over minutes, AM/PM and the date beneath. Click opens the
 // sidebar; a badge counts notifications not yet seen there.
 Item {
     id: root
@@ -28,7 +28,7 @@ Item {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: Qt.formatTime(clock.date, "HH")
+            text: Qt.formatTime(clock.date, "h")
             color: Theme.colors.fg
             font.family: Theme.fontFamily
             font.pointSize: Theme.fontSize
@@ -46,8 +46,17 @@ Item {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
+            text: Qt.formatTime(clock.date, "AP")
+            color: Theme.colors.fgVariant
+            font.family: Theme.fontFamily
+            font.pointSize: Theme.fontSize - 4
+            font.bold: true
+        }
+
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
             topPadding: 4
-            text: Qt.formatDate(clock.date, "d MMM")
+            text: Qt.formatDate(clock.date, "MMM d")
             color: Theme.colors.fgVariant
             font.family: Theme.fontFamily
             font.pointSize: Theme.fontSize - 3
