@@ -13,6 +13,7 @@ Singleton {
     property alias scale: config.scale
     property alias dnd: config.dnd
     property alias monitor: config.monitor
+    property alias restore: config.restore
 
     function pin(appId) {
         config.pinned.top = [...config.pinned.top, appId];
@@ -48,6 +49,7 @@ Singleton {
             property real scale: 1.0
             property bool dnd: false
             property string monitor: ""
+            property bool restore: true
         }
     }
 }

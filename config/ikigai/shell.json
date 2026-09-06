@@ -7,5 +7,6 @@
   "autohide": true,
   "scale": 1.0,
   "dnd": false,
-  "monitor": ""
+  "monitor": "",
+  "restore": true
 }

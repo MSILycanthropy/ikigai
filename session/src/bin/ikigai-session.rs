@@ -93,6 +93,9 @@ fn main() -> ExitCode {
 
 fn run(runtime_dir: &Path, log: &mut Log) -> io::Result<()> {
     log.line("ikigai-session start");
+    // The shell restores the last session's windows once per login and writes this marker
+    // as it starts; a new login starts clean.
+    let _ = std::fs::remove_file(runtime_dir.join("ikigai-restored"));
     let terminate = Arc::new(AtomicBool::new(false));
     for sig in [SIGTERM, SIGINT, SIGHUP] {
         signal_hook::flag::register(sig, terminate.clone())?;

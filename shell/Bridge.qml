@@ -17,6 +17,7 @@ Singleton {
     function activate(id) { send({ request: "activate", id: id }); }
     function close(id) { send({ request: "close", id: id }); }
     function minimize(id) { send({ request: "minimize", id: id }); }
+    function maximize(id) { send({ request: "maximize", id: id }); }
     function moveToWorkspace(id, workspace) { send({ request: "move_to_workspace", id: id, workspace: workspace }); }
     function activateWorkspace(workspace) { send({ request: "activate_workspace", workspace: workspace }); }
     function capture(ids) { send({ request: "capture", ids: ids }); }

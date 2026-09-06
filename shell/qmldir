@@ -36,6 +36,7 @@ Login 1.0 Login.qml
 Lock 1.0 Lock.qml
 Polkit 1.0 Polkit.qml
 Welcome 1.0 Welcome.qml
+Restore 1.0 Restore.qml
 singleton Notifs 1.0 Notifs.qml
 Toast 1.0 Toast.qml
 Toasts 1.0 Toasts.qml
