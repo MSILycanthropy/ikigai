@@ -78,8 +78,7 @@ update:
     grep -qE '^(config|icons)/' <<<"$changed" && steps="$steps configs"
     grep -qE '^themes/' <<<"$changed" && steps="$steps theme"
     grep -qE '^greeter/' <<<"$changed" && steps="$steps greeter"
-    grep -qE '^packages/qt6-base/' <<<"$changed" && steps="$steps qt"
-    grep -qE '^packages/cosmic-comp/' <<<"$changed" && steps="$steps cosmic-comp"
+    grep -qE '^packages/' <<<"$changed" && steps="$steps qt"
     grep -qE '^firewall/' <<<"$changed" && steps="$steps firewall"
     steps=$(tr ' ' '\n' <<<"$steps" | grep . | sort -u | tr '\n' ' ')
     echo "installed ${installed:0:7} -> ${head:0:7}; steps: $steps"
@@ -111,10 +110,10 @@ check:
     #!/usr/bin/env bash
     set -euo pipefail
     cd "{{tree}}"
-    for f in boot.sh install.sh install/*.sh bin/* scripts/*.sh packages/qt6-base/ikigai-qt-wayland packages/cosmic-comp/ikigai-cosmic-comp; do bash -n "$f"; done
+    for f in boot.sh install.sh install/*.sh bin/* scripts/*.sh packages/qt6-base/ikigai-qt-wayland; do bash -n "$f"; done
     echo "syntax ok"
     if command -v shellcheck >/dev/null; then
-      shellcheck -S warning boot.sh install.sh install/*.sh bin/* scripts/*.sh packages/qt6-base/ikigai-qt-wayland packages/cosmic-comp/ikigai-cosmic-comp && echo "shellcheck ok"
+      shellcheck -S warning boot.sh install.sh install/*.sh bin/* scripts/*.sh packages/qt6-base/ikigai-qt-wayland && echo "shellcheck ok"
     else echo "shellcheck not installed (pacman -S shellcheck); CI runs it"; fi
     (cd session && cargo clippy --locked -q --all-targets -- -D warnings && cargo test --locked -q) && echo "session crate ok"
     find themes config -type f \( -name '*.ron' -o -path '*/v[0-9]/*' \) | while read -r f; do grep -q . "$f" || { echo "empty config file: $f"; exit 1; }; done

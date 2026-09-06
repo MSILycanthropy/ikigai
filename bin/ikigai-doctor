@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Is this box's Ikigai whole and current? Installed commit vs. the checkout, session units
-# and their sockets, the greeter holding display-manager, the patched Qt and cosmic-comp, the firewall,
+# and their sockets, the greeter holding display-manager, the patched Qt, the firewall,
 # and the seeded configs. Prints one line per check; exits 1 if any is "bad".
 set -uo pipefail
 
@@ -68,11 +68,6 @@ qtstate=$(sudo -n cat /var/lib/ikigai/qt-wayland 2>/dev/null || cat /var/lib/iki
 if [ -z "$qtstate" ]; then fail qt "no /var/lib/ikigai/qt-wayland: Qt Wayland client is stock (layer-shell hide bug)"
 elif [ "${qtstate%% *}" = "$qt" ]; then ok qt "patched Wayland client for qt6-base $qt"
 else fail qt "patched for ${qtstate%% *}, installed qt6-base is $qt (pacman hook did not run?)"; fi
-cc=$(pacman -Q cosmic-comp 2>/dev/null | cut -d' ' -f2)
-ccstate=$(sudo -n cat /var/lib/ikigai/cosmic-comp 2>/dev/null || cat /var/lib/ikigai/cosmic-comp 2>/dev/null)
-if [ -z "$ccstate" ]; then fail cosmic-comp "no /var/lib/ikigai/cosmic-comp: compositor is stock (middle-click paste is on)"
-elif [ "${ccstate%% *}" = "$cc" ]; then ok cosmic-comp "patched compositor for cosmic-comp $cc"
-else fail cosmic-comp "patched for ${ccstate%% *}, installed cosmic-comp is $cc (pacman hook did not run?)"; fi
 if systemctl -q is-enabled ikigai-firewall 2>/dev/null; then
   [ -e /var/lib/ikigai/firewall-applied ] && ok firewall "applied" || warn firewall "enabled, applies on next boot"
 else fail firewall "ikigai-firewall not enabled"; fi
