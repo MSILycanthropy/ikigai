@@ -1,6 +1,6 @@
 --- a/src/plugins/platforms/wayland/qwaylandwindow.cpp
 +++ b/src/plugins/platforms/wayland/qwaylandwindow.cpp
-@@ -654,9 +654,15 @@
+@@ -654,9 +654,11 @@
          // make sure isExposed is false during the next event dispatch
          mExposed = false;
          sendExposeEvent(QRect());
@@ -13,4 +13,4 @@
 -        mSurface->commit();
      }
  }
-
+ 

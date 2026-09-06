@@ -17,6 +17,19 @@ for p in nvidia-open-dkms nvidia-utils linux-headers mesa vulkan-radeon vulkan-i
 done
 echo "gpu/vm packages resolve"
 
+# The Qt Wayland patch must parse (git apply) and apply to the qwaylandwindow.cpp of the
+# qt6-base Arch ships right now; a miscounted hunk or upstream drift fails every fresh install.
+[ "$(id -u)" -eq 0 ] && pacman -S --noconfirm --needed git patch >/dev/null
+qt_patch=packages/qt6-base/wayland-unmap-before-role-destroy.patch
+git apply --numstat "$qt_patch" >/dev/null
+qt_ver=$(pacman -Si qt6-base | awk '/^Version/ { print $3 }'); qt_ver=${qt_ver%-*}
+qt_tmp=$(mktemp -d) && trap 'rm -rf "$qt_tmp"' EXIT
+mkdir -p "$qt_tmp/src/plugins/platforms/wayland"
+curl -fsSL -o "$qt_tmp/src/plugins/platforms/wayland/qwaylandwindow.cpp" \
+  "https://raw.githubusercontent.com/qt/qtbase/v$qt_ver/src/plugins/platforms/wayland/qwaylandwindow.cpp"
+patch -d "$qt_tmp" -p1 --forward --dry-run < "$qt_patch" >/dev/null
+echo "qt6-base $qt_ver: wayland patch applies"
+
 [ "$(id -u)" -eq 0 ] && pacman -S --noconfirm --needed rust pkgconf libxkbcommon >/dev/null
 (cd session && cargo test --locked -q && cargo clippy --locked -q --all-targets -- -D warnings)
 echo "session crate ok"
