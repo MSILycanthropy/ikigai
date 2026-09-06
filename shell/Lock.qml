@@ -86,6 +86,27 @@ Scope {
         onTriggered: bait.active = false
     }
 
+    // logind's LockedHint outlives the shell. Set while the compositor holds the lock
+    // and read at startup: once the lock client dies cosmic-comp keeps the screen blank,
+    // so a restarted shell locks again instead of leaving the box unusable.
+    readonly property string sessionPath: Quickshell.env("IKIGAI_SESSION_PATH")
+
+    function setLockedHint(locked) {
+        if (sessionPath)
+            Quickshell.execDetached(["busctl", "--system", "call", "org.freedesktop.login1", sessionPath, "org.freedesktop.login1.Session", "SetLockedHint", "b", locked ? "true" : "false"]);
+    }
+
+    Process {
+        command: ["busctl", "--system", "get-property", "org.freedesktop.login1", scope.sessionPath, "org.freedesktop.login1.Session", "LockedHint"]
+        running: scope.sessionPath !== ""
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (text.trim() === "b true")
+                    scope.engage();
+            }
+        }
+    }
+
     LazyLoader {
         id: bait
 
@@ -104,6 +125,7 @@ Scope {
     WlSessionLock {
         id: lock
         locked: false
+        onSecureChanged: scope.setLockedHint(secure)
 
         WlSessionLockSurface {
             id: surface
