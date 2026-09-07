@@ -62,6 +62,7 @@ whichever one you had, and cosmic-comp's defaults land as system config next to 
 | Launcher | [Vicinae](https://vicinae.com) on `Super`: apps, files, clipboard history, and its own log out, power off, reboot and sleep commands |
 | Greeter | Ikigai's, on greetd: cosmic-comp in kiosk mode drawing the same card as the lock screen, with the theme and wallpaper, your avatar from Settings, and the last user preselected |
 | Lock | `Super+L`, the idle timeout or the lid: logind locks, the shell draws the card over every screen and checks the password through PAM. The same card answers polkit when an app asks for privilege |
+| Displays | The layout survives the monitors' sleep. On NVIDIA a DisplayPort monitor leaves the bus when it powers down, so waking it is a hotplug to cosmic-comp, whose first page flip after the modeset the driver rejects; it falls back to 60 Hz in connector order and saves that as your layout. `ikigai-outputs` (a wlr-output-management client under the session target) remembers each layout that has sat still and puts it back in one configuration when the same heads return different. A change made in Settings comes with no hotplug and sticks |
 | First login | A welcome card on the shell: the keys, the rail, where settings live, and a Connect to Wi-Fi button when the box is offline. Once per user (`~/.local/state/ikigai/welcomed`); `ikigai-shell welcome open` brings it back |
 | Network | NetworkManager, on the rail: the Wi-Fi strength or the wired link as the glyph, a card with the Wi-Fi switch, the wired link and the networks in range. Click to connect; a new secured network asks for its password in a window; the connected row expands to Disconnect and Forget. cosmic-settings' Network page for VPNs and the rest |
 | Battery | On the rail when there is one: level and charging state as the glyph, a card with the time left and the power profile (upower, power-profiles-daemon) |
@@ -128,7 +129,7 @@ type the word.
   gets `WAYLAND_DISPLAY` from cosmic-comp's session socket and brings up
   `ikigai-session.target`: cosmic-bg, cosmic-settings-daemon and cosmic-idle under Ikigai
   unit names, `ikigai-bridge` (COSMIC's toplevel and workspace protocols on
-  `$XDG_RUNTIME_DIR/ikigai-bridge.sock` as JSON lines) and `ikigai-shell` (the Quickshell
+  `$XDG_RUNTIME_DIR/ikigai-bridge.sock` as JSON lines), `ikigai-outputs` (the display layout, see Displays above) and `ikigai-shell` (the Quickshell
   shell from `/usr/local/share/ikigai/shell`). [Vicinae](https://vicinae.com) runs
   alongside as a layer-shell overlay on the patched Qt below, under its own desktop name
   because it refuses layer-shell on anything called COSMIC; its config is seeded once with
@@ -153,7 +154,7 @@ type the word.
 
 Repo layout: `install/` (steps run by `install.sh`), `config/` (seeds), `themes/`
 (`ikigai/palette.json` plus the app themes `scripts/theme-build.py` renders from it and the built COSMIC theme), `bin/` (`ikigai-keys`,
-`ikigai-theme-set`, `ikigai-shell`, `ikigai-shot`, `ikigai-greeter`), `session/` (Rust: `ikigai-session` + `ikigai-bridge` and the session's
+`ikigai-theme-set`, `ikigai-shell`, `ikigai-shot`, `ikigai-greeter`), `session/` (Rust: `ikigai-session`, `ikigai-bridge`, `ikigai-outputs` and the session's
 user units, built at install), `shell/` (the Quickshell shell, greeter and lock included), `greeter/` (greetd config and units), `tools/cosmic-theme-gen` (dev-only: builds the COSMIC theme from
 `builder.ron`), `scripts/vm.sh` (QEMU test harness; `vm-hyperv.sh` is the same for Hyper-V from WSL2).
 

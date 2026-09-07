@@ -14,6 +14,7 @@ signal-hook = "0.4"
 cosmic-client-toolkit = { git = "https://github.com/pop-os/cosmic-protocols", rev = "32283d76a8d0342da74c4cc022a533c52dcf378f" }
 wayland-client = "0.31"
 wayland-protocols = { version = "0.32", features = ["client", "staging"] }
+wayland-protocols-wlr = { version = "0.3", features = ["client"] }
 
 [profile.release]
 opt-level = 1

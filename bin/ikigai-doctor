@@ -31,7 +31,7 @@ if [ -z "${WAYLAND_DISPLAY:-}" ]; then
   warn session "not inside a Wayland session; skipping unit checks"
 else
   [ "${XDG_CURRENT_DESKTOP:-}" ] && ok desktop "XDG_CURRENT_DESKTOP=$XDG_CURRENT_DESKTOP"
-  for u in ikigai-session.target ikigai-shell ikigai-bridge ikigai-bg ikigai-settings-daemon ikigai-idle vicinae; do
+  for u in ikigai-session.target ikigai-shell ikigai-bridge ikigai-outputs ikigai-bg ikigai-settings-daemon ikigai-idle vicinae; do
     st=$(systemctl --user is-active "$u" 2>/dev/null)
     case "$st" in
       active) ok unit "$u" ;;
@@ -54,7 +54,7 @@ fi
 # ---- system ------------------------------------------------------------------------
 dm=$(basename "$(readlink /etc/systemd/system/display-manager.service 2>/dev/null)" 2>/dev/null)
 [ "$dm" = ikigai-greeter.service ] && ok greeter "display-manager.service -> ikigai-greeter" || fail greeter "display-manager.service -> ${dm:-nothing} (expected ikigai-greeter)"
-for f in /usr/local/bin/ikigai-session /usr/local/bin/ikigai-bridge /usr/local/share/ikigai/shell/shell.qml /usr/local/lib/qt6/qml/Ikigai/Blobs /usr/share/wayland-sessions/ikigai.desktop; do
+for f in /usr/local/bin/ikigai-session /usr/local/bin/ikigai-bridge /usr/local/bin/ikigai-outputs /usr/local/share/ikigai/shell/shell.qml /usr/local/lib/qt6/qml/Ikigai/Blobs /usr/share/wayland-sessions/ikigai.desktop; do
   [ -e "$f" ] && ok file "$f" || fail file "missing $f"
 done
 for b in "$IKIGAI_PATH"/bin/*; do

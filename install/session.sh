@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Build ikigai-session + ikigai-bridge from session/, install them with their units,
+# Build ikigai-session, ikigai-bridge and ikigai-outputs from session/, install them with their units,
 # and copy the Quickshell shell to /usr/local/share/ikigai/shell.
 set -euo pipefail
 
 export CARGO_TARGET_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/ikigai/build/session"
 cargo build --release --locked --manifest-path "$IKIGAI_PATH/session/Cargo.toml"
 
-for b in ikigai-session ikigai-bridge; do
+for b in ikigai-session ikigai-bridge ikigai-outputs; do
   sudo install -Dm755 "$CARGO_TARGET_DIR/release/$b" "/usr/local/bin/$b"
 done
 (cd "$IKIGAI_PATH/session/systemd" && find . -type f) | while read -r u; do
@@ -33,4 +33,4 @@ cmake -S "$IKIGAI_PATH/shell/plugin" -B "$BLOBS_BUILD" -G Ninja -DCMAKE_BUILD_TY
   -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_INSTALL_LIBDIR=lib >/dev/null
 cmake --build "$BLOBS_BUILD" >/dev/null
 sudo cmake --install "$BLOBS_BUILD" >/dev/null
-echo "installed ikigai-session + ikigai-bridge + shell; 'Ikigai' session entry in the greeter"
+echo "installed ikigai-session + ikigai-bridge + ikigai-outputs + shell; 'Ikigai' session entry in the greeter"
