@@ -13,7 +13,7 @@ PACMAN=(
   ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard ufw fastfetch zip unzip openssh python-gobject
   bluez bluez-utils
   gnome-keyring libsecret gcr-4
-  pacman-contrib kernel-modules-hook
+  pacman-contrib kernel-modules-hook zram-generator plocate wireless-regdb
   ttf-jetbrains-mono-nerd noto-fonts noto-fonts-cjk noto-fonts-emoji adw-gtk-theme librsvg xorg-xcursorgen
   pipewire pipewire-pulse wireplumber
   xdg-user-dirs

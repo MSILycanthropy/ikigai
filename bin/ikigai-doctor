@@ -76,6 +76,9 @@ if systemctl -q is-enabled ikigai-firewall 2>/dev/null; then
 else fail firewall "ikigai-firewall not enabled"; fi
 systemctl -q is-enabled paccache.timer 2>/dev/null && ok pacman "paccache.timer enabled" || warn pacman "paccache.timer not enabled (just install services)"
 pacman -Q kernel-modules-hook >/dev/null 2>&1 && ok pacman "kernel-modules-hook installed" || warn pacman "kernel-modules-hook not installed (just install packages)"
+systemctl -q is-enabled systemd-oomd 2>/dev/null && ok oomd "systemd-oomd enabled" || warn oomd "systemd-oomd not enabled (just install services)"
+[ -e /sys/block/zram0 ] && ok zram "zram0 $(swapon --show=SIZE --noheadings /dev/zram0 2>/dev/null | tr -d ' ')" || warn zram "no zram0 (zram-generator; comes up at boot)"
+[ "$(systemctl is-enabled NetworkManager-wait-online.service 2>/dev/null)" = masked ] && ok boot "NetworkManager-wait-online masked" || warn boot "NetworkManager-wait-online not masked (just install services)"
 [ "$(getent passwd "$USER" | cut -d: -f7)" = "$(command -v zsh)" ] && ok shell-login zsh || warn shell-login "login shell is not zsh"
 id -nG | tr ' ' '\n' | grep -qx docker && ok docker "in docker group" || warn docker "not in docker group (re-login after install)"
 

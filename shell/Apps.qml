@@ -29,7 +29,24 @@ Singleton {
         "com.github.th-ch.youtube-music": "youtube-logo",
         "discord": "discord-logo",
         "steam": "steam-logo",
-        "com.system76.CosmicSettings": "gear"
+        "com.system76.CosmicSettings": "gear",
+        // Not installed by Ikigai, but Phosphor has their marks: by the native app_id, and
+        // by the last segment of the Flatpak id where that is not the name.
+        "chromium": "google-chrome-logo",
+        "google-chrome": "google-chrome-logo",
+        "chrome": "google-chrome-logo",
+        "slack": "slack-logo",
+        "spotify": "spotify-logo",
+        "com.spotify.Client": "spotify-logo",
+        "org.telegram.desktop": "telegram-logo",
+        "whatsapp": "whatsapp-logo",
+        "element": "matrix-logo",
+        "figma-linux": "figma-logo",
+        "dropbox": "dropbox-logo",
+        "com.dropbox.Client": "dropbox-logo",
+        "github-desktop": "github-logo",
+        "twitch": "twitch-logo",
+        "tidal-hifi": "tidal-logo"
     })
     readonly property var categories: ({
         "TerminalEmulator": "terminal-window",

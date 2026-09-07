@@ -94,3 +94,36 @@ done
 # Default apps as the lowest XDG layer ($XDG_DATA_DIRS/applications/mimeapps.list): Zen for
 # the web and PDFs. Settings' Default Apps page writes ~/.config/mimeapps.list, which wins.
 sudo install -Dm644 "$IKIGAI_PATH/config/applications/mimeapps.list" /usr/local/share/applications/mimeapps.list
+
+# System drop-ins, mirrored from config/system/etc: 5 s stop timeouts at shutdown (docker keeps
+# a longer one), systemd-oomd's kill policy for app.slice and swap, ssh client keepalives,
+# F-keys on Apple-style keyboards, and the powerprofilesctl hook below.
+(cd "$SRC/system/etc" && find . -type f) | while read -r f; do
+  sudo install -Dm644 "$SRC/system/etc/$f" "/etc/$f"
+done
+
+# zram: compressed swap sized to RAM, unless the box already has a zram-generator.conf of its own.
+if [ -f /etc/systemd/zram-generator.conf ] && [ ! -f /etc/systemd/zram-generator.conf.d/ikigai.conf ]; then
+  echo "kept existing /etc/systemd/zram-generator.conf (config/system/zram/ikigai.conf not installed)"
+else
+  sudo install -Dm644 "$SRC/system/zram/ikigai.conf" /etc/systemd/zram-generator.conf.d/ikigai.conf
+fi
+
+# powerprofilesctl runs under `env python3`; once mise puts its own python first on PATH that
+# interpreter has no gi and the command dies. Pin it to the system python now, and after every
+# upgrade of power-profiles-daemon through the pacman hook installed above.
+[ -f /usr/bin/powerprofilesctl ] && sudo sed -i '1s|^#!/usr/bin/env python3$|#!/usr/bin/python3|' /usr/bin/powerprofilesctl
+
+# Wireless regulatory domain from the timezone's country: every channel and power level the
+# country allows, instead of the kernel's world-minimum until an access point says otherwise.
+# wireless-regdb's udev rule applies the file at boot; never overwrite a choice already made.
+if [ -f /etc/conf.d/wireless-regdom ] && ! grep -q '^WIRELESS_REGDOM=' /etc/conf.d/wireless-regdom; then
+  tz=$(readlink -f /etc/localtime 2>/dev/null || true); tz=${tz#/usr/share/zoneinfo/}
+  country=$(awk -v tz="$tz" '$3 == tz { print $1; exit }' /usr/share/zoneinfo/zone.tab 2>/dev/null || true)
+  if [[ $country =~ ^[A-Z]{2}$ ]]; then
+    echo "WIRELESS_REGDOM=\"$country\"" | sudo tee -a /etc/conf.d/wireless-regdom >/dev/null
+    echo "wireless regdom $country (from $tz)"
+  fi
+fi
+
+systemd-detect-virt -rq || sudo systemctl daemon-reload
