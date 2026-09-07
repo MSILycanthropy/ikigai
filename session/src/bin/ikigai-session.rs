@@ -36,6 +36,11 @@ const SESSION_ENV: &[(&str, &str)] = &[
     ("MOZ_ENABLE_WAYLAND", "1"),
     ("_JAVA_AWT_WM_NONREPARENTING", "1"),
     ("DCONF_PROFILE", "cosmic"),
+    // The Ikigai cursors live in the icon theme's dir under /usr/local, which no cursor
+    // loader searches on its own: XCURSOR_PATH is the default list with it in front.
+    ("XCURSOR_THEME", "Ikigai"),
+    ("XCURSOR_SIZE", "24"),
+    ("XCURSOR_PATH", "/usr/local/share/icons:~/.local/share/icons:~/.icons:/usr/share/icons:/usr/share/pixmaps"),
 ];
 const SYSTEMD_ENV: &[&str] = &[
     "XDG_CURRENT_DESKTOP",
@@ -43,6 +48,9 @@ const SYSTEMD_ENV: &[&str] = &[
     "XDG_SESSION_TYPE",
     "QT_QPA_PLATFORMTHEME",
     "DCONF_PROFILE",
+    "XCURSOR_THEME",
+    "XCURSOR_SIZE",
+    "XCURSOR_PATH",
 ];
 
 #[derive(Deserialize)]

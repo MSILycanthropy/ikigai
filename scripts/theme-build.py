@@ -5,7 +5,10 @@ Stdlib only; outputs are committed next to the palette. palette.json is the sing
 source of truth for colour, so every app file here is regenerated, never hand-edited.
 """
 import json
+import re
+import shutil
 import sys
+import tomllib
 from pathlib import Path
 
 FONT = {"family": "Noto Sans", "size": 12, "icons": "Phosphor", "iconsFill": "Phosphor-Fill"}
@@ -176,6 +179,76 @@ def gtk_css(palette):
     return "".join(f"@define-color {k} {v};\n" for k, v in colours.items())
 
 
+# Cursors: Bibata Modern's SVGs (cursors/bibata, GPL-3) with its placeholder colours swapped
+# for the palette's, laid out as a scalable cursor theme (cursors_scalable/<name>/metadata.json,
+# the KDE/libXcursor SVG format cosmic-comp renders itself). ikigai-theme-set rasterises the
+# same SVGs into Xcursor files for the toolkits that only read those.
+CURSOR_SRC = Path(__file__).resolve().parent.parent / "cursors" / "bibata"
+CURSOR_CANVAS = 256  # Bibata draws on a 256-unit canvas; hotspots.toml is in those units
+CURSOR_DELAY = 40    # ms per animation frame, upstream's x11_delay
+
+
+def cursor_colours(palette):
+    m3, ansi, extra = palette["m3"], palette["ansi"], palette["extra"]
+    return {
+        "#00FF00": m3["surface"],    # body
+        "#0000FF": m3["onSurface"],  # outline
+        "#FF0000": m3["surface"],    # the wait disc: the body's colour, as in Bibata Classic
+        # Bibata's four Google colours: the wait pie, left_ptr_watch's, and the four corners
+        "#32A0DA": ansi["blue"], "#4FADDF": ansi["blue"],
+        "#7EBA41": ansi["green"], "#96C865": ansi["green"],
+        "#F05024": ansi["red"], "#F1613A": ansi["red"],
+        "#FCB813": ansi["yellow"], "#FDBE2A": ansi["yellow"],
+        # badges
+        "#FE0000": m3["error"],                    # circle, crosshair, crossed_circle, dnd_no_drop
+        "#06B231": ansi["green"],                  # copy, dnd-copy
+        "#0A6857": ansi["cyan"],                   # pin
+        "#179DD8": m3["primary"],                  # pointer-move
+        "#5F3BE4": extra["purple"],                # context-menu
+        "#606060": m3["outline"],                  # link, dnd-link
+        "#2C2C2C": m3["surfaceContainerHighest"],  # person
+        "#F27400": extra["orange"],                # dnd-ask
+        '"white"': f'"{m3["onSurface"]}"',         # badge glyphs, the outline's colour
+    }
+
+
+def cursors(palette, out):
+    colours = {k.upper(): v for k, v in cursor_colours(palette).items()}
+    pattern = re.compile("|".join(re.escape(k) for k in colours), re.IGNORECASE)
+    recolour = lambda svg: pattern.sub(lambda m: colours[m.group(0).upper()], svg)
+    table = tomllib.loads((CURSOR_SRC / "hotspots.toml").read_text())["cursors"]
+    defaults = table.pop("fallback_settings")
+    if out.exists():
+        shutil.rmtree(out)
+    scalable = out / "cursors_scalable"
+    aliases = []
+    for entry in table.values():
+        name = entry["x11_name"]
+        stem = entry["png"].removesuffix(".png")
+        if stem.endswith("-*"):  # animated: a directory of frames
+            frames = sorted((CURSOR_SRC / "svg" / stem[:-2]).glob("*.svg"))
+        else:
+            frames = [CURSOR_SRC / "svg" / f"{stem}.svg"]
+        meta = []
+        for frame in frames:
+            (scalable / name).mkdir(parents=True, exist_ok=True)
+            (scalable / name / frame.name).write_text(recolour(frame.read_text()))
+            m = {"filename": frame.name, "nominal_size": CURSOR_CANVAS,
+                 "hotspot_x": entry.get("x_hotspot", defaults["x_hotspot"]),
+                 "hotspot_y": entry.get("y_hotspot", defaults["y_hotspot"])}
+            if len(frames) > 1:
+                m["delay"] = CURSOR_DELAY
+            meta.append(m)
+        (scalable / name / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n")
+        aliases += [(alias, name) for alias in entry.get("x11_symlinks", [])]
+    for alias, name in sorted(aliases):
+        (scalable / alias).symlink_to(name)
+    (out / "cursor.theme").write_text(
+        f"[Icon Theme]\nName={out.name}\nComment=Bibata Modern in the {palette['name']} palette\n")
+    shutil.copy(CURSOR_SRC / "LICENSE", out / "LICENSE")
+    return len(table), len(aliases)
+
+
 OUTPUTS = {
     "shell.json": shell_json,
     "cosmic/builder.ron": builder_ron,
@@ -196,6 +269,8 @@ def main():
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(render(palette))
         print(f"wrote {out}")
+    shapes, aliases = cursors(palette, theme / "cursors" / "Ikigai")
+    print(f"wrote {theme / 'cursors' / 'Ikigai'} ({shapes} cursors, {aliases} aliases)")
 
 
 if __name__ == "__main__":

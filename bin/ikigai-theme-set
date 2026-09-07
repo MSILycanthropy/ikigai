@@ -27,6 +27,16 @@ put vicinae/$THEME.toml  "$DATA/vicinae/themes/$THEME.toml"
 put gtk/gtk.css          "$HOME/.config/gtk-3.0/gtk.css"
 put gtk/gtk.css          "$HOME/.config/gtk-4.0/gtk.css"
 
+# Cursors: cosmic-comp renders the theme's SVGs itself; GTK, Qt and Chromium want Xcursor
+# files, rasterised here (rsvg-convert + xcursorgen, a few seconds). Both go into the icon
+# theme's dir, which is what XCURSOR_THEME=Ikigai names; the session and the greeter put
+# /usr/local/share/icons on XCURSOR_PATH, as no toolkit looks there on its own.
+CURSORS="$(mktemp -d)"; trap 'rm -rf "$CURSORS"' EXIT
+python3 "$IKIGAI_PATH/scripts/cursor-raster.py" "$T/cursors/Ikigai" "$CURSORS/Ikigai"
+sudo mkdir -p /usr/local/share/icons/Ikigai
+sudo rm -rf /usr/local/share/icons/Ikigai/{cursors,cursors_scalable,cursor.theme}
+sudo cp -r --no-preserve=all "$CURSORS/Ikigai/." /usr/local/share/icons/Ikigai/
+
 sudo install -Dm644 "$T/wallpaper.jpg" "/usr/local/share/backgrounds/ikigai/$THEME.jpg"
 # The greeter has no user state: it reads the theme from here.
 sudo install -Dm644 "$T/shell.json"    /usr/local/share/ikigai/theme/shell.json

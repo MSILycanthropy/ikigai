@@ -76,7 +76,7 @@ update:
     grep -qE '^(shell|session)/' <<<"$changed" && steps="$steps session"
     grep -qE '^bin/' <<<"$changed" && steps="$steps services"
     grep -qE '^(config|icons)/' <<<"$changed" && steps="$steps configs"
-    grep -qE '^themes/' <<<"$changed" && steps="$steps theme"
+    grep -qE '^(themes|cursors)/' <<<"$changed" && steps="$steps theme"
     grep -qE '^greeter/' <<<"$changed" && steps="$steps greeter"
     grep -qE '^packages/' <<<"$changed" && steps="$steps qt"
     grep -qE '^firewall/' <<<"$changed" && steps="$steps firewall"

@@ -1,4 +1,6 @@
 [org/gnome/desktop/interface]
 icon-theme='Ikigai'
+cursor-theme='Ikigai'
+cursor-size=24
 gtk-theme='adw-gtk3-dark'
 color-scheme='prefer-dark'
