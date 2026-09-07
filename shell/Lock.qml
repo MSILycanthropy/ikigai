@@ -111,6 +111,7 @@ Scope {
         id: bait
 
         PanelWindow {
+            screen: Screens.primary
             implicitWidth: 1
             implicitHeight: 1
             color: "transparent"
@@ -140,7 +141,7 @@ Scope {
 
             Loader {
                 anchors.centerIn: parent
-                active: surface.screen === Quickshell.screens[0]
+                active: surface.screen === Screens.primary
                 focus: true
 
                 sourceComponent: AuthCard {

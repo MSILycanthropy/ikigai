@@ -66,7 +66,7 @@ whichever one you had, and cosmic-comp's defaults land as system config next to 
 | Network | NetworkManager, on the rail: the Wi-Fi strength or the wired link as the glyph, a card with the Wi-Fi switch, the wired link and the networks in range. Click to connect; a new secured network asks for its password in a window; the connected row expands to Disconnect and Forget. cosmic-settings' Network page for VPNs and the rest |
 | Battery | On the rail when there is one: level and charging state as the glyph, a card with the time left and the power profile (upower, power-profiles-daemon) |
 | Bluetooth | bluez, enabled at install; pairing on cosmic-settings' Bluetooth page. Nothing on the rail yet |
-| Settings | cosmic-settings, with the rail in place of its panel: the Panel and Dock pages are inert, everything else works. The rail's own settings (pins, autohide, scale, the monitor toasts go to, restore) are in `~/.config/ikigai/shell.json` for now |
+| Settings | cosmic-settings, with the rail in place of its panel: the Panel and Dock pages are inert, everything else works. The rail's own settings (pins, autohide, scale, the primary monitor, restore) are in `~/.config/ikigai/shell.json` for now |
 | Restore | Log back in and the apps you had open come back, each on the output and workspace it was on, maximized if it was, the way macOS reopens windows and Windows restarts apps. The shell keeps `~/.local/state/ikigai/session.json` current while you work and replays it once per login. What comes back is the app, not its contents: Zen and Zed remember their own, a terminal opens fresh. `"restore": false` in `shell.json` turns it off |
 | Video | [mpv](https://mpv.io) with hardware decoding, fuzzy subtitle matching and resume-where-you-left-off seeded |
 | Images | [cosmic-viewer](https://github.com/pop-os/cosmic-viewer), COSMIC's own image viewer: crop, rotate, markup, set as wallpaper (AUR `cosmic-viewer-git`) |
@@ -135,8 +135,10 @@ type the word.
   the Ikigai theme and telemetry off, and its welcome tour runs on first login. The shell
   reads its theme from `~/.local/state/ikigai/shell-theme.json` (written by
   `ikigai-theme-set`) and your settings from `~/.config/ikigai/shell.json` (seeded once:
-  pinned apps, autohide, scale, and `monitor`, the output toasts appear on — empty for
-  the first one); both reload live. cosmic-comp's shortcuts point at the shell over
+  pinned apps, autohide, scale, and `monitor`, the primary output: toasts, the lock,
+  polkit and welcome cards and the Alt+Tab switcher go there, and so the apps you launch
+  after them — empty for the first one the compositor lists, which is not necessarily the
+  one in front of you); both reload live. cosmic-comp's shortcuts point at the shell over
   `ikigai-shell <target> <call>` (Quickshell IPC). `ikigai.desktop` is the only session
   entry.
 - **The greeter is the shell.** greetd runs `ikigai-greeter` as its own user: cosmic-comp
@@ -177,7 +179,7 @@ mechanism yet — `git pull` in `~/.local/share/ikigai` + `pacman -Syu` + `paru 
 the honest answer for now.
 
 Not yet: a settings card for the rail, a chooser when polkit offers several admins,
-multi-monitor beyond "the sidebar on every screen, the card on the first".
+multi-monitor beyond "the rail on every screen, the cards on `monitor`"; the greeter's card stays on the first.
 
 Next, roughly in order: those, an update command (reconcile seeded files `.pacnew`-style —
 the seed hashes are already recorded), a custom pacman repo so the installer needs no

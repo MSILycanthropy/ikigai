@@ -112,6 +112,7 @@ Scope {
 
         PanelWindow {
             id: window
+            screen: Screens.primary
 
             readonly property int shadowRoom: 24
             readonly property int tileWidth: Math.round(216 * Config.scale)

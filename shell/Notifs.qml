@@ -22,15 +22,8 @@ Singleton {
     readonly property bool dnd: Config.dnd
     readonly property int defaultTimeout: 5000
 
-    // Where toasts land, and where `ikigai-shell sidebar toggle` opens: the monitor named
-    // in shell.json while it is connected, else the first one.
-    readonly property ShellScreen screen: {
-        const screens = Quickshell.screens;
-        for (let i = 0; i < screens.length; i++)
-            if (screens[i].name === Config.monitor)
-                return screens[i];
-        return screens.length > 0 ? screens[0] : null;
-    }
+    // Where toasts land, and where `ikigai-shell sidebar toggle` opens.
+    readonly property ShellScreen screen: Screens.primary
 
     NotificationServer {
         keepOnReload: false

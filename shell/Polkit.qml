@@ -38,7 +38,7 @@ Scope {
         active: scope.asking
 
         PanelWindow {
-            screen: Quickshell.screens[0]
+            screen: Screens.primary
 
             anchors {
                 left: true
