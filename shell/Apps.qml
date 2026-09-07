@@ -2,10 +2,17 @@ pragma Singleton
 import Quickshell
 
 Singleton {
+    // The last segment of a reverse-DNS id, lowercased: "com.valvesoftware.Steam" → "steam".
+    // Flatpak exports an app under its own id while the window keeps the native app_id, so
+    // the Flathub Steam's entry and its "steam" window meet here, and Discord's the same.
+    function short(id) {
+        return id.slice(id.lastIndexOf(".") + 1).toLowerCase();
+    }
+
     function entryFor(appId) {
         const id = appId.toLowerCase();
         const apps = DesktopEntries.applications.values;
-        return apps.find(e => e.id.toLowerCase() === id) || apps.find(e => e.startupClass.toLowerCase() === id) || null;
+        return apps.find(e => e.id.toLowerCase() === id) || apps.find(e => e.startupClass.toLowerCase() === id) || apps.find(e => short(e.id) === id) || null;
     }
 
     function iconFor(appId) {
@@ -49,8 +56,8 @@ Singleton {
     function glyphFor(appId) {
         if (Config.icons[appId])
             return Config.icons[appId];
-        if (known[appId])
-            return known[appId];
+        if (known[appId] || known[short(appId)])
+            return known[appId] || known[short(appId)];
         const entry = entryFor(appId);
         if (entry)
             for (const category of entry.categories)
