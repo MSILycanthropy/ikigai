@@ -13,6 +13,10 @@ What Ikigai relies on, verified 2026-08-29/30 against COSMIC `epoch-1.7.0` (Arch
   and writes the built `Dark/v2` + `Dark.Builder/v2` files. Dev-time only; output is
   committed. Also fixes a real bug: upstream's shipped theme lacks `list_button`, so
   every COSMIC component logged "Failed to load the theme" at login.
+- Idle: `CosmicIdle/v1/suspend_on_ac_time` is `None` (defaults: screen off + lock at 15 min,
+  suspend at 30 min on AC, 15 on battery). Idle-suspend on a plugged-in desktop interrupts
+  running work, and on NVIDIA resume isn't set up (both 2026-09-06 hard resets were this:
+  journal ends at `PM: suspend entry (deep)`). Battery timer kept for laptops.
 - Fonts/icon theme: `CosmicTk/v1`. Wallpaper: `CosmicBackground/v1/{all,same-on-all}`
   (upstream's `all` has a RON syntax bug — `#true` — don't copy it).
 - Shortcuts: `CosmicSettings.Shortcuts/v1/custom` extends `defaults` by key;
