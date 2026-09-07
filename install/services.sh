@@ -15,7 +15,7 @@ sudo systemctl enable systemd-oomd
 sudo systemctl mask NetworkManager-wait-online.service
 # Outside archinstall's chroot, bring the new units up now rather than at the next boot:
 # oomd, zram0 (its generator ran with the daemon-reload in configs.sh), plocate's first index.
-if ! systemd-detect-virt -rq; then
+if ! sudo systemd-detect-virt -rq; then
   sudo systemctl start systemd-oomd
   [ -e /sys/block/zram0 ] || sudo systemctl start systemd-zram-setup@zram0.service || echo "zram0 comes up at the next boot"
   sudo systemctl start --no-block plocate-updatedb.service

@@ -126,4 +126,5 @@ if [ -f /etc/conf.d/wireless-regdom ] && ! grep -q '^WIRELESS_REGDOM=' /etc/conf
   fi
 fi
 
-systemd-detect-virt -rq || sudo systemctl daemon-reload
+# -r needs root: as the user it fails with "Permission denied" and reads as not-a-chroot.
+sudo systemd-detect-virt -rq || sudo systemctl daemon-reload
