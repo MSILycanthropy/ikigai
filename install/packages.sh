@@ -10,7 +10,7 @@ PACMAN=(
   docker docker-compose lazydocker mise
   zellij yazi btop
   grim slurp satty gpu-screen-recorder mpv brightnessctl upower power-profiles-daemon
-  ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard ufw fastfetch zip unzip openssh
+  ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard ufw fastfetch zip unzip openssh python-gobject
   bluez bluez-utils
   gnome-keyring libsecret gcr-4
   pacman-contrib kernel-modules-hook

@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+"""Keep the screen on: macOS's caffeinate for Ikigai.
+
+    ikigai-caffeinate                 until Ctrl-C
+    ikigai-caffeinate -t 90m          for a while (s, m, h, d; 1h30m)
+    ikigai-caffeinate -w PID          while that process lives
+    ikigai-caffeinate make -j8        while the command runs; exits with its status
+
+cosmic-idle drives the screen-off, lock and idle-suspend timers, and pauses all three for
+whoever holds an org.freedesktop.ScreenSaver inhibit (what mpv and Zen take for video). It
+ignores logind's idle inhibitors, so `systemd-inhibit --what=idle` does nothing here. The
+inhibit lives as long as this process's bus connection: killed any way, it lets go.
+"""
+import os
+import re
+import select
+import signal
+import subprocess
+import sys
+
+USAGE = "usage: ikigai-caffeinate [-t DURATION] [-w PID] [command ...]"
+
+
+def die(msg, code=1):
+    print(f"ikigai-caffeinate: {msg}", file=sys.stderr)
+    sys.exit(code)
+
+
+def duration(text):
+    """'90', '90s', '20m', '1h30m', '1.5h' -> seconds."""
+    parts = re.findall(r"(\d+(?:\.\d+)?)([smhd]?)", text)
+    if not parts or "".join(n + u for n, u in parts) != text:
+        die(f"bad duration {text!r} (seconds, or with s, m, h, d)", 2)
+    return sum(float(n) * {"": 1, "s": 1, "m": 60, "h": 3600, "d": 86400}[u] for n, u in parts)
+
+
+def parse(argv):
+    timeout = pid = None
+    while argv and argv[0].startswith("-"):
+        opt = argv.pop(0)
+        if opt in ("-h", "--help"):
+            print(USAGE)
+            sys.exit(0)
+        if opt == "--":
+            break
+        if opt in ("-t", "-w"):
+            if not argv:
+                die(f"{opt} needs a value\n{USAGE}", 2)
+            if opt == "-t":
+                timeout = duration(argv.pop(0))
+            else:
+                try:
+                    pid = int(argv.pop(0))
+                except ValueError:
+                    die(f"bad pid\n{USAGE}", 2)
+        else:
+            die(f"unknown option {opt}\n{USAGE}", 2)
+    return timeout, pid, argv
+
+
+class Inhibit:
+    """One org.freedesktop.ScreenSaver inhibit on the session bus, held while this object
+    (and its connection) lives."""
+
+    NAME, PATH, IFACE = "org.freedesktop.ScreenSaver", "/org/freedesktop/ScreenSaver", "org.freedesktop.ScreenSaver"
+
+    def __init__(self, reason):
+        import gi
+
+        gi.require_version("Gio", "2.0")
+        from gi.repository import Gio, GLib
+
+        self.Gio, self.GLib = Gio, GLib
+        self.bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        self.cookie = self.call("Inhibit", GLib.Variant("(ss)", ("ikigai-caffeinate", reason)), "(u)")[0]
+
+    def call(self, method, args, reply):
+        return self.bus.call_sync(
+            self.NAME, self.PATH, self.IFACE, method, args, self.GLib.VariantType(reply),
+            self.Gio.DBusCallFlags.NONE, -1, None,
+        ).unpack()
+
+    def release(self):
+        if self.cookie is None:
+            return
+        try:
+            self.call("UnInhibit", self.GLib.Variant("(u)", (self.cookie,)), "()")
+        except Exception:
+            pass  # cosmic-idle drops it with the connection anyway
+        self.cookie = None
+
+
+def wait_pid(pid, timeout):
+    """Block until pid exits or timeout (seconds, None = forever) passes."""
+    try:
+        fd = os.pidfd_open(pid)
+    except ProcessLookupError:
+        die(f"no process {pid}")
+    try:
+        select.select([fd], [], [], timeout)
+    finally:
+        os.close(fd)
+
+
+def main():
+    timeout, pid, command = parse(sys.argv[1:])
+    if command:
+        reason = " ".join(command)
+    elif pid is not None:
+        reason = f"while pid {pid} runs"
+    elif timeout is not None:
+        reason = f"for {sys.argv[sys.argv.index('-t') + 1]}"
+    else:
+        reason = "until Ctrl-C"
+
+    try:
+        inhibit = Inhibit(reason)
+    except Exception as err:  # no cosmic-idle on the bus, most likely
+        inhibit = None
+        print(f"ikigai-caffeinate: not inhibiting: {err} (is ikigai-idle.service running?)", file=sys.stderr)
+        if not command:
+            sys.exit(1)
+
+    def release(*_):
+        if inhibit:
+            inhibit.release()
+
+    status = 0
+    if command:
+        # The terminal's Ctrl-C reaches the child too; leave the choice to it, like `time`.
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        try:
+            child = subprocess.Popen(command)
+        except OSError as err:
+            release()
+            die(f"{command[0]}: {err.strerror}", 127)
+        signal.signal(signal.SIGTERM, lambda *_: child.terminate())
+        signal.signal(signal.SIGHUP, lambda *_: child.send_signal(signal.SIGHUP))
+        try:
+            child.wait(timeout)
+        except subprocess.TimeoutExpired:
+            release()
+            child.wait()
+        status = child.returncode if child.returncode >= 0 else 128 - child.returncode
+    else:
+        for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+            signal.signal(sig, lambda *_: sys.exit(0))
+        try:
+            if pid is not None:
+                wait_pid(pid, timeout)
+            else:
+                select.select([], [], [], timeout)
+        finally:
+            release()
+    release()
+    sys.exit(status)
+
+
+if __name__ == "__main__":
+    main()

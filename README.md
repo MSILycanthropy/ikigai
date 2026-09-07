@@ -120,6 +120,7 @@ type the word.
 | `ikigai-update` | `pacman -Syu`, `paru -Sua`, a line for orphans and `.pacnew` files if there are any, then pull Ikigai and rerun the installer steps that changed; `--no-pkg` / `--pkg` for one half |
 | `ikigai-doctor` | is this box's Ikigai whole and current: installed commit, units, keyring and ssh agent, greeter, patched Qt, firewall, pacman timers, seeds |
 | `ikigai-keys` | every binding (`--fzf` to search) |
+| `ikigai-caffeinate` | keep the screen on, macOS's `caffeinate`: until Ctrl-C, `-t 90m` for a while, `-w PID` while a process lives, or `ikigai-caffeinate make -j8` while a command runs (exits with its status). It holds the same `org.freedesktop.ScreenSaver` inhibit mpv and Zen take for video, the one thing cosmic-idle honours: screen off, lock and idle-suspend all wait |
 | `ikigai-steam` | Steam, gamemode, gamescope, mangohud and the 32-bit driver, then launches it |
 | `ikigai-shell welcome open` | the first-login card again |
 
@@ -168,7 +169,7 @@ type the word.
   privilege gets the same card with what it wants written under the name.
 
 Repo layout: `install/` (steps run by `install.sh`), `config/` (seeds), `themes/`
-(`ikigai/palette.json` plus the app themes `scripts/theme-build.py` renders from it and the built COSMIC theme), `cursors/` (Bibata's SVG sources, vendored), `bin/` (`ikigai-update`, `ikigai-doctor`, `ikigai-keys`,
+(`ikigai/palette.json` plus the app themes `scripts/theme-build.py` renders from it and the built COSMIC theme), `cursors/` (Bibata's SVG sources, vendored), `bin/` (`ikigai-update`, `ikigai-doctor`, `ikigai-keys`, `ikigai-caffeinate`,
 `ikigai-theme-set`, `ikigai-shell`, `ikigai-shot`, `ikigai-greeter`), `session/` (Rust: `ikigai-session`, `ikigai-bridge`, `ikigai-outputs` and the session's
 user units, built at install), `shell/` (the Quickshell shell, greeter and lock included), `greeter/` (greetd config and units), `tools/cosmic-theme-gen` (dev-only: builds the COSMIC theme from
 `builder.ron`), `scripts/vm.sh` (QEMU test harness; `vm-hyperv.sh` is the same for Hyper-V from WSL2).

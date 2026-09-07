@@ -4,10 +4,16 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-for f in boot.sh install.sh install/*.sh bin/* scripts/*.sh packages/qt6-base/ikigai-qt-wayland; do bash -n "$f"; done
+[ "$(id -u)" -eq 0 ] && pacman -Sy --noconfirm >/dev/null
+[ "$(id -u)" -eq 0 ] && pacman -S --noconfirm --needed python >/dev/null
+for f in boot.sh install.sh install/*.sh bin/* scripts/*.sh packages/qt6-base/ikigai-qt-wayland; do
+  case "$(head -1 "$f")" in
+    *python*) python -c 'import ast, sys; ast.parse(open(sys.argv[1]).read(), sys.argv[1])' "$f" ;;
+    *) bash -n "$f" ;;
+  esac
+done
 echo "syntax ok"
 
-[ "$(id -u)" -eq 0 ] && pacman -Sy --noconfirm >/dev/null
 eval "$(sed -n '/^PACMAN=(/,/^)/p' install/packages.sh)"
 pacman -Sp --noconfirm "${PACMAN[@]}" >/dev/null
 echo "all ${#PACMAN[@]} repo packages resolve"
@@ -39,7 +45,6 @@ find themes config -type f \( -name '*.ron' -o -path '*/v[0-9]/*' \) | while rea
 done
 echo "config files non-empty"
 
-[ "$(id -u)" -eq 0 ] && pacman -S --noconfirm --needed python >/dev/null
 python -c '
 import json; d = json.load(open("archinstall.json"))
 assert d["profile_config"]["profile"]["main"] == "Minimal"
