@@ -110,6 +110,16 @@ cosmic-comp's stock bindings, plus:
 Log out, power off, reboot and sleep are Vicinae commands rather than chords: `Super`,
 type the word.
 
+### Commands
+
+| | |
+|---|---|
+| `ikigai-update` | `pacman -Syu`, `paru -Sua`, then pull Ikigai and rerun the installer steps that changed; `--no-pkg` / `--pkg` for one half |
+| `ikigai-doctor` | is this box's Ikigai whole and current: installed commit, units, greeter, patched Qt, firewall, seeds |
+| `ikigai-keys` | every binding (`--fzf` to search) |
+| `ikigai-steam` | Steam, gamemode, gamescope, mangohud and the 32-bit driver, then launches it |
+| `ikigai-shell welcome open` | the first-login card again |
+
 ## How it's put together
 
 - **COSMIC config is shipped as system defaults** in `/usr/local/share/cosmic/`, which
@@ -154,7 +164,7 @@ type the word.
   privilege gets the same card with what it wants written under the name.
 
 Repo layout: `install/` (steps run by `install.sh`), `config/` (seeds), `themes/`
-(`ikigai/palette.json` plus the app themes `scripts/theme-build.py` renders from it and the built COSMIC theme), `cursors/` (Bibata's SVG sources, vendored), `bin/` (`ikigai-keys`,
+(`ikigai/palette.json` plus the app themes `scripts/theme-build.py` renders from it and the built COSMIC theme), `cursors/` (Bibata's SVG sources, vendored), `bin/` (`ikigai-update`, `ikigai-doctor`, `ikigai-keys`,
 `ikigai-theme-set`, `ikigai-shell`, `ikigai-shot`, `ikigai-greeter`), `session/` (Rust: `ikigai-session`, `ikigai-bridge`, `ikigai-outputs` and the session's
 user units, built at install), `shell/` (the Quickshell shell, greeter and lock included), `greeter/` (greetd config and units), `tools/cosmic-theme-gen` (dev-only: builds the COSMIC theme from
 `builder.ron`), `scripts/vm.sh` (QEMU test harness; `vm-hyperv.sh` is the same for Hyper-V from WSL2).
@@ -176,15 +186,15 @@ path we actually verify.
 ## Status
 
 v2: the shell replaced COSMIC's panel, launcher, notifications, OSD, greeter and lock,
-and those packages are no longer installed. Both install paths work end to end. No update
-mechanism yet — `git pull` in `~/.local/share/ikigai` + `pacman -Syu` + `paru -Sua` is
-the honest answer for now.
+and those packages are no longer installed. Both install paths work end to end.
+`ikigai-update` pulls the checkout and reruns what changed; seeded configs are still
+seed-once (edit yours, or `IKIGAI_FORCE=1`).
 
 Not yet: a settings card for the rail, a chooser when polkit offers several admins,
 multi-monitor beyond "the rail on every screen, the cards on `monitor`"; the greeter's card stays on the first.
 
-Next, roughly in order: those, an update command (reconcile seeded files `.pacnew`-style —
-the seed hashes are already recorded), a custom pacman repo so the installer needs no
+Next, roughly in order: those, reconciling seeded files on update `.pacnew`-style (the
+seed hashes are already recorded), a custom pacman repo so the installer needs no
 AUR at all, an ISO with an SSH-first console, a second theme
 (the palette pipeline and `tools/cosmic-theme-gen` are ready for it).
 
