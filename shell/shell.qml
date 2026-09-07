@@ -17,6 +17,7 @@ ShellRoot {
     Lock {}
     Polkit {}
     Welcome {}
+    Launcher {}
     Restore {}
     WifiAuth {}
 

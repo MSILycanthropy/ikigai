@@ -4,5 +4,13 @@
   "theme": {
     "dark":  { "name": "ikigai" },
     "light": { "name": "ikigai" }
+  },
+  "launcher_window": {
+    "opacity": 0,
+    "blur": { "enabled": false },
+    "dim_around": false,
+    "client_side_decorations": { "rounding": 28, "border_width": 0, "shadow_size": 0 },
+    "size": { "width": 770, "height": 480 },
+    "layer_shell": { "layer": "overlay" }
   }
 }

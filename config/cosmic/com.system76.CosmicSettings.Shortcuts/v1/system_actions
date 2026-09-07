@@ -1,6 +1,6 @@
 {
     /// Opens the application library
-    AppLibrary: "vicinae toggle",
+    AppLibrary: "ikigai-shell launcher toggle",
     /// Decreases screen brightness
     BrightnessDown: "ikigai-shell osd brightness down",
     /// Increases screen brightness
@@ -18,7 +18,7 @@
     /// Increases keyboard brightness
     // KeyboardBrightnessUp,
     /// Opens the launcher
-    Launcher: "vicinae toggle",
+    Launcher: "ikigai-shell launcher toggle",
     /// Locks the screen
     LockScreen: "loginctl lock-session",
     /// Mutes the active output device
