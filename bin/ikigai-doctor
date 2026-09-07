@@ -49,12 +49,15 @@ else
   [ -f "$STATE/shell-theme.json" ] && ok theme "$STATE/shell-theme.json" || fail theme "no $STATE/shell-theme.json (ikigai-theme-set never ran)"
   [ -f "$HOME/.config/ikigai/shell.json" ] && ok config "$HOME/.config/ikigai/shell.json" || warn config "no $HOME/.config/ikigai/shell.json (shell runs on defaults)"
   [ -f "$RUN/ikigai-session.log" ] && ok log "$RUN/ikigai-session.log ($(wc -l < "$RUN/ikigai-session.log") lines)"
+  if busctl --user --no-pager --list 2>/dev/null | grep -q '^org.freedesktop.secrets'; then ok keyring "org.freedesktop.secrets on the session bus"
+  else warn keyring "no org.freedesktop.secrets on the session bus (nothing has asked for it yet, or gnome-keyring is missing)"; fi
+  [ -S "$RUN/gcr/ssh" ] && ok ssh-agent "gcr-ssh-agent at $RUN/gcr/ssh${SSH_AUTH_SOCK:+, SSH_AUTH_SOCK=$SSH_AUTH_SOCK}" || warn ssh-agent "no socket at $RUN/gcr/ssh (gcr-ssh-agent.socket not enabled; re-login after install)"
 fi
 
 # ---- system ------------------------------------------------------------------------
 dm=$(basename "$(readlink /etc/systemd/system/display-manager.service 2>/dev/null)" 2>/dev/null)
 [ "$dm" = ikigai-greeter.service ] && ok greeter "display-manager.service -> ikigai-greeter" || fail greeter "display-manager.service -> ${dm:-nothing} (expected ikigai-greeter)"
-for f in /usr/local/bin/ikigai-session /usr/local/bin/ikigai-bridge /usr/local/bin/ikigai-outputs /usr/local/share/ikigai/shell/shell.qml /usr/local/lib/qt6/qml/Ikigai/Blobs /usr/share/wayland-sessions/ikigai.desktop; do
+for f in /usr/local/bin/ikigai-session /usr/local/bin/ikigai-bridge /usr/local/bin/ikigai-outputs /usr/local/share/ikigai/shell/shell.qml /usr/local/lib/qt6/qml/Ikigai/Blobs /usr/share/wayland-sessions/ikigai.desktop /etc/pam.d/ikigai-greeter; do
   [ -e "$f" ] && ok file "$f" || fail file "missing $f"
 done
 for b in "$IKIGAI_PATH"/bin/*; do
@@ -71,6 +74,8 @@ else fail qt "patched for ${qtstate%% *}, installed qt6-base is $qt (pacman hook
 if systemctl -q is-enabled ikigai-firewall 2>/dev/null; then
   [ -e /var/lib/ikigai/firewall-applied ] && ok firewall "applied" || warn firewall "enabled, applies on next boot"
 else fail firewall "ikigai-firewall not enabled"; fi
+systemctl -q is-enabled paccache.timer 2>/dev/null && ok pacman "paccache.timer enabled" || warn pacman "paccache.timer not enabled (just install services)"
+pacman -Q kernel-modules-hook >/dev/null 2>&1 && ok pacman "kernel-modules-hook installed" || warn pacman "kernel-modules-hook not installed (just install packages)"
 [ "$(getent passwd "$USER" | cut -d: -f7)" = "$(command -v zsh)" ] && ok shell-login zsh || warn shell-login "login shell is not zsh"
 id -nG | tr ' ' '\n' | grep -qx docker && ok docker "in docker group" || warn docker "not in docker group (re-login after install)"
 

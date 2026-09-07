@@ -14,6 +14,7 @@ Singleton {
     property alias dnd: config.dnd
     property alias monitor: config.monitor
     property alias restore: config.restore
+    property alias taskbar: config.taskbar
 
     function pin(appId) {
         config.pinned.top = [...config.pinned.top, appId];
@@ -50,6 +51,8 @@ Singleton {
             property bool dnd: false
             property string monitor: ""
             property bool restore: true
+            // "all": every rail shows every window; "screen": each rail its own output's.
+            property string taskbar: "all"
         }
     }
 }

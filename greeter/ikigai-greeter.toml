@@ -2,7 +2,7 @@
 vt = "1"
 
 [general]
-service = "login"
+service = "ikigai-greeter"
 
 [default_session]
 command = "ikigai-greeter"

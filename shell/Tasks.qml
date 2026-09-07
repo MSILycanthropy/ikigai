@@ -23,6 +23,14 @@ Singleton {
         }
     }
 
+    // A rail set to its own screen (`taskbar: "screen"` in shell.json): each task's windows
+    // on that output only, and running unpinned apps only where they have one.
+    function onScreen(tasks, screen) {
+        if (Config.taskbar !== "screen" || !screen)
+            return tasks;
+        return tasks.map(t => Object.assign({}, t, { windows: t.windows.filter(w => w.outputs.includes(screen.name)) })).filter(t => t.pinned || t.windows.length > 0);
+    }
+
     // Does this app have a rail button right now — pinned, or running and appended?
     function shows(appId) {
         return top.some(t => t.appId === appId) || bottom.some(t => t.appId === appId);

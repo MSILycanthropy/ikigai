@@ -10,6 +10,9 @@ Singleton {
     property var sessions: []
     property alias lastUser: last.user
     property alias lastSession: last.session
+    // The last user's primary screen, written by their shell (Screens.qml) to
+    // /var/lib/ikigai/greeter/<user>; empty means the first screen.
+    readonly property string lastMonitor: monitorFile.path !== "" && monitorFile.loaded ? monitorFile.text().trim() : ""
 
     function remember(user, session) {
         last.user = user;
@@ -39,6 +42,13 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: root.sessions = root.parseSessions(text)
         }
+    }
+
+    FileView {
+        id: monitorFile
+        path: root.lastUser !== "" ? "/var/lib/ikigai/greeter/" + root.lastUser : ""
+        blockLoading: true
+        printErrors: false
     }
 
     FileView {

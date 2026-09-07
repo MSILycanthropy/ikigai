@@ -8,5 +8,6 @@
   "scale": 1.0,
   "dnd": false,
   "monitor": "",
-  "restore": true
+  "restore": true,
+  "taskbar": "all"
 }

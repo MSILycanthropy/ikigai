@@ -21,10 +21,14 @@ AuthCard {
             return;
         }
         pending = password;
+        said = "";
         Greetd.createSession(user.name);
     }
 
     property string pending: ""
+    // PAM's info and error lines on the way (pam_faillock's lockout notice); shown in
+    // place of the generic "Wrong password" when the attempt fails.
+    property string said: ""
 
     function nextUser() {
         userIndex = (userIndex + 1) % Accounts.users.length;
@@ -41,13 +45,15 @@ AuthCard {
         function onAuthMessage(msg, error, responseRequired, echoResponse) {
             if (responseRequired)
                 Greetd.respond(login.pending);
-            else if (error)
-                login.message = msg;
+            else if (msg)
+                login.said = login.said ? login.said + " " + msg : msg;
         }
 
         function onAuthFailure(msg) {
             login.pending = "";
-            login.reject(/AUTH_ERR/.test(msg) ? "Wrong password" : (msg || "Authentication failed"));
+            const said = login.said;
+            login.said = "";
+            login.reject(said || (/AUTH_ERR/.test(msg) ? "Wrong password" : (msg || "Authentication failed")));
         }
 
         // Quickshell 0.3.1 cancels the session after a failure, which greetd has already

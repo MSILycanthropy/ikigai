@@ -117,8 +117,13 @@ fn run(runtime_dir: &Path, log: &mut Log) -> io::Result<()> {
     let comp_fd = OwnedFd::from(comp_end);
     inheritable(&comp_fd)?;
     let comp_log = File::create(runtime_dir.join("cosmic-comp.log"))?;
+    // gcr-ssh-agent.socket (enabled for every user at install) listens here and sets the
+    // variable in the user manager itself; cosmic-comp's children (the shortcuts' terminal)
+    // inherit ours, so it goes on the compositor too.
+    let ssh_auth_sock = runtime_dir.join("gcr/ssh");
     let mut comp = Command::new("cosmic-comp")
         .envs(SESSION_ENV.iter().copied())
+        .env("SSH_AUTH_SOCK", &ssh_auth_sock)
         .env("COSMIC_SESSION_SOCK", comp_fd.as_raw_fd().to_string())
         .stdin(Stdio::null())
         .stdout(comp_log.try_clone()?)
@@ -141,6 +146,7 @@ fn run(runtime_dir: &Path, log: &mut Log) -> io::Result<()> {
     if let Some(path) = &session {
         env.insert(SESSION_PATH_VAR.to_owned(), path.clone());
     }
+    env.insert("SSH_AUTH_SOCK".to_owned(), ssh_auth_sock.to_string_lossy().into_owned());
     let pairs: Vec<String> = env.iter().map(|(k, v)| format!("{k}={v}")).collect();
     log.line(format!("compositor up: {}", pairs.join(" ")));
     systemctl(log, &with_args(&["set-environment"], &pairs));

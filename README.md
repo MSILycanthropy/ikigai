@@ -60,19 +60,21 @@ whichever one you had, and cosmic-comp's defaults land as system config next to 
 | Rail | Ikigai's own [Quickshell](https://quickshell.org) shell: a thin autohiding rail inside a rounded frame, popouts that melt out of it. Pinned and running apps (click to focus, again to minimize, middle-click to close, right-click to pin or move), a task view of workspaces and windows, tray, volume card with output picker, clock. The look, and the blob renderer that draws it, are [soramanew's caelestia-shell](https://github.com/caelestia-dots/shell) — see [Credits](#credits) |
 | Notifications | Toasts out of the rail, a sidebar (click the clock) with the history, a calendar and do-not-disturb, an unread badge. Volume and brightness changes show a pill at the bottom edge |
 | Launcher | [Vicinae](https://vicinae.com) on `Super`: apps, files, clipboard history, and its own log out, power off, reboot and sleep commands |
-| Greeter | Ikigai's, on greetd: cosmic-comp in kiosk mode drawing the same card as the lock screen, with the theme and wallpaper, your avatar from Settings, and the last user preselected |
-| Lock | `Super+L`, the idle timeout or the lid: logind locks, the shell draws the card over every screen and checks the password through PAM. The same card answers polkit when an app asks for privilege |
+| Greeter | Ikigai's, on greetd: cosmic-comp in kiosk mode drawing the same card as the lock screen, with the theme and wallpaper, your avatar from Settings, and the last user preselected, on their primary screen |
+| Lock | `Super+L`, the idle timeout or the lid: logind locks, the shell draws the card over every screen and checks the password through PAM. The same card answers polkit when an app asks for privilege. Both cards repeat what PAM says: after three wrong passwords Arch's faillock shuts the account for ten minutes, and the card says so, with the minutes left, instead of shaking at the right password |
+| Secrets | gnome-keyring, unlocked by the greeter's PAM stack (`/etc/pam.d/ikigai-greeter`) with the password that logged you in, so Zen, Zed, gh, Vicinae and the Chromium apps (`--password-store=gnome-libsecret` on their entries) keep their tokens in the login keyring and never ask for a second password. The ssh agent is gcr's (`gcr-ssh-agent.socket`, `SSH_AUTH_SOCK` set by the session): passphrases land in the same keyring |
 | Displays | The layout survives the monitors' sleep. On NVIDIA a DisplayPort monitor leaves the bus when it powers down, so waking it is a hotplug to cosmic-comp, whose first page flip after the modeset the driver rejects; it falls back to 60 Hz in connector order and saves that as your layout. `ikigai-outputs` (a wlr-output-management client under the session target) remembers each layout that has sat still and puts it back in one configuration when the same heads return different. A change made in Settings comes with no hotplug and sticks |
 | First login | A welcome card on the shell: the keys, the rail, where settings live, and a Connect to Wi-Fi button when the box is offline. Once per user (`~/.local/state/ikigai/welcomed`); `ikigai-shell welcome open` brings it back |
 | Network | NetworkManager, on the rail: the Wi-Fi strength or the wired link as the glyph, a card with the Wi-Fi switch, the wired link and the networks in range. Click to connect; a new secured network asks for its password in a window; the connected row expands to Disconnect and Forget. cosmic-settings' Network page for VPNs and the rest |
 | Battery | On the rail when there is one: level and charging state as the glyph, a card with the time left and the power profile (upower, power-profiles-daemon) |
-| Bluetooth | bluez, enabled at install; pairing on cosmic-settings' Bluetooth page. Nothing on the rail yet |
-| Settings | cosmic-settings, with the rail in place of its panel: the Panel and Dock pages are inert, everything else works. The rail's own settings (pins, autohide, scale, the primary monitor, restore) are in `~/.config/ikigai/shell.json` for now |
+| Bluetooth | bluez, enabled at install, on the rail when there is an adapter: the glyph says off, on or connected, the card has the switch, the paired devices and what is in range (it searches while open). Click connects or pairs and trusts; the connected row expands to Disconnect and Forget; battery level where the device reports one. Pairing that wants a PIN or a confirmation is cosmic-settings' Bluetooth page, the card carries no agent |
+| Settings | cosmic-settings, with the rail in place of its panel: the Panel and Dock pages are inert, everything else works. The rail's own settings (pins, autohide, scale, the primary monitor, restore, `taskbar`) are in `~/.config/ikigai/shell.json` for now |
+| Monitors | The rail is on every screen. `monitor` in `shell.json` names the primary: toasts, the lock, polkit and welcome cards go there, the greeter's card too (the shell leaves the name in `/var/lib/ikigai/greeter/<user>` for it), and the Alt+Tab switcher follows the focused window. `"taskbar": "screen"` makes each rail show only its own screen's windows, Windows' "where the window is open" option; the default `"all"` shows every window on every rail |
 | Restore | Log back in and the apps you had open come back, each on the output and workspace it was on, maximized if it was, the way macOS reopens windows and Windows restarts apps. The shell keeps `~/.local/state/ikigai/session.json` current while you work and replays it once per login. What comes back is the app, not its contents: Zen and Zed remember their own, a terminal opens fresh. `"restore": false` in `shell.json` turns it off |
 | Video | [mpv](https://mpv.io) with hardware decoding, fuzzy subtitle matching and resume-where-you-left-off seeded |
 | Images | [cosmic-viewer](https://github.com/pop-os/cosmic-viewer), COSMIC's own image viewer: crop, rotate, markup, set as wallpaper (AUR `cosmic-viewer-git`) |
 | Screenshots | `Print` freezes the screen and opens the shell's picker: Region, Window or Screen, then Snip, Edit or Record. Snip puts the PNG on the clipboard and in `~/Pictures/Screenshots`; Edit opens it in [satty](https://github.com/gabm/Satty); Record starts [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/) on it with the system's audio, shows a dot and timer on the rail, and `Super+Shift+R` or a click on the dot stops it with the file's path (`~/Videos/Recordings`) on the clipboard. `Shift+Print` starts in Screen mode. Captured by [grim](https://gitlab.freedesktop.org/emersion/grim) over ext-image-copy-capture |
-| Switcher | Windows-style Alt+Tab in the rail's language: hold Alt, Tab cycles live previews most-recent-first across workspaces (minimized included), release to switch, Shift+Tab backwards, Escape cancels, click a tile. Previews come from the bridge over ext-image-copy-capture |
+| Switcher | Windows-style Alt+Tab in the rail's language: hold Alt, Tab cycles live previews most-recent-first across workspaces (minimized included), release to switch, Shift+Tab backwards, Escape cancels, click a tile. It opens on the screen of the focused window, the primary when nothing is. Previews come from the bridge over ext-image-copy-capture |
 | Mouse | Middle-click autoscroll the way Windows has it: per app, with each app's own anchor icon and pan cursors. Zen's is Firefox's, switched on as a default by `/etc/zen/policies/policies.json` (Settings can turn it off again). Discord and YouTube Music get Chromium's, which the Linux build hides behind `--enable-blink-features=MiddleClickAutoscroll`, from desktop-entry overlays in `/usr/local/share/applications`. GTK, Qt and COSMIC apps have none, as their Windows counterparts mostly didn't |
 | Cursor | [Bibata](https://github.com/ful1e5/Bibata_Cursor) Modern in the palette: its SVG sources are vendored (`cursors/bibata`, GPL-3) and `theme-build.py` swaps their placeholder colours for the theme's, body and outline from the surface pair, the wait pie and the four corners from the ANSI colours, badges from the accents. It lands as an `Ikigai` cursor theme next to the icons: the SVG form for cosmic-comp, which renders it at any scale, and Xcursor files at 24 to 96 px that `ikigai-theme-set` rasterises for GTK, Qt and Chromium |
 | Icons | [Phosphor](https://phosphoricons.com) everywhere: the rail's glyphs, and an `Ikigai` symbolic icon theme built from Phosphor that COSMIC's window buttons, cosmic-settings, GTK header bars and Qt apps all pick up. Ghostty, Zen and Zed get hand-drawn marks in Phosphor's grammar on the rail (`shell/icons/brand`); app icons elsewhere stay their own |
@@ -85,8 +87,9 @@ whichever one you had, and cosmic-comp's defaults land as system config next to 
 | Runtimes | [mise](https://mise.jdx.dev) — `mise use -g node@lts`; Arch builds mise without `self-update`, pacman updates it. Docker + lazydocker (you're added to the `docker` group, which is root-equivalent) |
 | TUIs | yazi (`y`), lazygit (`lg`), btop |
 | CLI | ripgrep, fd, fzf, bat, eza, dust, git-delta, tealdeer, jq, zip/unzip, fastfetch (with the black holes as its logo) — with `ls`/`cat`/`du`/`grep` aliased to the modern ones |
-| Fonts | JetBrainsMono Nerd Font, Noto |
+| Fonts | JetBrainsMono Nerd Font, Noto with its CJK and emoji faces, so Japanese, Chinese and Korean text renders instead of boxes |
 | Firewall | ufw, deny incoming and allow outgoing, ssh kept when sshd is enabled; ufw-docker so Docker's published ports respect it |
+| Updates | `ikigai-update` (below). `paccache.timer` trims the package cache weekly to three versions; kernel-modules-hook keeps the running kernel's modules through an upgrade, so USB, Wi-Fi and Docker's netfilter survive until you reboot |
 | Gaming | Not installed by default. `ikigai-steam` installs Steam, the 32-bit driver for your GPU, gamemode, gamescope and mangohud and launches it; Proton comes with Steam, [protonup-qt](https://github.com/DavidoTek/ProtonUp-Qt) for Proton-GE |
 
 ### Keys
@@ -114,8 +117,8 @@ type the word.
 
 | | |
 |---|---|
-| `ikigai-update` | `pacman -Syu`, `paru -Sua`, then pull Ikigai and rerun the installer steps that changed; `--no-pkg` / `--pkg` for one half |
-| `ikigai-doctor` | is this box's Ikigai whole and current: installed commit, units, greeter, patched Qt, firewall, seeds |
+| `ikigai-update` | `pacman -Syu`, `paru -Sua`, a line for orphans and `.pacnew` files if there are any, then pull Ikigai and rerun the installer steps that changed; `--no-pkg` / `--pkg` for one half |
+| `ikigai-doctor` | is this box's Ikigai whole and current: installed commit, units, keyring and ssh agent, greeter, patched Qt, firewall, pacman timers, seeds |
 | `ikigai-keys` | every binding (`--fzf` to search) |
 | `ikigai-steam` | Steam, gamemode, gamescope, mangohud and the 32-bit driver, then launches it |
 | `ikigai-shell welcome open` | the first-login card again |
@@ -153,7 +156,8 @@ type the word.
   one in front of you); both reload live. cosmic-comp's shortcuts point at the shell over
   `ikigai-shell <target> <call>` (Quickshell IPC). `ikigai.desktop` is the only session
   entry.
-- **The greeter is the shell.** greetd runs `ikigai-greeter` as its own user: cosmic-comp
+- **The greeter is the shell.** greetd runs `ikigai-greeter` as its own user, under its
+  own PAM service (Arch's login stack plus gnome-keyring): cosmic-comp
   in kiosk mode with the Quickshell greeter as its only client. No daemon: theme and
   wallpaper from `/usr/local/share/ikigai/theme`, users from `/etc/passwd`, avatars from
   AccountsService. When the card succeeds cosmic-comp exits with it and greetd starts the
@@ -191,7 +195,7 @@ and those packages are no longer installed. Both install paths work end to end.
 seed-once (edit yours, or `IKIGAI_FORCE=1`).
 
 Not yet: a settings card for the rail, a chooser when polkit offers several admins,
-multi-monitor beyond "the rail on every screen, the cards on `monitor`"; the greeter's card stays on the first.
+a pairing agent on the Bluetooth card.
 
 Next, roughly in order: those, reconciling seeded files on update `.pacnew`-style (the
 seed hashes are already recorded), a custom pacman repo so the installer needs no

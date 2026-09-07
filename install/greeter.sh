@@ -9,6 +9,7 @@ sudo install -Dm644 "$G/tmpfiles.conf" /etc/tmpfiles.d/ikigai-greeter.conf
 sudo systemd-sysusers ikigai-greeter.conf
 sudo systemd-tmpfiles --create ikigai-greeter.conf
 sudo install -Dm644 "$G/ikigai-greeter.toml" /etc/greetd/ikigai-greeter.toml
+sudo install -Dm644 "$G/ikigai-greeter.pam" /etc/pam.d/ikigai-greeter
 sudo install -Dm644 "$G/ikigai-greeter.service" /usr/local/lib/systemd/system/ikigai-greeter.service
 # No running systemd inside archinstall's chroot; enable works on the files alone.
 sudo systemctl daemon-reload 2>/dev/null || true

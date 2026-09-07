@@ -84,8 +84,10 @@ sudo install -Dm644 "$SRC/zen/policies.json" /etc/zen/policies/policies.json
 
 # Discord and YouTube Music are Chromium, whose autoscroll is in the Linux build behind a blink
 # flag. Same entries with the flag, earlier in XDG_DATA_DIRS, like the Settings entry above.
+# Chromium also picks its password store from the desktop's name and knows no COSMIC, so it
+# would keep cookies and tokens in a plaintext "basic" store: name the keyring outright.
 for entry in discord com.github.th-ch.youtube-music; do
-  sed 's|^Exec=\([^ ]*\)|Exec=\1 --enable-blink-features=MiddleClickAutoscroll|' "/usr/share/applications/$entry.desktop" \
+  sed 's|^Exec=\([^ ]*\)|Exec=\1 --enable-blink-features=MiddleClickAutoscroll --password-store=gnome-libsecret|' "/usr/share/applications/$entry.desktop" \
     | sudo install -Dm644 /dev/stdin "/usr/local/share/applications/$entry.desktop"
 done
 

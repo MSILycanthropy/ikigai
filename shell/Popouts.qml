@@ -15,6 +15,7 @@ Item {
     readonly property bool volumeOpen: current === volume
     readonly property bool batteryOpen: current === battery
     readonly property bool networkOpen: current === network
+    readonly property bool bluetoothOpen: current === bluetooth
     readonly property Item card: frame.height > 0 ? frame : null
 
     width: 280
@@ -55,6 +56,13 @@ Item {
             close();
         else
             show(network, at, null);
+    }
+
+    function toggleBluetooth(at) {
+        if (current === bluetooth)
+            close();
+        else
+            show(bluetooth, at, null);
     }
 
     function toggleBattery(at) {
@@ -155,6 +163,12 @@ Item {
         NetworkCard {
             id: network
             shown: popouts.current === network
+            onDone: popouts.close()
+        }
+
+        BluetoothCard {
+            id: bluetooth
+            shown: popouts.current === bluetooth
             onDone: popouts.close()
         }
     }

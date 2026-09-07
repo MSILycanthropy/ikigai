@@ -1,17 +1,19 @@
 import QtQuick
 
 // Status items above the clock: the tray icons no rail button already owns, the network,
-// the battery when there is one, then the output volume (scroll to adjust, click for the
-// card).
+// Bluetooth when there is an adapter, the battery when there is one, then the output
+// volume (scroll to adjust, click for the card).
 Column {
     id: status
 
     readonly property alias networkButton: network
     property bool networkOpen: false
+    property bool bluetoothOpen: false
     property bool batteryOpen: false
     property bool volumeOpen: false
 
     signal networkRequested(Item at)
+    signal bluetoothRequested(Item at)
     signal batteryRequested(Item at)
     signal volumeRequested(Item at)
     signal trayMenuRequested(var item, Item at)
@@ -36,6 +38,20 @@ Column {
             name: Network.icon
             size: Theme.iconSize
             color: Network.connected ? Theme.colors.fg : Theme.colors.fgVariant
+        }
+    }
+
+    BarButton {
+        id: bluetooth
+        visible: Bluetooth.present
+        checked: status.bluetoothOpen
+        onClicked: status.bluetoothRequested(bluetooth)
+
+        Glyph {
+            anchors.centerIn: parent
+            name: Bluetooth.icon
+            size: Theme.iconSize
+            color: Bluetooth.connectedCount > 0 ? Theme.colors.fg : Theme.colors.fgVariant
         }
     }
 

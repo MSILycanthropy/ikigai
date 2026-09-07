@@ -52,6 +52,8 @@ singleton Power 1.0 Power.qml
 BatteryCard 1.0 BatteryCard.qml
 Pill 1.0 Pill.qml
 singleton Network 1.0 Network.qml
+singleton Bluetooth 1.0 Bluetooth.qml
+BluetoothCard 1.0 BluetoothCard.qml
 NetworkCard 1.0 NetworkCard.qml
 WifiAuth 1.0 WifiAuth.qml
 TrayButton 1.0 TrayButton.qml

@@ -14,6 +14,8 @@ Scope {
     property bool open: false
     property var order: []
     property int index: 0
+    // Frozen at open: the overlay's own focus claim would otherwise move it mid-cycle.
+    property var screen: null
 
     IpcHandler {
         target: "switcher"
@@ -29,6 +31,7 @@ Scope {
             if (order.length === 0)
                 return;
             index = 0;
+            screen = Screens.focused;
             open = true;
             Bridge.capture(order.map(w => w.id));
         }
@@ -112,7 +115,7 @@ Scope {
 
         PanelWindow {
             id: window
-            screen: Screens.primary
+            screen: switcher.screen
 
             readonly property int shadowRoom: 24
             readonly property int tileWidth: Math.round(216 * Config.scale)

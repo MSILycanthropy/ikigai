@@ -22,6 +22,13 @@ if [ "$pkg" = 1 ]; then
   echo "==> packages"
   sudo pacman -Syu
   command -v paru >/dev/null && paru -Sua
+  # Leftovers pacman won't mention on its own. paccache.timer trims the cache weekly.
+  orphans=$(pacman -Qdtq 2>/dev/null | tr '\n' ' ')
+  [ -n "$orphans" ] && echo "orphaned packages (pacman -Rns \$(pacman -Qdtq) removes them): $orphans"
+  if command -v pacdiff >/dev/null; then
+    pacnew=$(pacdiff -o 2>/dev/null | wc -l)
+    [ "$pacnew" -gt 0 ] && echo "$pacnew .pacnew/.pacsave file(s) in /etc (sudo pacdiff to merge)"
+  fi
 fi
 
 [ "$self" = 1 ] || exit 0

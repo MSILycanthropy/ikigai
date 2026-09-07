@@ -230,6 +230,7 @@ PanelWindow {
                     topMargin: Theme.border
                     horizontalCenter: parent.horizontalCenter
                 }
+                screen: bar.screen
                 workspacesOpen: popouts.workspacesOpen
                 onMenuRequested: (task, at) => popouts.openMenu(task, at)
                 onWindowsRequested: (task, at) => popouts.openWindows(task, at)
@@ -243,7 +244,7 @@ PanelWindow {
                     bottomMargin: 8
                     horizontalCenter: parent.horizontalCenter
                 }
-                tasks: Tasks.bottom
+                tasks: Tasks.onScreen(Tasks.bottom, bar.screen)
                 onMenuRequested: (task, at) => popouts.openMenu(task, at)
                 onWindowsRequested: (task, at) => popouts.openWindows(task, at)
                 onDismissRequested: popouts.close()
@@ -257,9 +258,11 @@ PanelWindow {
                     horizontalCenter: parent.horizontalCenter
                 }
                 networkOpen: popouts.networkOpen
+                bluetoothOpen: popouts.bluetoothOpen
                 batteryOpen: popouts.batteryOpen
                 volumeOpen: popouts.volumeOpen
                 onNetworkRequested: at => popouts.toggleNetwork(at)
+                onBluetoothRequested: at => popouts.toggleBluetooth(at)
                 onBatteryRequested: at => popouts.toggleBattery(at)
                 onVolumeRequested: at => popouts.toggleVolume(at)
                 onTrayMenuRequested: (item, at) => popouts.openTray(item, at)

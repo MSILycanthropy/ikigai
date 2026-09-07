@@ -4,6 +4,8 @@ import QtQuick
 Column {
     id: taskbar
 
+    // The screen this rail sits on, for a per-screen taskbar.
+    property var screen: null
     property bool workspacesOpen: false
     property alias taskView: taskViewButton
 
@@ -41,7 +43,7 @@ Column {
     }
 
     TaskGroup {
-        tasks: Tasks.top
+        tasks: Tasks.onScreen(Tasks.top, taskbar.screen)
         onMenuRequested: (task, at) => taskbar.menuRequested(task, at)
         onWindowsRequested: (task, at) => taskbar.windowsRequested(task, at)
         onDismissRequested: taskbar.dismissRequested()

@@ -4,8 +4,19 @@ import Quickshell.Wayland
 import QtQuick
 
 // greetd's greeter, run by ikigai-greeter under cosmic-comp: the theme's wallpaper on
-// every screen and the login card on the first.
+// every screen and the login card on the last user's primary (their shell leaves its
+// name in /var/lib/ikigai/greeter), else the first screen the compositor lists.
 ShellRoot {
+    id: root
+
+    readonly property var primary: {
+        const screens = Quickshell.screens;
+        for (let i = 0; i < screens.length; i++)
+            if (screens[i].name === Users.lastMonitor)
+                return screens[i];
+        return screens.length > 0 ? screens[0] : null;
+    }
+
     Variants {
         model: Quickshell.screens
 
@@ -16,7 +27,7 @@ ShellRoot {
             anchors { top: true; bottom: true; left: true; right: true }
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Top
-            WlrLayershell.keyboardFocus: modelData === Quickshell.screens[0] ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+            WlrLayershell.keyboardFocus: modelData === root.primary ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
             WlrLayershell.namespace: "ikigai:greeter"
             color: Theme.colors.surface
 
@@ -29,7 +40,7 @@ ShellRoot {
 
             Loader {
                 anchors.centerIn: parent
-                active: modelData === Quickshell.screens[0]
+                active: modelData === root.primary
                 focus: true
                 sourceComponent: Login {}
             }

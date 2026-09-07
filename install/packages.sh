@@ -12,7 +12,9 @@ PACMAN=(
   grim slurp satty gpu-screen-recorder mpv brightnessctl upower power-profiles-daemon
   ripgrep fd fzf bat eza dust git-delta tealdeer jq wl-clipboard ufw fastfetch zip unzip openssh
   bluez bluez-utils
-  ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji adw-gtk-theme librsvg xorg-xcursorgen
+  gnome-keyring libsecret gcr-4
+  pacman-contrib kernel-modules-hook
+  ttf-jetbrains-mono-nerd noto-fonts noto-fonts-cjk noto-fonts-emoji adw-gtk-theme librsvg xorg-xcursorgen
   pipewire pipewire-pulse wireplumber
   xdg-user-dirs
 )

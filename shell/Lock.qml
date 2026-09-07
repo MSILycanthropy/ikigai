@@ -36,19 +36,27 @@ Scope {
         config: "login"
         user: Quickshell.env("USER")
 
+        // What PAM says on the way that is not a prompt: pam_faillock's "The account is
+        // locked due to 3 failed logins. (9 minutes left to unlock)" comes as info lines
+        // before the password prompt, and without them a locked account looks like a
+        // password that stopped working.
         onPamMessage: {
             if (responseRequired)
                 respond(scope.pending);
+            else if (message !== "")
+                scope.said = scope.said ? scope.said + " " + message : message;
         }
 
         onCompleted: result => {
             scope.pending = "";
+            const said = scope.said;
+            scope.said = "";
             if (result === PamResult.Success) {
                 lock.locked = false;
                 if (scope.card)
                     scope.card.clear();
             } else if (scope.card) {
-                scope.card.reject(result === PamResult.MaxTries ? "Too many attempts" : "Wrong password");
+                scope.card.reject(said || (result === PamResult.MaxTries ? "Too many attempts" : "Wrong password"));
             }
         }
 
@@ -60,6 +68,7 @@ Scope {
     }
 
     property string pending: ""
+    property string said: ""
     property var card: null
 
     // cosmic-comp moves keyboard focus to a lock surface only while fixing up a focus
@@ -123,10 +132,29 @@ Scope {
         }
     }
 
+    // The lock's keyboard focus went wherever the compositor put it when the surfaces
+    // were made; after the outputs' sleep that is its own first output. With the primary
+    // back, do the bait dance again so the card there is the one that types, and once
+    // unlocked put the active output back on the primary for the next window.
+    Connections {
+        target: Screens
+
+        function onPrimaryChanged() {
+            if (lock.locked && Screens.primary !== null) {
+                bait.active = true;
+                releaseTimer.restart();
+            }
+        }
+    }
+
     WlSessionLock {
         id: lock
         locked: false
         onSecureChanged: scope.setLockedHint(secure)
+        onLockedChanged: {
+            if (!locked)
+                Screens.nudge();
+        }
 
         WlSessionLockSurface {
             id: surface
@@ -149,6 +177,7 @@ Scope {
                     Component.onCompleted: scope.card = this
                     onSubmit: password => {
                         scope.pending = password;
+                        scope.said = "";
                         pam.start();
                     }
                 }

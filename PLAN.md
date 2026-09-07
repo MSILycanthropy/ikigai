@@ -93,6 +93,30 @@ The first-login welcome card (First login row) landed 2026-09-05.
    as a 1 s rail flicker. Cause: the Qt layer-shell patch's null commit, which lock surfaces
    forbid; the patch now skips the commit for lock windows (packages/qt6-base/README.md).
 
+8. Keyring, faillock and pacman hygiene, 2026-09-07. greetd moves to `/etc/pam.d/ikigai-greeter`
+   (login stack + `pam_gnome_keyring` auth and `session auto_start`); `gcr-ssh-agent.socket`
+   enabled globally, `SSH_AUTH_SOCK` set by `ikigai-session` on cosmic-comp and the user manager
+   (the socket's own `set-environment` only reaches units, not the shortcuts' terminal); the
+   Chromium entries get `--password-store=gnome-libsecret`. Lock and Login keep PAM's info lines
+   (`pam_faillock` says "locked due to 3 failed logins (N minutes left)" as `pam_info`, not an
+   error) and show them in place of "Wrong password". `pacman-contrib` + `paccache.timer`,
+   `kernel-modules-hook` + `linux-modules-cleanup.service`; `ikigai-update` reports orphans and
+   pacnews. Not verified on the VM yet: a fresh install with the keyring, a lockout on the greeter.
+
+9. Bluetooth, fonts and multi-monitor, 2026-09-07. `shell/Bluetooth.qml` wraps Quickshell's
+   `Quickshell.Bluetooth` (imported qualified: the singleton shares the name) like Power wraps
+   UPower: default adapter, enabled/discovering, `listed` (paired first, nameless advertisers
+   dropped), a connected count kept by an Instantiator since ObjectModel changes don't re-run
+   filters over device properties; `BluetoothCard.qml` mirrors NetworkCard (discovering while
+   shown, click = connect or pair + trust, right-click = Disconnect/Forget, battery). No agent:
+   PIN pairing is cosmic-settings'. `noto-fonts-cjk` in PACMAN. Multi-monitor: `Screens.focused`
+   (the activated toplevel's output, else primary), the switcher freezes it at open (its own focus
+   claim deactivates the toplevel); `taskbar: "all"|"screen"` in shell.json via `Tasks.onScreen`;
+   the greeter's card on the last user's primary, read from `/var/lib/ikigai/greeter/<user>`
+   (tmpfiles, 1777) which `Screens.qml` writes on every `monitor` change. Toasts stay on the
+   primary, as Windows has it. Not verified on hardware yet: the Bluetooth card (no adapter on
+   the VM; `btvirt`/`mac80211_hwsim`-style testing is the next step), the greeter file.
+
 ## Apps (decided 2026-09-03)
 
 Independent of the v2 steps: everything lands in the installer and README and works in
