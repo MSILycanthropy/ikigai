@@ -92,14 +92,19 @@ Scope {
         }
     }
 
-    // The drop gathers slowly, falls fast and overshoots into its wobble; lifting back
-    // is quick and eases into the border.
+    // The drop gathers slowly, falls fast and overshoots into its wobble. Lifting back
+    // is the same curve a little quicker: the card gathers itself, shoots up and
+    // overshoots into the border (progress past 0 clamps, so it just sits).
     readonly property list<real> dropCurve: [0.55, 0, 0.45, 1.15, 1, 1]
 
+    // Keyed off the value the Behavior was handed, not `open`: the write to `progress`
+    // happens inside open's change handler, before bindings on `open` have caught up,
+    // so reading `open` here gave every drop the lift's timing and every lift the drop's.
     Behavior on progress {
+        id: motion
         Anim {
-            duration: launcher.open ? 500 : 250
-            easing.bezierCurve: launcher.open ? launcher.dropCurve : Motion.fastEffectsCurve
+            duration: motion.targetValue > 0 ? 500 : 400
+            easing.bezierCurve: launcher.dropCurve
         }
     }
 
