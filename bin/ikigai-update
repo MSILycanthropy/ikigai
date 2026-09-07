@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Update the box: Arch and AUR packages, then Ikigai itself — pull the checkout and rerun
+# the installer steps that changed since the installed commit (just update). Restarts the
+# shell when something was reinstalled; session and greeter changes want a log out.
+#   ikigai-update              packages + Ikigai
+#   ikigai-update --no-pkg     Ikigai only
+#   ikigai-update --pkg        packages only
+set -euo pipefail
+
+IKIGAI_PATH="${IKIGAI_PATH:-$HOME/.local/share/ikigai}"
+IKIGAI_REF="${IKIGAI_REF:-main}"
+STATE="${IKIGAI_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/ikigai}"
+pkg=1 self=1
+case "${1:-}" in
+  --no-pkg) pkg=0 ;;
+  --pkg) self=0 ;;
+  "") ;;
+  *) sed -n '2,7p' "$0" >&2; exit 2 ;;
+esac
+
+if [ "$pkg" = 1 ]; then
+  echo "==> packages"
+  sudo pacman -Syu
+  command -v paru >/dev/null && paru -Sua
+fi
+
+[ "$self" = 1 ] || exit 0
+[ -d "$IKIGAI_PATH/.git" ] || { echo "no checkout at $IKIGAI_PATH; run boot.sh" >&2; exit 1; }
+
+echo "==> ikigai"
+if git -C "$IKIGAI_PATH" diff --quiet HEAD && [ "$(git -C "$IKIGAI_PATH" rev-parse --abbrev-ref HEAD)" = "$IKIGAI_REF" ]; then
+  git -C "$IKIGAI_PATH" pull -q --ff-only origin "$IKIGAI_REF" || echo "pull failed; updating from what's checked out" >&2
+else
+  echo "checkout is dirty or not on $IKIGAI_REF; updating from what's checked out" >&2
+fi
+
+before=$(cat "$STATE/installed_commit" 2>/dev/null || true)
+just -f "$IKIGAI_PATH/justfile" update
+after=$(cat "$STATE/installed_commit" 2>/dev/null || true)
+
+if [ "$before" != "$after" ] && [ -n "${WAYLAND_DISPLAY:-}" ] && systemctl --user is-active -q ikigai-shell; then
+  echo "==> restarting the shell"
+  just -f "$IKIGAI_PATH/justfile" restart
+fi
