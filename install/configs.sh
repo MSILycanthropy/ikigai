@@ -102,12 +102,13 @@ sudo install -Dm644 "$IKIGAI_PATH/config/applications/mimeapps.list" /usr/local/
   sudo install -Dm644 "$SRC/system/etc/$f" "/etc/$f"
 done
 
-# zram: compressed swap sized to RAM, unless the box already has a zram-generator.conf of its own.
-if [ -f /etc/systemd/zram-generator.conf ] && [ ! -f /etc/systemd/zram-generator.conf.d/ikigai.conf ]; then
-  echo "kept existing /etc/systemd/zram-generator.conf (config/system/zram/ikigai.conf not installed)"
-else
-  sudo install -Dm644 "$SRC/system/zram/ikigai.conf" /etc/systemd/zram-generator.conf.d/ikigai.conf
-fi
+# zram: compressed swap sized to RAM (config/system/zram). A conf.d drop-in overrides the keys of
+# any /etc/systemd/zram-generator.conf archinstall left behind, so it goes in regardless; the old
+# "keep the existing file" guard left that stub's 4 GiB default in place. The size applies when
+# zram0 is next set up: at boot, or `systemctl restart systemd-zram-setup@zram0` on an idle box
+# (a restart swaps everything back into RAM first).
+sudo install -Dm644 "$SRC/system/zram/ikigai.conf" /etc/systemd/zram-generator.conf.d/ikigai.conf
+sudo systemctl daemon-reload
 
 # powerprofilesctl runs under `env python3`; once mise puts its own python first on PATH that
 # interpreter has no gi and the command dies. Pin it to the system python now, and after every

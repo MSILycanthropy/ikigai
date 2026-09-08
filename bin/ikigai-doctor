@@ -81,7 +81,13 @@ if systemctl -q is-enabled scx_loader 2>/dev/null; then
   sched=$(cat /sys/kernel/sched_ext/root/ops 2>/dev/null || true)
   [ -n "$sched" ] && ok sched "$sched via scx_loader" || warn sched "scx_loader enabled but sched_ext is off ($(cat /sys/kernel/sched_ext/state 2>/dev/null || echo 'no sched_ext in this kernel')); EEVDF"
 else warn sched "scx_loader not enabled (just install services)"; fi
-[ -e /sys/block/zram0 ] && ok zram "zram0 $(swapon --show=SIZE --noheadings /dev/zram0 2>/dev/null | tr -d ' ')" || warn zram "no zram0 (zram-generator; comes up at boot)"
+if [ -e /sys/block/zram0 ]; then
+  zsize=$(swapon --show=SIZE --noheadings --bytes /dev/zram0 2>/dev/null); zused=$(swapon --show=USED --noheadings --bytes /dev/zram0 2>/dev/null)
+  ram=$(( $(awk '/^MemTotal/{print $2}' /proc/meminfo) * 1024 ))
+  if [ "${zsize:-0}" -lt "$ram" ]; then warn zram "zram0 $(numfmt --to=iec "${zsize:-0}") < RAM (drop-in not applied; reboot, or restart systemd-zram-setup@zram0 when idle)"
+  elif [ $(( zused * 100 / zsize )) -ge 90 ]; then warn zram "zram0 $(numfmt --to=iec "$zused")/$(numfmt --to=iec "$zsize") used: swap full, only file cache left to reclaim"
+  else ok zram "zram0 $(numfmt --to=iec "$zsize"), $(numfmt --to=iec "$zused") used"; fi
+else warn zram "no zram0 (zram-generator; comes up at boot)"; fi
 [ "$(systemctl is-enabled NetworkManager-wait-online.service 2>/dev/null)" = masked ] && ok boot "NetworkManager-wait-online masked" || warn boot "NetworkManager-wait-online not masked (just install services)"
 [ "$(getent passwd "$USER" | cut -d: -f7)" = "$(command -v zsh)" ] && ok shell-login zsh || warn shell-login "login shell is not zsh"
 id -nG | tr ' ' '\n' | grep -qx docker && ok docker "in docker group" || warn docker "not in docker group (re-login after install)"
