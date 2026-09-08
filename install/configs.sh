@@ -92,7 +92,9 @@ for entry in discord com.github.th-ch.youtube-music; do
 done
 
 # Default apps as the lowest XDG layer ($XDG_DATA_DIRS/applications/mimeapps.list): Zen for
-# the web and PDFs. Settings' Default Apps page writes ~/.config/mimeapps.list, which wins.
+# the web and PDFs, Cosmic Files for folders (yazi.desktop also claims inode/directory, and
+# without a pin the winner is whichever mimeinfo.cache lists first). Settings' Default Apps
+# page writes ~/.config/mimeapps.list, which wins.
 sudo install -Dm644 "$IKIGAI_PATH/config/applications/mimeapps.list" /usr/local/share/applications/mimeapps.list
 
 # System drop-ins, mirrored from config/system/etc: 5 s stop timeouts at shutdown (docker keeps

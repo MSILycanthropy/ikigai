@@ -3,3 +3,4 @@ x-scheme-handler/http=zen.desktop
 x-scheme-handler/https=zen.desktop
 text/html=zen.desktop
 application/pdf=zen.desktop
+inode/directory=com.system76.CosmicFiles.desktop
