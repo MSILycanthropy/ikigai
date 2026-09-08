@@ -91,6 +91,11 @@ else warn zram "no zram0 (zram-generator; comes up at boot)"; fi
 [ "$(systemctl is-enabled NetworkManager-wait-online.service 2>/dev/null)" = masked ] && ok boot "NetworkManager-wait-online masked" || warn boot "NetworkManager-wait-online not masked (just install services)"
 [ "$(getent passwd "$USER" | cut -d: -f7)" = "$(command -v zsh)" ] && ok shell-login zsh || warn shell-login "login shell is not zsh"
 id -nG | tr ' ' '\n' | grep -qx docker && ok docker "in docker group" || warn docker "not in docker group (re-login after install)"
+# 610.x open modules crash Deadlock and other Proton games with Xid 109 CTX SWITCH TIMEOUT (nvidia
+# forums, Arch bbs 313841); the AUR 580xx LTS branch is the pin until a release fixes it.
+if pacman -Q nvidia-580xx-dkms >/dev/null 2>&1; then
+  warn nvidia "pinned to $(pacman -Q nvidia-580xx-dkms | cut -d' ' -f2) (AUR) for Xid 109 in 610.x; when a later nvidia-open-dkms fixes it: paru -S nvidia-open-dkms nvidia-utils lib32-nvidia-utils"
+fi
 if pacman -Q gamemode >/dev/null 2>&1; then
   if ! getent group gamemode | grep -qw "$USER"; then warn gamemode "not in the gamemode group (ikigai-steam)"
   elif ! id -nG | tr ' ' '\n' | grep -qx gamemode; then warn gamemode "in the gamemode group, this login is not: gamemoderun cannot renice until you log out and in"
