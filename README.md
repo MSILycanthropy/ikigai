@@ -90,10 +90,11 @@ whichever one you had, and cosmic-comp's defaults land as system config next to 
 | Fonts | JetBrainsMono Nerd Font, Noto with its CJK and emoji faces, so Japanese, Chinese and Korean text renders instead of boxes |
 | Firewall | ufw, deny incoming and allow outgoing, ssh kept (rate-limited against brute force) when sshd is enabled; ufw-docker so Docker's published ports respect it |
 | Memory | zram: compressed swap the size of RAM, zstd, before any disk swap. systemd-oomd kills the one runaway app when the apps' slice has sat under memory pressure, or swap is nearly full, instead of the box thrashing; the shell and compositor are never candidates |
+| Scheduler | sched_ext's [LAVD](https://github.com/sched-ext/scx) instead of the kernel's EEVDF, loaded by `scx_loader` at boot. EEVDF shares the CPU fairly per thread, so a 12-thread build drops a game to single digits; LAVD, written for the Steam Deck, spots the tasks that wake and sleep between frames and lets them preempt the build, which barely slows. `scxctl stop` is EEVDF again, live |
 | Boot, shutdown | graphical.target never waits on DHCP or Wi-Fi (`NetworkManager-wait-online` masked). At shutdown a stuck service gets 5 s, not 90; Docker keeps 30 to stop its containers cleanly |
 | Fixes | ssh notices a dropped connection within a minute (`/etc/ssh/ssh_config.d`, `~/.ssh/config` wins). The Wi-Fi regulatory domain is set from your timezone's country. Apple-style keyboards get F-keys on the F row (`hid_apple fnmode=2`). `powerprofilesctl` is pinned to the system python so a mise-managed one cannot break it, re-pinned by a pacman hook after each upgrade |
 | Updates | `ikigai-update` (below). `paccache.timer` trims the package cache weekly to three versions; kernel-modules-hook keeps the running kernel's modules through an upgrade, so USB, Wi-Fi and Docker's netfilter survive until you reboot |
-| Gaming | Not installed by default. `ikigai-steam` installs Steam, the 32-bit driver for your GPU, gamemode, gamescope and mangohud and launches it; Proton comes with Steam, [protonup-qt](https://github.com/DavidoTek/ProtonUp-Qt) for Proton-GE |
+| Gaming | Not installed by default. `ikigai-steam` installs Steam, the 32-bit driver for your GPU, gamemode (and puts you in its group, so `gamemoderun` can renice a game from your next login), gamescope and mangohud and launches it; Proton comes with Steam, [protonup-qt](https://github.com/DavidoTek/ProtonUp-Qt) for Proton-GE |
 
 ### Keys
 

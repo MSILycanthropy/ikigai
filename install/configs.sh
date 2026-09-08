@@ -96,8 +96,8 @@ done
 sudo install -Dm644 "$IKIGAI_PATH/config/applications/mimeapps.list" /usr/local/share/applications/mimeapps.list
 
 # System drop-ins, mirrored from config/system/etc: 5 s stop timeouts at shutdown (docker keeps
-# a longer one), systemd-oomd's kill policy for app.slice and swap, ssh client keepalives,
-# F-keys on Apple-style keyboards, and the powerprofilesctl hook below.
+# a longer one), systemd-oomd's kill policy for app.slice and swap, scx_loader's scheduler,
+# ssh client keepalives, F-keys on Apple-style keyboards, and the powerprofilesctl hook below.
 (cd "$SRC/system/etc" && find . -type f) | while read -r f; do
   sudo install -Dm644 "$SRC/system/etc/$f" "/etc/$f"
 done

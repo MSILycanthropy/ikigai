@@ -14,9 +14,16 @@ case "$gpu" in
 esac
 
 sudo pacman -S --needed "${packages[@]}"
+# gamemode renices a game to -10 (/etc/security/limits.d/10-gamemode.conf) for members of its
+# group only; groups are read at login, so the first gamemoderun after this install still runs
+# the game at nice 0.
+if ! id -nG | tr ' ' '\n' | grep -qx gamemode; then
+  sudo usermod -aG gamemode "$USER"
+  echo "added $USER to the gamemode group: gamemoderun renices games from your next login"
+fi
 echo
 echo "Steam installed (gpu: $gpu). Launch options worth knowing:"
-echo "  gamemoderun %command%            performance governor while the game runs"
+echo "  gamemoderun %command%            performance governor and nice -10 while the game runs"
 echo "  mangohud %command%               fps and hardware overlay"
 echo "  gamescope -f -- %command%        nested session: forced resolution, FSR, sane fullscreen"
 echo "Proton-GE: protonup-qt (AUR) installs community Proton builds Steam can pick per game."
