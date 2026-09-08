@@ -48,7 +48,7 @@ case "${1:-region}" in
     if pkill -INT -x gpu-screen-recorder; then exit 0; fi
     geometry=$(slurp -w 2 -b "#$(color surface 100e0d)b3" -c "#$(color error ff716c)ff" -s "#00000000" -f '%wx%h+%x+%y') || exit 0
     dir="$(xdg-user-dir VIDEOS)/Recordings"; mkdir -p "$dir"
-    exec gpu-screen-recorder -w region -region "$geometry" -f 60 -a default_output -c mp4 -cursor yes -o "$dir/$(date +%Y-%m-%d_%H-%M-%S).mp4"
+    exec gpu-screen-recorder -w region -region "$geometry" -f 60 -a default_output -c mp4 -cursor yes -fallback-cpu-encoding yes -o "$dir/$(date +%Y-%m-%d_%H-%M-%S).mp4"
     ;;
   *)
     echo "usage: ikigai-shot [region|screen|record]" >&2

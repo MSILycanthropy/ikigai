@@ -7,7 +7,9 @@ import QtQuick
 // (its KMS path, no compositor protocol involved) or a whole output, with the system's
 // audio, into ~/Videos/Recordings. Stopping saves the file and puts its path on the
 // clipboard. The shell only resolves the directory and execs the recorder, so the stop
-// signal reaches the recorder itself.
+// signal reaches the recorder itself. The encoder is the GPU's when ffmpeg can drive it
+// and x264 on the CPU when not (the NVIDIA 580xx pin's NVENC API is older than Arch's
+// ffmpeg wants); a recorder that exits without a file becomes a notification.
 Singleton {
     id: recorder
 
@@ -15,6 +17,7 @@ Singleton {
     property date since
     property int seconds: 0
     property string file: ""
+    property string lastError: ""
     readonly property string elapsed: (seconds < 600 ? "" : Math.floor(seconds / 3600) + ":") + pad(Math.floor(seconds / 60) % 60) + ":" + pad(seconds % 60)
 
     function pad(n) { return (n < 10 ? "0" : "") + n; }
@@ -34,9 +37,10 @@ Singleton {
             : ["-w", screen.name];
         console.info("record start", source.join(" "));
         file = "";
+        lastError = "";
         process.command = ["sh", "-c",
             'd="$(xdg-user-dir VIDEOS)/Recordings" && mkdir -p "$d" && echo "$d/$0" && exec gpu-screen-recorder "$@" -o "$d/$0"',
-            fileName(), ...source, "-f", "60", "-a", "default_output", "-c", "mp4", "-cursor", "yes"];
+            fileName(), ...source, "-f", "60", "-a", "default_output", "-c", "mp4", "-cursor", "yes", "-fallback-cpu-encoding", "yes"];
         since = new Date();
         seconds = 0;
         process.running = true;
