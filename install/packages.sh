@@ -21,7 +21,13 @@ PACMAN=(
 AUR=(zen-browser-bin vicinae-bin pear-desktop-bin cosmic-viewer-git ttf-phosphor-icons ufw-docker)
 
 case "$(cat "$IKIGAI_STATE/gpu")" in
-  nvidia) PACMAN+=(nvidia-open-dkms nvidia-utils linux-headers) ;;
+  # Pinned to the 580xx LTS branch (AUR, proprietary modules): the 610.x open modules crash
+  # Deadlock and other Proton games with Xid 109 CTX SWITCH TIMEOUT (Arch bbs 313841). The
+  # nvidia-580xx-utils pkgbase builds the utils and dkms packages together. Back to
+  # nvidia-open-dkms nvidia-utils (and lib32-nvidia-utils in ikigai-steam) once a release fixes it;
+  # a box that already has 610 installed swaps with `paru -S --batchinstall`, since the old lib32
+  # package pins nvidia-utils to its exact version and this loop installs one pkgbase at a time.
+  nvidia) PACMAN+=(linux-headers); AUR+=(nvidia-580xx-utils lib32-nvidia-580xx-utils) ;;
   amd)    PACMAN+=(mesa vulkan-radeon) ;;
   intel)  PACMAN+=(mesa vulkan-intel) ;;
 esac

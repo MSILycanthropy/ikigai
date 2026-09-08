@@ -187,8 +187,9 @@ installed commit, `just doctor` says what is installed, running, patched and dri
 
 ## Hardware
 
-AMD and Intel graphics are first-class. NVIDIA gets `nvidia-open-dkms` installed and
-is otherwise best-effort — COSMIC on NVIDIA is upstream's problem before it's ours.
+AMD and Intel graphics are first-class. NVIDIA gets the driver installed (the AUR 580xx LTS
+branch for now: the 610.x open modules crash Proton games with Xid 109, and `ikigai-doctor`
+nags until the pin comes out) and is otherwise best-effort — COSMIC on NVIDIA is upstream's problem before it's ours.
 The reference test environment is a fresh install in a QEMU VM (`just vm`); that's the
 path we actually verify.
 

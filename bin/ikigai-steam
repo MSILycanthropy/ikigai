@@ -7,7 +7,7 @@ set -euo pipefail
 gpu=$(cat "${IKIGAI_STATE:-$HOME/.local/state/ikigai}/gpu" 2>/dev/null || echo none)
 packages=(steam ttf-liberation gamemode gamescope mangohud)
 case "$gpu" in
-  nvidia) packages+=(lib32-nvidia-utils) ;;
+  nvidia) pacman -Q lib32-nvidia-580xx-utils >/dev/null 2>&1 || packages+=(lib32-nvidia-utils) ;;   # the 580xx pin brings its own lib32 (install/packages.sh)
   amd)    packages+=(lib32-mesa lib32-vulkan-radeon) ;;
   intel)  packages+=(lib32-mesa lib32-vulkan-intel) ;;
   *)      packages+=(lib32-mesa lib32-vulkan-swrast) ;;   # no GPU: software rendering, pacman would otherwise ask
