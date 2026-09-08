@@ -91,6 +91,12 @@ else warn zram "no zram0 (zram-generator; comes up at boot)"; fi
 [ "$(systemctl is-enabled NetworkManager-wait-online.service 2>/dev/null)" = masked ] && ok boot "NetworkManager-wait-online masked" || warn boot "NetworkManager-wait-online not masked (just install services)"
 [ "$(getent passwd "$USER" | cut -d: -f7)" = "$(command -v zsh)" ] && ok shell-login zsh || warn shell-login "login shell is not zsh"
 id -nG | tr ' ' '\n' | grep -qx docker && ok docker "in docker group" || warn docker "not in docker group (re-login after install)"
+if pacman -Q gamemode >/dev/null 2>&1; then
+  if ! getent group gamemode | grep -qw "$USER"; then warn gamemode "not in the gamemode group (ikigai-steam)"
+  elif ! id -nG | tr ' ' '\n' | grep -qx gamemode; then warn gamemode "in the gamemode group, this login is not: gamemoderun cannot renice until you log out and in"
+  elif [ ! -e "${XDG_CONFIG_HOME:-$HOME/.config}/gamemode.ini" ]; then warn gamemode "no ~/.config/gamemode.ini: gamemoderun does not renice (ikigai-steam seeds one)"
+  else ok gamemode "group in session, renice=$(sed -n 's/^renice=//p' "${XDG_CONFIG_HOME:-$HOME/.config}/gamemode.ini")"; fi
+fi
 
 # ---- seeds -------------------------------------------------------------------------
 if [ -x "$IKIGAI_PATH/scripts/config-diff.sh" ]; then
