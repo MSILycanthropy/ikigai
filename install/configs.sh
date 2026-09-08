@@ -97,10 +97,12 @@ sudo install -Dm644 "$IKIGAI_PATH/config/applications/mimeapps.list" /usr/local/
 
 # System drop-ins, mirrored from config/system/etc: 5 s stop timeouts at shutdown (docker keeps
 # a longer one), systemd-oomd's kill policy for app.slice and swap, scx_loader's scheduler,
-# ssh client keepalives, F-keys on Apple-style keyboards, and the powerprofilesctl hook below.
+# ssh client keepalives, F-keys on Apple-style keyboards, zram-aware vm sysctls, and the
+# powerprofilesctl hook below.
 (cd "$SRC/system/etc" && find . -type f) | while read -r f; do
   sudo install -Dm644 "$SRC/system/etc/$f" "/etc/$f"
 done
+sudo sysctl -q --system   # the sysctl.d drop-ins, live
 
 # zram: compressed swap sized to RAM (config/system/zram). A conf.d drop-in overrides the keys of
 # any /etc/systemd/zram-generator.conf archinstall left behind, so it goes in regardless; the old
