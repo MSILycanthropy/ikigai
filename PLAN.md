@@ -112,6 +112,10 @@ The first-login welcome card (First login row) landed 2026-09-05.
    PIN pairing is cosmic-settings'. `noto-fonts-cjk` in PACMAN. Multi-monitor: `Screens.focused`
    (the activated toplevel's output, else primary), the switcher freezes it at open (its own focus
    claim deactivates the toplevel); `taskbar: "all"|"screen"` in shell.json via `Tasks.onScreen`;
+   2026-09-08: the switcher went back to the primary. Windows shows Alt+Tab on the primary display
+   whichever monitor the active window or the mouse is on (Microsoft Q&A 5842953; AltTabMod exists
+   to move it to the mouse), and following the focused window put the card on the second monitor
+   whenever the last switch had landed there. `Screens.focused` stays for the launcher;
    the greeter's card on the last user's primary, read from `/var/lib/ikigai/greeter/<user>`
    (tmpfiles, 1777) which `Screens.qml` writes on every `monitor` change. Toasts stay on the
    primary, as Windows has it. Not verified on hardware yet: the Bluetooth card (no adapter on

@@ -7,14 +7,16 @@ import QtQuick.Effects
 
 // Alt+Tab. cosmic-comp runs `ikigai-shell switcher next` on every Tab press while Alt is
 // held; the overlay takes exclusive keyboard focus when it maps, so the Alt release lands
-// here and commits. The list is frozen while open, most recent first, like Windows.
+// here and commits. The list is frozen while open, most recent first, like Windows. It
+// opens on the primary screen, also like Windows: its Alt+Tab is on the primary display
+// whichever monitor the active window or the mouse is on, so it is always in the same place.
 Scope {
     id: switcher
 
     property bool open: false
     property var order: []
     property int index: 0
-    // Frozen at open: the overlay's own focus claim would otherwise move it mid-cycle.
+    // Frozen at open, so an output dropping off mid-cycle does not move the card.
     property var screen: null
 
     IpcHandler {
@@ -31,7 +33,7 @@ Scope {
             if (order.length === 0)
                 return;
             index = 0;
-            screen = Screens.focused;
+            screen = Screens.primary;
             open = true;
             Bridge.capture(order.map(w => w.id));
         }

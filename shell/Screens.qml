@@ -34,7 +34,8 @@ Singleton {
     }
 
     // Where keyboard focus is: the screen of the activated window, else the primary. The
-    // switcher opens there, the way Windows' does.
+    // launcher opens there. Not the switcher: Windows' Alt+Tab is on the primary display
+    // whichever monitor the active window or the mouse is on, so ours is too.
     readonly property ShellScreen focused: {
         const w = Bridge.windows.find(w => w.states.includes("activated"));
         if (w)
