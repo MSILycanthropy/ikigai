@@ -20,17 +20,19 @@ parse() {
     while (/\(\s*modifiers:\s*\[([^\]]*)\](?:,\s*key:\s*"([^"]*)")?(?:,\s*description:\s*Some\("([^"]*)"\))?[^)]*\)\s*:\s*([A-Za-z]+(?:\([^)]*\))?)/g) {
       my ($m,$k,$d,$a)=($1,$2//"",$3//"",$4);
       $m =~ s/\s//g; $m =~ s/,/+/g;
-      print "$m\t$k\t$a\t$d\n";
+      print join("\x1f", $m, $k, $a, $d), "\n";
     }' "$1"
 }
 
 declare -A sys
-while IFS=$'\t' read -r name cmd; do sys[$name]=$cmd; done < <(
-  perl -0777 -ne 's{//[^\n]*}{}g; while (/([A-Za-z]+):\s*"([^"]*)"/g) { print "$1\t$2\n" }' "$(cfg system_actions)")
+while IFS=$'\x1f' read -r name cmd; do sys[$name]=$cmd; done < <(
+  perl -0777 -ne 's{//[^\n]*}{}g; while (/([A-Za-z]+):\s*"([^"]*)"/g) { print "$1\x1f$2\n" }' "$(cfg system_actions)")
 
+# The separator is US, not tab: tab is IFS whitespace, so a binding with no modifier
+# (Print) or no key (bare Super) would collapse its empty field and shift every column.
 declare -A bind desc
-while IFS=$'\t' read -r m k a d; do bind["$m|$k"]=$a; desc["$m|$k"]=$d; done < <(parse "$(cfg defaults)")
-while IFS=$'\t' read -r m k a d; do bind["$m|$k"]=$a; desc["$m|$k"]=${d:-custom}; done < <(parse "$(cfg custom)")
+while IFS=$'\x1f' read -r m k a d; do bind["$m|$k"]=$a; desc["$m|$k"]=$d; done < <(parse "$(cfg defaults)")
+while IFS=$'\x1f' read -r m k a d; do bind["$m|$k"]=$a; desc["$m|$k"]=${d:-custom}; done < <(parse "$(cfg custom)")
 
 group() {
   case "$1" in
@@ -46,7 +48,7 @@ chord() {
   local m="$1" k="$2"
   k="${k#XF86}"; k="${k/slash/\/}"; k="${k/equal/=}"; k="${k/minus/-}"
   [ ${#k} -eq 1 ] && k="${k^^}"
-  [ -n "$k" ] && echo "$m+$k" || echo "$m"
+  if [ -n "$m" ] && [ -n "$k" ]; then echo "$m+$k"; else echo "$m$k"; fi
 }
 
 label() {

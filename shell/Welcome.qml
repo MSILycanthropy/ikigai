@@ -19,7 +19,7 @@ Scope {
         ["Super+W", "task view: workspaces and their windows"],
         ["Alt+Tab", "window switcher, hold and cycle"],
         ["Super+Return", "terminal"],
-        ["Super+L", "lock"],
+        ["Super+Escape", "lock"],
         ["Print", "screenshot picker"],
         ["Super+Shift+/", "every binding"],
     ]
