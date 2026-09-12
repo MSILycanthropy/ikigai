@@ -3,9 +3,11 @@ project(ikigai-plugins LANGUAGES CXX)
 
 # Two QML modules the shell needs C++ for: `Ikigai.Blobs`, the blob renderer vendored from
 # caelestia-shell (see scripts/vendor-blobs.sh; sources untouched, the shaders' resource
-# path /shaders/*.qsb is what blobmaterial.cpp expects), and `Ikigai.Input`, a keyboard
-# modifier query for the switcher.
+# path /shaders/*.qsb is what blobmaterial.cpp expects), and `Ikigai.Input`, the keyboard's
+# modifiers for the switcher and its lock state for the password cards.
 find_package(Qt6 REQUIRED COMPONENTS Core Qml Quick ShaderTools)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(WAYLAND REQUIRED IMPORTED_TARGET wayland-client xkbcommon)
 qt_standard_project_setup(REQUIRES 6.9)
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml")
 
@@ -38,7 +40,7 @@ qt_add_qml_module(ikigai-input
     SOURCES input/keyboard.cpp input/keyboard.hpp
 )
 target_include_directories(ikigai-input PRIVATE input)
-target_link_libraries(ikigai-input PRIVATE Qt::Gui Qt::Qml)
+target_link_libraries(ikigai-input PRIVATE Qt::Gui Qt::Qml PkgConfig::WAYLAND)
 
 function(install_module target subdir)
     qt_query_qml_module(${target} QMLDIR module_qmldir TYPEINFO module_typeinfo)

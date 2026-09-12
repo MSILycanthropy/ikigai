@@ -65,8 +65,8 @@ grim, slurp and gpu-screen-recorder directly.
 
 `Super+Escape`, the idle timeout or the lid. The shell draws the card over every screen and
 checks the password through PAM. Polkit prompts are the same card with the request under
-the name. After three wrong passwords faillock locks the account for ten minutes and the
-card says so.
+the name. The card says when Caps Lock is on, in the greeter too. After three wrong
+passwords faillock locks the account for ten minutes and the card says so.
 
 ## Restore
 

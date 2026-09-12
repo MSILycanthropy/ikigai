@@ -1,9 +1,10 @@
 import QtQuick
 import QtQuick.Effects
+import Ikigai.Input
 
-// A card that asks one user for a password: avatar, name, the field, a message line,
-// then whatever the host adds below. Enter or the arrow submits; `reject` shakes the
-// card, clears the field and shows why.
+// A card that asks one user for a password: avatar, name, the field, a Caps Lock
+// warning while it is on, a message line, then whatever the host adds below. Enter or
+// the arrow submits; `reject` shakes the card, clears the field and shows why.
 Item {
     id: card
 
@@ -169,6 +170,27 @@ Item {
                         size: 18
                         color: password.text === "" ? Theme.colors.outline : Theme.colors.primary
                     }
+                }
+            }
+
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 6
+                visible: Keyboard.capsLock
+
+                Glyph {
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "arrow-fat-line-up"
+                    size: 16
+                    color: Theme.colors.warning
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Caps Lock is on"
+                    color: Theme.colors.warning
+                    font.family: Theme.fontFamily
+                    font.pixelSize: Theme.fontSize
                 }
             }
 
